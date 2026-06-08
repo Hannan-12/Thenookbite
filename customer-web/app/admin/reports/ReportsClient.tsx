@@ -59,7 +59,8 @@ export function ReportsClient({ dailyRows, monthlyRows, stats }: {
   const revChange = pct(stats.thisMonth?.revenue ?? 0, stats.lastMonth?.revenue ?? 0);
   const ordChange = pct(stats.thisMonth?.orders  ?? 0, stats.lastMonth?.orders  ?? 0);
 
-  const rows = tab === 'daily' ? dailyRows : monthlyRows;
+  const rows: Array<{ label: string; revenue: number; orders: number }> =
+    tab === 'daily' ? dailyRows : monthlyRows;
 
   // Best day / month
   const best = [...rows].sort((a, b) => b.revenue - a.revenue)[0];
