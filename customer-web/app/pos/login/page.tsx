@@ -26,6 +26,15 @@ export default function POSLoginPage() {
       return;
     }
 
+    // Block admin owner — they use /admin, not POS
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    if (adminEmail && data.user.email === adminEmail) {
+      await supabase.auth.signOut();
+      setError('Admin accounts cannot access the POS. Use the admin panel instead.');
+      setLoading(false);
+      return;
+    }
+
     // Verify this user is an active staff member
     const { data: staffRow } = await supabase
       .from('staff')
@@ -35,7 +44,7 @@ export default function POSLoginPage() {
 
     if (!staffRow || !staffRow.is_active) {
       await supabase.auth.signOut();
-      setError('Your staff account is not active. Contact admin.');
+      setError('No active staff account found. Contact admin.');
       setLoading(false);
       return;
     }

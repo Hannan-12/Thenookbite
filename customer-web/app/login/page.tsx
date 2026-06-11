@@ -25,10 +25,33 @@ function LoginForm() {
     setError(null);
 
     const supabase = createClient();
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (err) {
-      setError(err.message);
+    if (err || !data.user) {
+      setError(err?.message ?? 'Invalid email or password.');
+      setLoading(false);
+      return;
+    }
+
+    // Block admin owner from using customer login
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    if (adminEmail && data.user.email === adminEmail) {
+      await supabase.auth.signOut();
+      setError('Admin accounts cannot log in here. Use the admin panel.');
+      setLoading(false);
+      return;
+    }
+
+    // Block staff accounts from using customer login
+    const { data: staffRow } = await supabase
+      .from('staff')
+      .select('id')
+      .eq('id', data.user.id)
+      .maybeSingle();
+
+    if (staffRow) {
+      await supabase.auth.signOut();
+      setError('Staff accounts must use the POS terminal to sign in.');
       setLoading(false);
       return;
     }
