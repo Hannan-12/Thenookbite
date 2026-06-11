@@ -9,8 +9,9 @@ const NAV = [
   { href: '/admin',          label: 'DASHBOARD', icon: '▦' },
   { href: '/admin/orders',   label: 'ORDERS',    icon: '◈' },
   { href: '/admin/menu',     label: 'MENU',      icon: '◉' },
-  { href: '/admin/staff',    label: 'STAFF',     icon: '◎' },
-  { href: '/admin/reports',  label: 'REPORTS',   icon: '▲' },
+  { href: '/admin/staff',      label: 'STAFF',      icon: '◎' },
+  { href: '/admin/attendance', label: 'ATTENDANCE', icon: '◷' },
+  { href: '/admin/reports',    label: 'REPORTS',    icon: '▲' },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

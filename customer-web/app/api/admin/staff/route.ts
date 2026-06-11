@@ -9,7 +9,7 @@ export async function GET() {
   const db = createServiceClient();
   const { data, error } = await db
     .from('staff')
-    .select('id, full_name, email, role, is_active, created_at')
+    .select('id, full_name, email, role, staff_type, pin, is_active, created_at')
     .order('created_at', { ascending: false });
 
   if (error) return NextResponse.json({ detail: error.message }, { status: 500 });
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  const { full_name, email, password, role } = await req.json();
+  const { full_name, email, password, role, staff_type, pin } = await req.json();
 
   if (!full_name || !email || !password) {
     return NextResponse.json({ detail: 'full_name, email and password are required' }, { status: 400 });
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   // Insert into staff table
   const { data: staff, error: staffError } = await db
     .from('staff')
-    .insert({ id: authData.user.id, full_name, email, role: role ?? 'cashier' })
+    .insert({ id: authData.user.id, full_name, email, role: role ?? 'cashier', staff_type: staff_type ?? 'pos', pin: pin ?? null })
     .select()
     .single();
 

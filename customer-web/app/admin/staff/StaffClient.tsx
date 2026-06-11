@@ -8,6 +8,8 @@ interface StaffMember {
   full_name: string;
   email: string;
   role: string;
+  staff_type: string;
+  pin: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -20,11 +22,13 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
   const [error, setError]       = useState<string | null>(null);
   const [success, setSuccess]   = useState<string | null>(null);
 
-  const [name, setName]         = useState('');
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole]         = useState<'cashier' | 'manager'>('cashier');
-  const [showPass, setShowPass] = useState(false);
+  const [name, setName]             = useState('');
+  const [email, setEmail]           = useState('');
+  const [password, setPassword]     = useState('');
+  const [role, setRole]             = useState<'cashier' | 'manager'>('cashier');
+  const [staffType, setStaffType]   = useState<'pos' | 'non-pos'>('pos');
+  const [pin, setPin]               = useState('');
+  const [showPass, setShowPass]     = useState(false);
 
   async function createStaff(e: React.FormEvent) {
     e.preventDefault();
@@ -34,7 +38,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
     const res = await fetch('/api/admin/staff', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ full_name: name, email, password, role }),
+      body: JSON.stringify({ full_name: name, email, password, role, staff_type: staffType, pin: pin || null }),
     });
 
     const data = await res.json();
@@ -48,7 +52,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
     setStaff(prev => [data, ...prev]);
     setSuccess(`Account created for ${name}. Welcome email sent to ${email}.`);
     setShowForm(false);
-    setName(''); setEmail(''); setPassword(''); setRole('cashier');
+    setName(''); setEmail(''); setPassword(''); setRole('cashier'); setStaffType('pos'); setPin('');
     setTimeout(() => setSuccess(null), 5000);
   }
 
@@ -128,6 +132,27 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                 <option value="manager">Manager</option>
               </select>
             </div>
+            <div>
+              <label className="font-heading text-[10px] tracking-widest text-white/40 block mb-1.5">STAFF TYPE</label>
+              <select value={staffType} onChange={e => setStaffType(e.target.value as 'pos' | 'non-pos')}
+                className={inputClass + ' cursor-pointer'}>
+                <option value="pos">POS (Cashier / Manager)</option>
+                <option value="non-pos">Non-POS (Chef / Cleaner / etc.)</option>
+              </select>
+            </div>
+            <div>
+              <label className="font-heading text-[10px] tracking-widest text-white/40 block mb-1.5">
+                CHECK-IN PIN <span className="text-white/20">(4 digits — for tablet check-in)</span>
+              </label>
+              <input
+                value={pin}
+                onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="e.g. 1234"
+                maxLength={4}
+                required
+                className={inputClass}
+              />
+            </div>
 
             {error && (
               <div className="sm:col-span-2 text-[#E4002B] text-xs font-body flex items-center gap-2">
@@ -170,6 +195,9 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                   <div>
                     <p className="font-heading text-sm text-white">{s.full_name}</p>
                     <p className="font-heading text-xs text-white/30 mt-0.5">{s.email}</p>
+                    <p className="font-heading text-[10px] text-white/20 mt-0.5 uppercase">
+                      {s.staff_type} · PIN: {s.pin ?? '—'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

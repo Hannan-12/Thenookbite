@@ -11,7 +11,7 @@ export default async function StaffPage() {
 
   const { data: staff } = await db
     .from('staff')
-    .select('id, full_name, email, role, is_active, created_at')
+    .select('id, full_name, email, role, staff_type, pin, is_active, created_at')
     .order('created_at', { ascending: false });
 
   return (
