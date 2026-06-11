@@ -5,7 +5,7 @@ const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { customer_name, table_number, special_notes, payment_method, items, user_id } = body;
+  const { customer_name, table_number, special_notes, payment_method, items, user_id, staff_id } = body;
 
   if (!customer_name || !items?.length) {
     return NextResponse.json({ detail: 'customer_name and items are required' }, { status: 400 });
@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       status: 'pending',
       total,
       user_id: user_id || null,
+      staff_id: staff_id || null,
     })
     .select()
     .single();

@@ -9,6 +9,7 @@ const NAV = [
   { href: '/admin',          label: 'DASHBOARD', icon: '▦' },
   { href: '/admin/orders',   label: 'ORDERS',    icon: '◈' },
   { href: '/admin/menu',     label: 'MENU',      icon: '◉' },
+  { href: '/admin/staff',    label: 'STAFF',     icon: '◎' },
   { href: '/admin/reports',  label: 'REPORTS',   icon: '▲' },
 ];
 

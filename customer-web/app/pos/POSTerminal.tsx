@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { CATEGORIES, type Category, type MenuCard } from '@/lib/types';
 import { formatPKR } from '@/lib/format';
 import { imageForItem } from '@/lib/itemImages';
+import { createClient } from '@/lib/supabase/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CartLine {
@@ -24,7 +25,17 @@ function cardImage(card: MenuCard): string {
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
-export function POSTerminal({ cards }: { cards: MenuCard[] }) {
+export function POSTerminal({
+  cards,
+  staffId,
+  staffName,
+  staffRole,
+}: {
+  cards: MenuCard[];
+  staffId: string;
+  staffName: string;
+  staffRole: string;
+}) {
   const [search, setSearch]         = useState('');
   const [category, setCategory]     = useState<Category | 'All'>('All');
   const [cart, setCart]             = useState<CartLine[]>([]);
@@ -87,6 +98,7 @@ export function POSTerminal({ cards }: { cards: MenuCard[] }) {
           special_notes: notes || null,
           payment_method: payment,
           user_id: null,
+          staff_id: staffId,
           items: cart.map(l => ({
             menu_item_id: l.menu_item_id,
             item_name: l.name,
@@ -133,9 +145,16 @@ export function POSTerminal({ cards }: { cards: MenuCard[] }) {
             <span className="font-heading text-[10px] tracking-widest text-white/20">
               {new Date().toLocaleDateString('en-PK', { weekday: 'short', day: 'numeric', month: 'short' })}
             </span>
-            <a href="/admin/orders" className="font-heading text-xs tracking-widest text-white/20 hover:text-white transition-colors">
-              ORDERS →
-            </a>
+            <div className="flex items-center gap-1.5">
+              <span className="font-heading text-[10px] tracking-widest text-white/40 uppercase">{staffName}</span>
+              <span className="font-heading text-[9px] px-1.5 py-0.5 border border-white/10 text-white/20 rounded-sm uppercase">{staffRole}</span>
+            </div>
+            <button
+              onClick={async () => { await createClient().auth.signOut(); window.location.href = '/pos/login'; }}
+              className="font-heading text-[10px] tracking-widest text-white/20 hover:text-white transition-colors"
+            >
+              SIGN OUT
+            </button>
           </div>
         </div>
 

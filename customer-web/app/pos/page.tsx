@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { buildMenuCards } from '@/lib/menu';
 import type { MenuItem } from '@/lib/types';
@@ -6,7 +8,33 @@ import { POSTerminal } from './POSTerminal';
 export const dynamic = 'force-dynamic';
 
 export default async function POSPage() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) redirect('/pos/login');
+
   const db = createServiceClient();
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const isAdmin = user.email === adminEmail;
+
+  if (!isAdmin) {
+    const { data: staffRow } = await db
+      .from('staff')
+      .select('id, is_active')
+      .eq('id', user.id)
+      .single();
+
+    if (!staffRow || !staffRow.is_active) redirect('/pos/login');
+  }
+
+  const { data: staffRow } = await db
+    .from('staff')
+    .select('full_name, role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const staffName = staffRow?.full_name ?? (isAdmin ? 'Admin' : 'Staff');
+  const staffRole = staffRow?.role ?? (isAdmin ? 'admin' : 'cashier');
 
   const { data, error } = await db
     .from('menu_items')
@@ -26,5 +54,12 @@ export default async function POSPage() {
   const items = (data ?? []) as MenuItem[];
   const cards = buildMenuCards(items);
 
-  return <POSTerminal cards={cards} />;
+  return (
+    <POSTerminal
+      cards={cards}
+      staffId={user.id}
+      staffName={staffName}
+      staffRole={staffRole}
+    />
+  );
 }
