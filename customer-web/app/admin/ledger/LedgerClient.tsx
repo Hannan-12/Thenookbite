@@ -98,6 +98,89 @@ function SummaryTab() {
 
   useEffect(() => { fetch_(); }, [fetch_]);
 
+  function handleExportPDF() {
+    if (!summary) return;
+    const period = `${dates.from} → ${dates.to}`;
+    const generated = new Date().toLocaleString('en-PK', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const profitPositive = summary.net_profit >= 0;
+
+    const cards = [
+      { label: 'REVENUE',    value: `Rs.${summary.total_revenue.toLocaleString()}`,   sub: 'Completed orders',         color: '#16a34a' },
+      { label: 'PURCHASES',  value: `Rs.${summary.total_purchases.toLocaleString()}`,  sub: 'Stock & supplies bought',  color: '#2563eb' },
+      { label: 'EXPENSES',   value: `Rs.${summary.total_expenses.toLocaleString()}`,   sub: 'Rent, utilities, etc.',    color: '#d97706' },
+      { label: 'NET PROFIT', value: `Rs.${summary.net_profit.toLocaleString()}`,        sub: 'Revenue − Purchases − Expenses', color: profitPositive ? '#111' : '#dc2626' },
+    ].map(c => `
+      <div style="border:1px solid #e5e7eb;border-radius:4px;padding:14px 18px;flex:1;min-width:140px;">
+        <div style="font-size:10px;color:#6b7280;letter-spacing:0.1em;margin-bottom:6px;">${c.label}</div>
+        <div style="font-size:20px;font-weight:700;color:${c.color};">${c.value}</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:4px;">${c.sub}</div>
+      </div>`).join('');
+
+    const breakdownRows = summary.expense_breakdown.length > 0
+      ? summary.expense_breakdown.map(e => {
+          const pct = summary.total_expenses > 0 ? Math.round((e.amount / summary.total_expenses) * 100) : 0;
+          return `<tr><td>${e.category}</td><td style="text-align:right;">${pct}%</td><td style="text-align:right;">Rs.${e.amount.toLocaleString()}</td></tr>`;
+        }).join('')
+      : '<tr><td colspan="3" style="color:#9ca3af;text-align:center;padding:12px 0;">No expenses recorded</td></tr>';
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>P&L Summary — ${period}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; padding: 32px 40px; color: #111; font-size: 13px; }
+  h1 { font-size: 22px; font-weight: 800; letter-spacing: 0.05em; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table thead tr { border-bottom: 2px solid #e5e7eb; }
+  table thead th { padding: 6px 0; text-align: left; }
+  table tbody tr { border-bottom: 1px solid #f3f4f6; }
+  table tbody td { padding: 7px 0; }
+  @media print { @page { margin: 20mm; size: A4; } }
+</style></head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+    <div>
+      <div style="font-size:11px;letter-spacing:0.15em;color:#E4002B;margin-bottom:4px;">THE NOOK BITE</div>
+      <h1>PROFIT & LOSS SUMMARY</h1>
+      <div style="font-size:11px;color:#6b7280;margin-top:6px;">Period: ${period}</div>
+    </div>
+    <div style="text-align:right;font-size:10px;color:#9ca3af;">Generated: ${generated}</div>
+  </div>
+  <div style="border-top:2px solid #E4002B;margin-bottom:24px;"></div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;">${cards}</div>
+
+  <h3 style="font-size:11px;letter-spacing:0.15em;color:#6b7280;margin-bottom:10px;">EXPENSE BREAKDOWN</h3>
+  <table>
+    <thead><tr>
+      <th>CATEGORY</th>
+      <th style="text-align:right;">% OF EXPENSES</th>
+      <th style="text-align:right;">AMOUNT</th>
+    </tr></thead>
+    <tbody>${breakdownRows}</tbody>
+  </table>
+
+  <div style="margin-top:24px;padding:14px 18px;background:#f9fafb;border-radius:4px;display:flex;align-items:center;gap:8px;font-size:13px;">
+    <span style="color:#16a34a;font-weight:700;">Rs.${summary.total_revenue.toLocaleString()}</span>
+    <span style="color:#9ca3af;">−</span>
+    <span style="color:#2563eb;font-weight:700;">Rs.${summary.total_purchases.toLocaleString()}</span>
+    <span style="color:#9ca3af;">−</span>
+    <span style="color:#d97706;font-weight:700;">Rs.${summary.total_expenses.toLocaleString()}</span>
+    <span style="color:#9ca3af;">=</span>
+    <span style="font-weight:800;font-size:16px;color:${profitPositive ? '#111' : '#dc2626'};">Rs.${summary.net_profit.toLocaleString()}</span>
+  </div>
+
+  <div style="margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;text-align:center;">
+    The Nook Bite — Internal Report — Confidential
+  </div>
+</body></html>`;
+
+    const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
+
   const PRESETS: { key: Preset; label: string }[] = [
     { key: 'today', label: 'TODAY' },
     { key: '7d',    label: 'LAST 7D' },
@@ -110,7 +193,8 @@ function SummaryTab() {
 
   return (
     <div className="space-y-6">
-      {/* Date filter */}
+      {/* Date filter + export */}
+      <div className="flex flex-wrap gap-2 items-center justify-between">
       <div className="flex flex-wrap gap-2 items-center">
         {PRESETS.map(p => (
           <button key={p.key} onClick={() => setPreset(p.key)}
@@ -130,6 +214,14 @@ function SummaryTab() {
           </div>
         )}
         {loading && <span className="font-heading text-[10px] tracking-widest text-white/20">LOADING…</span>}
+      </div>
+        <button
+          onClick={handleExportPDF}
+          disabled={!summary}
+          className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:text-white hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm transition-colors flex-shrink-0"
+        >
+          ↓ PDF
+        </button>
       </div>
 
       {/* Error banner */}

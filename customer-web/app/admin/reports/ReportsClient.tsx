@@ -108,6 +108,107 @@ export function ReportsClient() {
     window.open(url, '_blank');
   }
 
+  function handleExportPDF() {
+    if (!summary) return;
+    const period = `${dates.from} → ${dates.to}`;
+    const generated = new Date().toLocaleString('en-PK', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const kpiRows = [
+      ['TOTAL REVENUE',   `Rs.${summary.total_revenue.toLocaleString()}`],
+      ['TOTAL ORDERS',    String(summary.total_orders)],
+      ['ITEMS SOLD',      String(summary.total_items_sold)],
+      ['AVG ORDER VALUE', `Rs.${summary.avg_order_value.toLocaleString()}`],
+    ].map(([label, val]) => `
+      <div style="border:1px solid #e5e7eb;border-radius:4px;padding:14px 18px;flex:1;min-width:140px;">
+        <div style="font-size:10px;color:#6b7280;letter-spacing:0.1em;margin-bottom:6px;">${label}</div>
+        <div style="font-size:20px;font-weight:700;color:#111;">${val}</div>
+      </div>`).join('');
+
+    let detailSection = '';
+    if (reportType === 'daily' && dailyRows.length > 0) {
+      const rows = [...dailyRows].reverse().filter(r => r.orders > 0).map(r =>
+        `<tr><td>${r.label}</td><td style="text-align:right;">${r.orders}</td><td style="text-align:right;">Rs.${r.revenue.toLocaleString()}</td><td style="text-align:right;">Rs.${Math.round(r.revenue / r.orders).toLocaleString()}</td></tr>`
+      ).join('');
+      detailSection = `
+        <h3 style="font-size:11px;letter-spacing:0.15em;color:#6b7280;margin:24px 0 10px;">DAILY BREAKDOWN</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="border-bottom:2px solid #e5e7eb;">
+            <th style="text-align:left;padding:6px 0;">DATE</th>
+            <th style="text-align:right;padding:6px 0;">ORDERS</th>
+            <th style="text-align:right;padding:6px 0;">REVENUE</th>
+            <th style="text-align:right;padding:6px 0;">AVG ORDER</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } else if (reportType === 'top_items' && topItems.length > 0) {
+      const rows = topItems.map((item, i) =>
+        `<tr><td style="color:#9ca3af;">${i + 1}</td><td>${item.item_name}</td><td style="text-align:right;">${item.qty}</td><td style="text-align:right;">Rs.${item.revenue.toLocaleString()}</td></tr>`
+      ).join('');
+      detailSection = `
+        <h3 style="font-size:11px;letter-spacing:0.15em;color:#6b7280;margin:24px 0 10px;">TOP ITEMS</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="border-bottom:2px solid #e5e7eb;">
+            <th style="text-align:left;padding:6px 0;width:24px;">#</th>
+            <th style="text-align:left;padding:6px 0;">ITEM</th>
+            <th style="text-align:right;padding:6px 0;">QTY SOLD</th>
+            <th style="text-align:right;padding:6px 0;">REVENUE</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } else if (reportType === 'top_categories' && topCats.length > 0) {
+      const rows = topCats.map((cat, i) =>
+        `<tr><td style="color:#9ca3af;">${i + 1}</td><td>${cat.category}</td><td style="text-align:right;">${cat.orders}</td><td style="text-align:right;">${cat.qty}</td><td style="text-align:right;">Rs.${cat.revenue.toLocaleString()}</td></tr>`
+      ).join('');
+      detailSection = `
+        <h3 style="font-size:11px;letter-spacing:0.15em;color:#6b7280;margin:24px 0 10px;">BY CATEGORY</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="border-bottom:2px solid #e5e7eb;">
+            <th style="text-align:left;padding:6px 0;width:24px;">#</th>
+            <th style="text-align:left;padding:6px 0;">CATEGORY</th>
+            <th style="text-align:right;padding:6px 0;">ORDERS</th>
+            <th style="text-align:right;padding:6px 0;">QTY SOLD</th>
+            <th style="text-align:right;padding:6px 0;">REVENUE</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Sales Report — ${period}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; padding: 32px 40px; color: #111; font-size: 13px; }
+  h1 { font-size: 22px; font-weight: 800; letter-spacing: 0.05em; }
+  table tbody tr { border-bottom: 1px solid #f3f4f6; }
+  table tbody td { padding: 7px 0; }
+  @media print { @page { margin: 20mm; size: A4; } }
+</style></head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+    <div>
+      <div style="font-size:11px;letter-spacing:0.15em;color:#E4002B;margin-bottom:4px;">THE NOOK BITE</div>
+      <h1>SALES REPORT</h1>
+      <div style="font-size:11px;color:#6b7280;margin-top:6px;">Period: ${period}</div>
+    </div>
+    <div style="text-align:right;font-size:10px;color:#9ca3af;">
+      Generated: ${generated}
+    </div>
+  </div>
+  <div style="border-top:2px solid #E4002B;margin-bottom:24px;"></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;">${kpiRows}</div>
+  ${detailSection}
+  <div style="margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;text-align:center;">
+    The Nook Bite — Internal Report — Confidential
+  </div>
+</body></html>`;
+
+    const w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
+
   const maxItemQty  = topItems[0]?.qty ?? 1;
   const maxItemRev  = topItems[0]?.revenue ?? 1;
   const maxCatRev   = topCats[0]?.revenue ?? 1;
@@ -128,12 +229,21 @@ export function ReportsClient() {
           <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">ANALYTICS</p>
           <h1 className="font-heading text-3xl text-white">SALES REPORTS</h1>
         </div>
-        <button
-          onClick={handleExportCSV}
-          className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:text-white hover:border-white/30 rounded-sm transition-colors"
-        >
-          ↓ EXPORT CSV
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportPDF}
+            disabled={!summary}
+            className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:text-white hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm transition-colors"
+          >
+            ↓ PDF
+          </button>
+          <button
+            onClick={handleExportCSV}
+            className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:text-white hover:border-white/30 rounded-sm transition-colors"
+          >
+            ↓ CSV
+          </button>
+        </div>
       </div>
 
       {/* Date filter */}
