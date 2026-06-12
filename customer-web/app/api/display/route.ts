@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Public endpoint — no auth required. Returns only preparing/ready orders for the customer display screen.
 export async function GET() {
   const db = createServiceClient();
