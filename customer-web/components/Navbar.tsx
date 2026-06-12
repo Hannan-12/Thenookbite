@@ -3,13 +3,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useCart } from '@/store/cart';
 import { useFlyToCart } from '@/components/FlyToCart';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
+const FULLSCREEN_ROUTES = ['/kitchen', '/pos'];
+
 export function Navbar() {
+  const pathname = usePathname();
+  if (FULLSCREEN_ROUTES.some(r => pathname.startsWith(r))) return null;
   const totalItems = useCart((s) => s.totalItems());
   const { registerTarget } = useFlyToCart();
   const cartRef = useRef<HTMLAnchorElement>(null);
