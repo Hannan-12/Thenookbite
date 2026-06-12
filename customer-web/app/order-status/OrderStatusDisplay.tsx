@@ -15,16 +15,30 @@ function useOrders() {
   const [preparing, setPreparing] = useState<Order[]>([]);
   const [ready, setReady]         = useState<Order[]>([]);
   const [reconnect, setReconnect] = useState(false);
+  const [collecting, setCollecting] = useState<Set<string>>(new Set());
   const supabaseRef = useRef(createClient());
   const isFirst     = useRef(true);
 
   const fetch_ = useCallback(async () => {
-    // Use server API route (service key, bypasses RLS)
     const res = await fetch('/api/display');
     if (!res.ok) return;
     const rows: Order[] = await res.json();
     setPreparing(rows.filter(o => o.status === 'preparing'));
     setReady(rows.filter(o => o.status === 'ready'));
+  }, []);
+
+  const markCollected = useCallback(async (id: string) => {
+    setCollecting(prev => new Set(prev).add(id));
+    setReady(prev => prev.filter(o => o.id !== id));
+    try {
+      await fetch('/api/display', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+    } finally {
+      setCollecting(prev => { const s = new Set(prev); s.delete(id); return s; });
+    }
   }, []);
 
   useEffect(() => {
@@ -52,7 +66,7 @@ function useOrders() {
     };
   }, [fetch_]);
 
-  return { preparing, ready, reconnect };
+  return { preparing, ready, reconnect, markCollected, collecting };
 }
 
 function useClock() {
@@ -67,7 +81,7 @@ function useClock() {
 }
 
 export default function OrderStatusDisplay() {
-  const { preparing, ready, reconnect } = useOrders();
+  const { preparing, ready, reconnect, markCollected, collecting } = useOrders();
   const time = useClock();
 
   return (
@@ -134,7 +148,13 @@ export default function OrderStatusDisplay() {
               </div>
             ) : (
               ready.map(order => (
-                <OrderTile key={order.id} order={order} variant="ready" />
+                <OrderTile
+                  key={order.id}
+                  order={order}
+                  variant="ready"
+                  onCollect={() => markCollected(order.id)}
+                  collecting={collecting.has(order.id)}
+                />
               ))
             )}
           </div>
@@ -149,33 +169,54 @@ export default function OrderStatusDisplay() {
   );
 }
 
-function OrderTile({ order, variant }: { order: Order; variant: 'preparing' | 'ready' }) {
+function OrderTile({
+  order,
+  variant,
+  onCollect,
+  collecting,
+}: {
+  order: Order;
+  variant: 'preparing' | 'ready';
+  onCollect?: () => void;
+  collecting?: boolean;
+}) {
   const isReady = variant === 'ready';
 
   return (
-    <div className={`rounded-sm border px-6 py-5 flex items-center justify-between gap-4 ${
+    <div className={`rounded-sm border overflow-hidden ${
       isReady
         ? 'border-green-500/30 bg-green-500/5'
         : 'border-yellow-500/20 bg-yellow-500/5'
     }`}>
-      <div>
-        {/* Order number — large and prominent */}
-        <p className={`font-heading text-5xl leading-none tracking-widest ${isReady ? 'text-green-400' : 'text-yellow-400'}`}>
-          #{order.id.slice(-4).toUpperCase()}
-        </p>
-        <p className="text-white/50 text-base mt-2">{order.customer_name}</p>
-        {order.table_number && (
-          <p className="text-white/30 text-sm mt-1 tracking-wider">TABLE {order.table_number}</p>
+      <div className="px-6 py-5 flex items-center justify-between gap-4">
+        <div>
+          <p className={`font-heading text-5xl leading-none tracking-widest ${isReady ? 'text-green-400' : 'text-yellow-400'}`}>
+            #{order.id.slice(-4).toUpperCase()}
+          </p>
+          <p className="text-white/50 text-base mt-2">{order.customer_name}</p>
+          {order.table_number && (
+            <p className="text-white/30 text-sm mt-1 tracking-wider">TABLE {order.table_number}</p>
+          )}
+        </div>
+
+        {isReady && (
+          <div className="flex-shrink-0 text-right">
+            <div className="bg-green-500/20 border border-green-500/40 rounded-sm px-4 py-3">
+              <p className="text-green-400 font-heading text-sm tracking-widest">COLLECT NOW</p>
+              <p className="text-green-400/50 text-xs mt-1">AT THE COUNTER</p>
+            </div>
+          </div>
         )}
       </div>
 
-      {isReady && (
-        <div className="flex-shrink-0 text-right">
-          <div className="bg-green-500/20 border border-green-500/40 rounded-sm px-4 py-3">
-            <p className="text-green-400 font-heading text-sm tracking-widest">COLLECT NOW</p>
-            <p className="text-green-400/50 text-xs mt-1">AT THE COUNTER</p>
-          </div>
-        </div>
+      {isReady && onCollect && (
+        <button
+          onClick={onCollect}
+          disabled={collecting}
+          className="w-full py-3 bg-green-600/80 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed font-heading text-sm tracking-[0.2em] text-white transition-colors border-t border-green-500/20"
+        >
+          {collecting ? 'MARKING…' : 'COLLECTED ✓'}
+        </button>
       )}
     </div>
   );
