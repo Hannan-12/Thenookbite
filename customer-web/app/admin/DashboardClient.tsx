@@ -31,6 +31,7 @@ interface DashboardData {
   staffStats: StaffStat[];
   itemsSold: number;
   lowStock: LowStockItem[];
+  todayProfit?: number;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -59,7 +60,7 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
     return () => clearInterval(id);
   }, [refresh]);
 
-  const { orders, staffStats, itemsSold, lowStock = [] } = data;
+  const { orders, staffStats, itemsSold, lowStock = [], todayProfit } = data;
 
   const counts = {
     pending:   orders.filter(o => o.status === 'pending').length,
@@ -120,6 +121,29 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
           <p className="font-heading text-4xl text-white">{formatPKR(avgOrder)}</p>
         </div>
       </div>
+
+      {/* Today's profit */}
+      {todayProfit !== undefined && (
+        <div className={`border rounded-sm px-4 py-5 mb-8 flex items-center justify-between ${
+          todayProfit >= 0 ? 'border-green-500/20 bg-green-500/5' : 'border-red-800/30 bg-red-900/5'
+        }`}>
+          <div>
+            <p className="font-heading text-xs tracking-widest text-white/30 mb-1">TODAY&apos;S NET PROFIT</p>
+            <p className={`font-heading text-4xl ${todayProfit >= 0 ? 'text-white' : 'text-red-400'}`}>
+              {formatPKR(todayProfit)}
+            </p>
+            <p className="font-heading text-[10px] tracking-widest text-white/20 mt-1">
+              REVENUE − PURCHASES − EXPENSES
+            </p>
+          </div>
+          <Link
+            href="/admin/ledger"
+            className="font-heading text-[10px] tracking-widest text-white/20 hover:text-white transition-colors"
+          >
+            LEDGER →
+          </Link>
+        </div>
+      )}
 
       {/* Items sold + staff stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">

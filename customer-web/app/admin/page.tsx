@@ -12,7 +12,9 @@ export default async function AdminDashboard() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const [ordersRes, itemsRes, ingredientsRes] = await Promise.all([
+  const todayISO = today.toISOString().slice(0, 10);
+
+  const [ordersRes, itemsRes, ingredientsRes, purchasesRes, expensesRes] = await Promise.all([
     db
       .from('orders')
       .select('id, status, total, created_at, staff_id')
@@ -25,6 +27,14 @@ export default async function AdminDashboard() {
     db
       .from('ingredients')
       .select('id, name, unit, stock_qty, low_stock_threshold'),
+    db
+      .from('purchases')
+      .select('amount')
+      .eq('purchase_date', todayISO),
+    db
+      .from('expenses')
+      .select('amount')
+      .eq('expense_date', todayISO),
   ]);
 
   const orders = ordersRes.data ?? [];
@@ -34,6 +44,11 @@ export default async function AdminDashboard() {
   const lowStock = (ingredientsRes.data ?? []).filter(
     i => i.stock_qty <= i.low_stock_threshold
   );
+
+  const todayRevenue   = orders.filter(o => o.status === 'completed').reduce((s, o) => s + (o.total ?? 0), 0);
+  const todayPurchases = (purchasesRes.data ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
+  const todayExpenses  = (expensesRes.data ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
+  const todayProfit    = todayRevenue - todayPurchases - todayExpenses;
 
   // Staff stats
   const staffMap: Record<string, number> = {};
@@ -60,7 +75,7 @@ export default async function AdminDashboard() {
 
   return (
     <AdminShell>
-      <DashboardClient initial={{ orders, staffStats, itemsSold, lowStock }} />
+      <DashboardClient initial={{ orders, staffStats, itemsSold, lowStock, todayProfit }} />
     </AdminShell>
   );
 }

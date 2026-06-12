@@ -53,17 +53,23 @@ export async function GET() {
   }
 
   // Low stock ingredients
-  const { data: lowStockItems } = await db
-    .from('ingredients')
-    .select('id, name, unit, stock_qty, low_stock_threshold')
-    .filter('stock_qty', 'lte', db.from('ingredients').select('low_stock_threshold'));
-
-  // Simple approach: fetch all and filter in JS
   const { data: allIngredients } = await db
     .from('ingredients')
     .select('id, name, unit, stock_qty, low_stock_threshold');
 
   const lowStock = (allIngredients ?? []).filter(i => i.stock_qty <= i.low_stock_threshold);
 
-  return NextResponse.json({ orders: allOrders, staffStats, itemsSold, lowStock });
+  // Today's profit
+  const todayISO = today.toISOString().slice(0, 10);
+  const [purchasesRes, expensesRes] = await Promise.all([
+    db.from('purchases').select('amount').eq('purchase_date', todayISO),
+    db.from('expenses').select('amount').eq('expense_date', todayISO),
+  ]);
+
+  const todayRevenue   = allOrders.filter(o => o.status === 'completed').reduce((s, o) => s + (o.total ?? 0), 0);
+  const todayPurchases = (purchasesRes.data ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
+  const todayExpenses  = (expensesRes.data ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
+  const todayProfit    = todayRevenue - todayPurchases - todayExpenses;
+
+  return NextResponse.json({ orders: allOrders, staffStats, itemsSold, lowStock, todayProfit });
 }
