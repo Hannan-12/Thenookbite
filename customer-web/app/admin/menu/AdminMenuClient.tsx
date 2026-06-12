@@ -88,6 +88,11 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
 
       {/* Items grouped by category */}
       <div className="space-y-6">
+        {Object.keys(byCategory).length === 0 && (
+          <div className="py-16 text-center text-white/20 font-heading text-sm tracking-wider">
+            NO ITEMS MATCH YOUR SEARCH
+          </div>
+        )}
         {Object.entries(byCategory).map(([category, catItems]) => (
           <div key={category}>
             <h2 className="font-heading text-xs tracking-widest text-[#E4002B] mb-2 px-1">{category.toUpperCase()}</h2>

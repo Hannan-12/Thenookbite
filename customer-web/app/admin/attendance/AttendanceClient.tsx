@@ -39,14 +39,21 @@ export function AttendanceClient() {
   const [month, setMonth]     = useState(thisMonth);
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     const url = view === 'daily'
       ? `/api/admin/attendance?date=${date}`
       : `/api/admin/attendance?month=${month}`;
-    const res = await fetch(url);
-    if (res.ok) setRecords(await res.json());
+    try {
+      const res = await fetch(url);
+      if (!res.ok) { setError('Failed to load attendance data.'); }
+      else { setRecords(await res.json()); }
+    } catch {
+      setError('Network error — check your connection.');
+    }
     setLoading(false);
   }, [view, date, month]);
 
@@ -125,6 +132,16 @@ export function AttendanceClient() {
           />
         )}
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="mb-6 border border-red-500/30 bg-red-500/5 rounded-sm px-5 py-3 flex items-center justify-between">
+          <p className="font-heading text-xs tracking-wider text-red-400">⚠ {error}</p>
+          <button onClick={load} className="font-heading text-[10px] tracking-widest text-red-400/60 hover:text-red-400 transition-colors">
+            RETRY
+          </button>
+        </div>
+      )}
 
       {/* Daily summary pills */}
       {view === 'daily' && (

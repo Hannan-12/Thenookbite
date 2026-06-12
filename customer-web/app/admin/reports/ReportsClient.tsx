@@ -65,6 +65,7 @@ export function ReportsClient() {
   const [topItems, setTopItems]     = useState<TopItem[]>([]);
   const [topCats, setTopCats]       = useState<TopCat[]>([]);
   const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
 
   const dates = preset === 'custom'
     ? { from: customFrom, to: customTo }
@@ -73,20 +74,29 @@ export function ReportsClient() {
   const fetchAll = useCallback(async () => {
     if (!dates.from || !dates.to) return;
     setLoading(true);
+    setError(null);
     const base = `/api/admin/reports`;
     const q = `from_date=${dates.from}&to_date=${dates.to}`;
 
-    const [sumRes, dailyRes, itemsRes, catsRes] = await Promise.all([
-      fetch(`${base}/summary?${q}`),
-      fetch(`${base}/sales-over-time?${q}&group_by=day`),
-      fetch(`${base}/top-items?${q}&sort_by=${sortBy}&limit=10`),
-      fetch(`${base}/top-categories?${q}&sort_by=${sortBy}`),
-    ]);
+    try {
+      const [sumRes, dailyRes, itemsRes, catsRes] = await Promise.all([
+        fetch(`${base}/summary?${q}`),
+        fetch(`${base}/sales-over-time?${q}&group_by=day`),
+        fetch(`${base}/top-items?${q}&sort_by=${sortBy}&limit=10`),
+        fetch(`${base}/top-categories?${q}&sort_by=${sortBy}`),
+      ]);
 
-    if (sumRes.ok)   setSummary(await sumRes.json());
-    if (dailyRes.ok) setDailyRows(await dailyRes.json());
-    if (itemsRes.ok) setTopItems(await itemsRes.json());
-    if (catsRes.ok)  setTopCats(await catsRes.json());
+      if (!sumRes.ok || !dailyRes.ok || !itemsRes.ok || !catsRes.ok) {
+        setError('Failed to load report data. Try refreshing.');
+      } else {
+        setSummary(await sumRes.json());
+        setDailyRows(await dailyRes.json());
+        setTopItems(await itemsRes.json());
+        setTopCats(await catsRes.json());
+      }
+    } catch {
+      setError('Network error — check your connection and try again.');
+    }
     setLoading(false);
   }, [dates.from, dates.to, sortBy]);
 
@@ -158,6 +168,16 @@ export function ReportsClient() {
         )}
         {loading && <span className="font-heading text-[10px] tracking-widest text-white/20 ml-2">LOADING…</span>}
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="border border-red-500/30 bg-red-500/5 rounded-sm px-5 py-3 flex items-center justify-between">
+          <p className="font-heading text-xs tracking-wider text-red-400">⚠ {error}</p>
+          <button onClick={fetchAll} className="font-heading text-[10px] tracking-widest text-red-400/60 hover:text-red-400 transition-colors">
+            RETRY
+          </button>
+        </div>
+      )}
 
       {/* Summary KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

@@ -78,14 +78,21 @@ function SummaryTab() {
   const [customTo, setCustomTo]     = useState('');
   const [summary, setSummary]       = useState<Summary | null>(null);
   const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
 
   const dates = preset === 'custom' ? { from: customFrom, to: customTo } : presetDates(preset);
 
   const fetch_ = useCallback(async () => {
     if (!dates.from || !dates.to) return;
     setLoading(true);
-    const res = await fetch(`/api/admin/ledger/summary?from_date=${dates.from}&to_date=${dates.to}`);
-    if (res.ok) setSummary(await res.json());
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/ledger/summary?from_date=${dates.from}&to_date=${dates.to}`);
+      if (!res.ok) setError('Failed to load summary data.');
+      else setSummary(await res.json());
+    } catch {
+      setError('Network error — check your connection.');
+    }
     setLoading(false);
   }, [dates.from, dates.to]);
 
@@ -124,6 +131,16 @@ function SummaryTab() {
         )}
         {loading && <span className="font-heading text-[10px] tracking-widest text-white/20">LOADING…</span>}
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="border border-red-500/30 bg-red-500/5 rounded-sm px-5 py-3 flex items-center justify-between">
+          <p className="font-heading text-xs tracking-wider text-red-400">⚠ {error}</p>
+          <button onClick={fetch_} className="font-heading text-[10px] tracking-widest text-red-400/60 hover:text-red-400 transition-colors">
+            RETRY
+          </button>
+        </div>
+      )}
 
       {/* P&L cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -220,9 +237,13 @@ function PurchasesTab() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin/ledger/purchases').then(r => r.json()),
-      fetch('/api/admin/ledger/vendors').then(r => r.json()),
-    ]).then(([p, v]) => { setPurchases(p); setVendors(v); setLoading(false); });
+      fetch('/api/admin/ledger/purchases').then(r => r.ok ? r.json() : []),
+      fetch('/api/admin/ledger/vendors').then(r => r.ok ? r.json() : []),
+    ]).then(([p, v]) => {
+      setPurchases(Array.isArray(p) ? p : []);
+      setVendors(Array.isArray(v) ? v : []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   function handleVendorSelect(id: string) {
@@ -357,7 +378,10 @@ function ExpensesTab() {
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
 
   useEffect(() => {
-    fetch('/api/admin/ledger/expenses').then(r => r.json()).then(data => { setExpenses(data); setLoading(false); });
+    fetch('/api/admin/ledger/expenses')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { setExpenses(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
   async function handleAdd(e: React.FormEvent) {
@@ -488,7 +512,10 @@ function VendorsTab() {
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
 
   useEffect(() => {
-    fetch('/api/admin/ledger/vendors').then(r => r.json()).then(data => { setVendors(data); setLoading(false); });
+    fetch('/api/admin/ledger/vendors')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { setVendors(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
   async function handleAdd(e: React.FormEvent) {

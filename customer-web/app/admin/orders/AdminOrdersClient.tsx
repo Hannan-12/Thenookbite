@@ -25,21 +25,23 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
   const [orders, setOrders]   = useState<Order[]>(initialOrders);
   const [filter, setFilter]   = useState('all');
   const [toast, setToast]     = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
       .channel('admin-orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-        // Re-fetch on any order change
         supabase
           .from('orders')
           .select('*, order_items(*)')
           .order('created_at', { ascending: false })
           .limit(100)
-          .then(({ data }) => {
+          .then(({ data, error: err }) => {
+            if (err) { setError('Failed to refresh orders'); return; }
             if (data) {
               setOrders(data as Order[]);
+              setError(null);
               showToast('Orders updated');
             }
           });
@@ -62,6 +64,12 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
       {toast && (
         <div className="fixed top-4 right-4 z-50 bg-[#E4002B] text-white font-heading text-xs tracking-widest px-4 py-2 rounded-sm shadow-lg">
           {toast}
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 border border-red-500/30 bg-red-500/5 rounded-sm px-5 py-3">
+          <p className="font-heading text-xs tracking-wider text-red-400">⚠ {error}</p>
         </div>
       )}
 
