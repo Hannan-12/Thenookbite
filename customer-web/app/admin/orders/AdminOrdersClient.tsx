@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { formatPKR } from '@/lib/format';
@@ -26,30 +26,38 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
   const [filter, setFilter]   = useState('all');
   const [toast, setToast]     = useState<string | null>(null);
   const [error, setError]     = useState<string | null>(null);
+  const supabaseRef = useRef(createClient());
+
+  const fetchOrders = useCallback(async (silent = false) => {
+    const { data, error: err } = await supabaseRef.current
+      .from('orders')
+      .select('*, order_items(*)')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (err) { setError('Failed to refresh orders'); return; }
+    if (data) {
+      setOrders(data as Order[]);
+      setError(null);
+      if (!silent) showToast('Orders updated');
+    }
+  }, []);
 
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
+    // Poll every 30s as safety net
+    const poll = setInterval(() => fetchOrders(true), 30000);
+
+    const channel = supabaseRef.current
       .channel('admin-orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-        supabase
-          .from('orders')
-          .select('*, order_items(*)')
-          .order('created_at', { ascending: false })
-          .limit(100)
-          .then(({ data, error: err }) => {
-            if (err) { setError('Failed to refresh orders'); return; }
-            if (data) {
-              setOrders(data as Order[]);
-              setError(null);
-              showToast('Orders updated');
-            }
-          });
+        fetchOrders(false);
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+    return () => {
+      clearInterval(poll);
+      supabaseRef.current.removeChannel(channel);
+    };
+  }, [fetchOrders]);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -73,9 +81,17 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
         </div>
       )}
 
-      <div className="mb-6">
-        <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">MANAGE</p>
-        <h1 className="font-heading text-3xl text-white">ORDERS</h1>
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">MANAGE</p>
+          <h1 className="font-heading text-3xl text-white">ORDERS</h1>
+        </div>
+        <button
+          onClick={() => fetchOrders(false)}
+          className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:border-white/30 hover:text-white rounded-sm transition-colors"
+        >
+          ↻ REFRESH
+        </button>
       </div>
 
       {/* Filter tabs */}
