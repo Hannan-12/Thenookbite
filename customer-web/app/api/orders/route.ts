@@ -6,7 +6,7 @@ const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { customer_name, customer_phone, table_number, special_notes, payment_method, items, user_id, staff_id, session_id, order_type, tip, delivery_address } = body;
+  const { customer_name, customer_phone, table_number, special_notes, payment_method, items, user_id, staff_id, session_id, order_type, tip, delivery_address, rider_name } = body;
 
   if (!customer_name || !items?.length) {
     return NextResponse.json({ detail: 'customer_name and items are required' }, { status: 400 });
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       tip: tipAmount,
       order_type: resolvedOrderType,
       delivery_address: resolvedOrderType === 'delivery' ? (delivery_address || null) : null,
+      rider_name: resolvedOrderType === 'delivery' ? (rider_name || null) : null,
       user_id: user_id || null,
       staff_id: staff_id || null,
       session_id: session_id || null,

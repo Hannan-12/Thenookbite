@@ -8,7 +8,7 @@ export async function GET() {
   const db = createServiceClient();
   const { data, error } = await db
     .from('orders')
-    .select('id, customer_name, customer_phone, table_number, total, payment_method, special_notes, created_at, order_items(item_name, quantity, item_price)')
+    .select('id, customer_name, customer_phone, table_number, total, payment_method, special_notes, created_at, order_type, delivery_address, order_items(item_name, quantity, item_price)')
     .eq('source', 'online')
     .eq('verified', false)
     .in('status', ['pending'])
@@ -19,10 +19,11 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const { id, action, reject_reason } = await req.json() as {
+  const { id, action, reject_reason, rider_name } = await req.json() as {
     id: string;
     action: 'approve' | 'reject';
     reject_reason?: string;
+    rider_name?: string;
   };
 
   if (!id || !action) return NextResponse.json({ detail: 'id and action required' }, { status: 400 });
@@ -32,7 +33,7 @@ export async function PATCH(req: NextRequest) {
   if (action === 'approve') {
     const { error } = await db
       .from('orders')
-      .update({ verified: true })
+      .update({ verified: true, ...(rider_name ? { rider_name } : {}) })
       .eq('id', id);
     if (error) return NextResponse.json({ detail: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });

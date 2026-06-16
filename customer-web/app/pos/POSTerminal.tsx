@@ -31,6 +31,7 @@ interface SessionOrder {
   phone: string;
   table: string;
   address: string;
+  rider: string;
   orderType: OrderType;
   payment: PaymentMethod;
   items: CartLine[];
@@ -67,6 +68,7 @@ export function POSTerminal({
   const [orderType, setOrderType]   = useState<OrderType>('dine-in');
   const [table, setTable]           = useState('');
   const [address, setAddress]       = useState('');
+  const [rider, setRider]           = useState('');
   const [customer, setCustomer]     = useState('');
   const [phone, setPhone]           = useState('');
   const [phoneError, setPhoneError] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export function POSTerminal({
       .then(r => r.ok ? r.json() : [])
       .then((orders: Array<{
         id: string; total: number; customer_name: string; customer_phone: string;
-        table_number: string | null; delivery_address: string | null;
+        table_number: string | null; delivery_address: string | null; rider_name: string | null;
         order_type: string; payment_method: string;
         special_notes: string | null; created_at: string;
         order_items: { item_name: string; item_price: number; quantity: number }[];
@@ -104,6 +106,7 @@ export function POSTerminal({
           phone: o.customer_phone ?? '',
           table: o.table_number ?? '',
           address: o.delivery_address ?? '',
+          rider: o.rider_name ?? '',
           orderType: (o.order_type as OrderType) ?? 'dine-in',
           payment: (o.payment_method as PaymentMethod) ?? 'cash',
           notes: o.special_notes ?? '',
@@ -181,6 +184,7 @@ export function POSTerminal({
     setCart([]);
     setTable('');
     setAddress('');
+    setRider('');
     setCustomer('');
     setPhone('');
     setPhoneError(null);
@@ -215,6 +219,7 @@ export function POSTerminal({
           customer_phone:   normalizedPhone,
           table_number:     orderType === 'dine-in' ? (table || null) : null,
           delivery_address: orderType === 'delivery' ? (address || null) : null,
+          rider_name:       orderType === 'delivery' ? (rider || null) : null,
           order_type:       orderType,
           special_notes:    notes || null,
           payment_method:   payment,
@@ -241,6 +246,7 @@ export function POSTerminal({
         phone: normalizedPhone,
         table,
         address,
+        rider,
         orderType,
         payment,
         items: [...cart],
@@ -266,7 +272,7 @@ export function POSTerminal({
   function printReceipt(order?: SessionOrder) {
     const target = order ?? lastOrder;
     if (!target) return;
-    const { id, total, customerName, phone, table, address, orderType, payment, items, notes, placedAt } = target;
+    const { id, total, customerName, phone, table, address, rider, orderType, payment, items, notes, placedAt } = target;
     const dateStr  = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr  = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const subtotal = items.reduce((s, l) => s + l.price * l.quantity, 0);
@@ -337,6 +343,7 @@ export function POSTerminal({
         }</td>
       </tr>
       ${address ? `<tr><td class="small">Address</td><td class="small right" style="max-width:120px;word-break:break-word;">${address}</td></tr>` : ''}
+      ${rider ? `<tr><td class="small">Rider</td><td class="small right">${rider}</td></tr>` : ''}
       ${customerName ? `<tr><td class="small">Customer</td><td class="small right">${customerName}</td></tr>` : ''}
       ${phone ? `<tr><td class="small">Phone</td><td class="small right">${phone}</td></tr>` : ''}
       <tr>
@@ -480,12 +487,20 @@ export function POSTerminal({
         </div>
 
         {orderType === 'delivery' && (
-          <input
-            value={address}
-            onChange={e => setAddress(e.target.value)}
-            placeholder="Delivery address…"
-            className="w-full mt-2 bg-[#1a1a1a] border border-[#E4002B]/30 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/60 rounded-sm font-body"
-          />
+          <div className="flex gap-2 mt-2">
+            <input
+              value={address}
+              onChange={e => setAddress(e.target.value)}
+              placeholder="Delivery address…"
+              className="flex-1 bg-[#1a1a1a] border border-[#E4002B]/30 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/60 rounded-sm font-body"
+            />
+            <input
+              value={rider}
+              onChange={e => setRider(e.target.value)}
+              placeholder="Rider name…"
+              className="w-36 bg-[#1a1a1a] border border-blue-500/30 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-blue-400/60 rounded-sm font-body"
+            />
+          </div>
         )}
 
         {/* Past orders */}

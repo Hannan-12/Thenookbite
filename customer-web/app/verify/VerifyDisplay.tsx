@@ -15,6 +15,8 @@ interface Order {
   payment_method: string;
   special_notes: string | null;
   created_at: string;
+  order_type: string | null;
+  delivery_address: string | null;
   order_items: OrderItem[];
 }
 
@@ -33,8 +35,10 @@ export default function VerifyDisplay() {
   const [orders, setOrders]         = useState<Order[]>([]);
   const [loading, setLoading]       = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
-  const [rejectId, setRejectId]     = useState<string | null>(null);
+  const [rejectId, setRejectId]       = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [riderInputId, setRiderInputId] = useState<string | null>(null);
+  const [riderName, setRiderName]     = useState('');
   const [reconnect, setReconnect]   = useState(false);
   const supabaseRef  = useRef(createClient());
   const isFirst      = useRef(true);
@@ -66,15 +70,17 @@ export default function VerifyDisplay() {
     return () => { clearInterval(poll); supabaseRef.current.removeChannel(channel); };
   }, [fetch_]);
 
-  async function approve(id: string) {
+  async function approve(id: string, rider?: string) {
     setActioningId(id);
     await fetch('/api/verify', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action: 'approve' }),
+      body: JSON.stringify({ id, action: 'approve', rider_name: rider || undefined }),
     });
     setOrders(prev => prev.filter(o => o.id !== id));
     setActioningId(null);
+    setRiderInputId(null);
+    setRiderName('');
   }
 
   async function reject(id: string) {
@@ -145,11 +151,19 @@ export default function VerifyDisplay() {
                       <span className="font-heading text-[10px] tracking-widest px-2 py-0.5 bg-orange-500/20 border border-orange-500/40 text-orange-400 rounded-sm">
                         ONLINE
                       </span>
+                      {order.order_type === 'delivery' && (
+                        <span className="font-heading text-[10px] tracking-widest px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 text-blue-400 rounded-sm">
+                          DELIVERY
+                        </span>
+                      )}
                     </div>
                     <p className="text-white/60 text-sm">{order.customer_name}</p>
                     <p className="text-white/30 text-xs mt-0.5">{order.customer_phone}</p>
                     {order.table_number && (
                       <p className="text-white/20 text-xs mt-0.5 tracking-wider">TABLE {order.table_number}</p>
+                    )}
+                    {order.delivery_address && (
+                      <p className="text-blue-300/60 text-xs mt-1">📍 {order.delivery_address}</p>
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
@@ -199,6 +213,21 @@ export default function VerifyDisplay() {
                   </div>
                 )}
 
+                {/* Rider name input — shown when approving a delivery order */}
+                {riderInputId === order.id && (
+                  <div className="px-5 pb-3">
+                    <p className="text-blue-400/60 text-[10px] tracking-widest mb-1.5">ASSIGN RIDER</p>
+                    <input
+                      autoFocus
+                      value={riderName}
+                      onChange={e => setRiderName(e.target.value)}
+                      placeholder="Rider name…"
+                      className="w-full bg-black/40 border border-blue-500/40 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-blue-400 rounded-sm"
+                      onKeyDown={e => { if (e.key === 'Enter') approve(order.id, riderName); if (e.key === 'Escape') { setRiderInputId(null); setRiderName(''); } }}
+                    />
+                  </div>
+                )}
+
                 {/* Action buttons */}
                 <div className="px-5 pb-5 flex gap-2">
                   {rejectId === order.id ? (
@@ -217,10 +246,32 @@ export default function VerifyDisplay() {
                         CANCEL
                       </button>
                     </>
+                  ) : riderInputId === order.id ? (
+                    <>
+                      <button
+                        onClick={() => approve(order.id, riderName)}
+                        disabled={actioningId === order.id}
+                        className="flex-1 py-3 bg-green-600 hover:bg-green-500 disabled:opacity-50 font-heading text-sm tracking-widest text-white transition-colors rounded-sm"
+                      >
+                        {actioningId === order.id ? 'APPROVING…' : '✓ CONFIRM APPROVE'}
+                      </button>
+                      <button
+                        onClick={() => { setRiderInputId(null); setRiderName(''); }}
+                        className="px-4 py-3 border border-white/10 text-white/30 hover:text-white font-heading text-xs tracking-widest transition-colors rounded-sm"
+                      >
+                        CANCEL
+                      </button>
+                    </>
                   ) : (
                     <>
                       <button
-                        onClick={() => approve(order.id)}
+                        onClick={() => {
+                          if (order.order_type === 'delivery') {
+                            setRiderInputId(order.id);
+                          } else {
+                            approve(order.id);
+                          }
+                        }}
                         disabled={actioningId === order.id}
                         className="flex-1 py-3 bg-green-600 hover:bg-green-500 disabled:opacity-50 font-heading text-sm tracking-widest text-white transition-colors rounded-sm"
                       >
