@@ -37,12 +37,13 @@ export default async function POSPage() {
   const staffRole = staffRow?.role ?? (isAdmin ? 'admin' : 'cashier');
 
   // Open a new POS session in DB
-  const { data: session } = await db
+  const { data: session, error: sessErr } = await db
     .from('pos_sessions')
     .insert({ staff_id: user.id })
     .select('id')
     .single();
 
+  if (sessErr) console.error('[POS] Failed to create session:', sessErr.message);
   const sessionId = session?.id ?? '';
 
   const { data, error } = await db

@@ -38,16 +38,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ sessions: [] });
   }
 
-  // Fetch staff names
+  // Fetch staff names — fall back to admin label if not in staff table
   const staffIds = [...new Set(sessions.map(s => s.staff_id))];
   const { data: staffRows } = await db
     .from('staff')
     .select('id, full_name, role')
     .in('id', staffIds);
 
+  const adminEmail = process.env.ADMIN_EMAIL ?? '';
+  const { data: authUsers } = await db.auth.admin.listUsers();
+  const authMap: Record<string, string> = {};
+  for (const u of authUsers?.users ?? []) {
+    authMap[u.id] = (u.user_metadata?.full_name as string) || u.email || 'Admin';
+  }
+
   const staffMap: Record<string, { name: string; role: string }> = {};
   for (const s of staffRows ?? []) {
     staffMap[s.id] = { name: s.full_name, role: s.role };
+  }
+  // Fill in any IDs not found in staff table (e.g. admin)
+  for (const id of staffIds) {
+    if (!staffMap[id]) {
+      staffMap[id] = { name: authMap[id] ?? 'Admin', role: 'admin' };
+    }
   }
 
   // Fetch all orders belonging to these sessions

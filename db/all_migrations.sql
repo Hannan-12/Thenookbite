@@ -160,11 +160,18 @@ create policy "expenses service all"  on public.expenses  using (true) with chec
 -- ─────────────────────────────────────────────
 create table if not exists public.pos_sessions (
   id          uuid primary key default gen_random_uuid(),
-  staff_id    uuid not null references public.staff(id) on delete cascade,
+  staff_id    uuid not null references auth.users(id) on delete cascade,
   started_at  timestamptz not null default now(),
   ended_at    timestamptz,
   created_at  timestamptz not null default now()
 );
+
+-- Fix FK if table was already created with staff reference
+alter table public.pos_sessions
+  drop constraint if exists pos_sessions_staff_id_fkey;
+alter table public.pos_sessions
+  add constraint pos_sessions_staff_id_fkey
+  foreign key (staff_id) references auth.users(id) on delete cascade;
 
 create index if not exists idx_pos_sessions_staff   on public.pos_sessions (staff_id);
 create index if not exists idx_pos_sessions_started on public.pos_sessions (started_at desc);
