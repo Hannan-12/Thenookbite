@@ -75,7 +75,7 @@ export function MenuItemEditor({ item }: { item: MenuItem }) {
     <div className="px-4 sm:px-8 py-8 max-w-2xl">
       {toast && (
         <div className={`fixed top-4 right-4 z-50 font-heading text-xs tracking-widest px-4 py-2 rounded-sm shadow-lg ${
-          toastType === 'success' ? 'bg-[#E4002B] text-white' : 'bg-yellow-500 text-black'
+          toastType === 'success' ? 'bg-green-600 text-white' : 'bg-[#E4002B] text-white'
         }`}>
           {toast}
         </div>

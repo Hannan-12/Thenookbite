@@ -12,6 +12,7 @@ interface StaffMember {
   pin: string | null;
   is_active: boolean;
   created_at: string;
+  last_seen: string | null;
 }
 
 export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
@@ -202,6 +203,11 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                         <span className="hidden group-hover/pin:inline tracking-widest text-white/40">{s.pin ?? '—'}</span>
                       </span>
                     </p>
+                    {s.last_seen && (
+                      <p className="font-heading text-[10px] text-white/20 mt-0.5">
+                        LAST SEEN {new Date(s.last_seen).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · {new Date(s.last_seen).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

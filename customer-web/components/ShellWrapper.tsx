@@ -37,10 +37,10 @@ export function ShellWrapper({ children }: { children: React.ReactNode }) {
               <p className="font-heading text-[10px] tracking-[0.3em] text-white/20 mb-4">QUICK LINKS</p>
               <div className="flex flex-col gap-2.5">
                 {[
-                  { href: '/menu',     label: 'Menu' },
-                  { href: '/cart',     label: 'Cart' },
-                  { href: '/login',    label: 'Sign In' },
-                  { href: '/careers',  label: 'Careers' },
+                  { href: '/menu',      label: 'Menu' },
+                  { href: '/cart',      label: 'Cart' },
+                  { href: '/my-orders', label: 'My Orders' },
+                  { href: '/login',     label: 'Sign In' },
                 ].map(({ href, label }) => (
                   <a
                     key={href}
