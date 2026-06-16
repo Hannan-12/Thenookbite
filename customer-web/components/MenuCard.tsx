@@ -12,6 +12,13 @@ function cardImage(card: MenuCardType): string {
   return imageForItem(card.name, card.category, dbUrl);
 }
 
+function isCardAvailable(card: MenuCardType): boolean {
+  if (card.kind === 'plain') return card.item.available;
+  if (card.kind === 'pizza') return card.sizes.some(s => s.available);
+  if (card.kind === 'burger') return card.variants.some(v => v.available);
+  return true;
+}
+
 export function MenuCard({
   card,
   animateIn = true,
@@ -23,13 +30,14 @@ export function MenuCard({
   const [open, setOpen] = useState(false);
   const desc = 'item' in card ? card.item.description : card.base.description;
   const img = cardImage(card);
+  const available = isCardAvailable(card);
 
   return (
     <>
       <div
         className={`group flex h-full flex-col bg-surface border border-theme hover:border-brand-red/40 hover:shadow-lg transition-all duration-300 rounded-sm overflow-hidden ${
           animateIn ? 'animate-fade-up stagger' : ''
-        }`}
+        } ${!available ? 'opacity-60' : ''}`}
       >
         {/* Image */}
         <button
@@ -44,12 +52,21 @@ export function MenuCard({
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          {/* Hover overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-            <span className="font-heading text-xs tracking-[0.3em] text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-brand-red px-4 py-2">
-              QUICK VIEW
-            </span>
-          </div>
+          {!available && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <span className="font-heading text-xs tracking-[0.3em] text-white bg-black/70 px-4 py-2 border border-white/20">
+                SOLD OUT
+              </span>
+            </div>
+          )}
+          {/* Hover overlay — only when available */}
+          {available && (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+              <span className="font-heading text-xs tracking-[0.3em] text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-brand-red px-4 py-2">
+                QUICK VIEW
+              </span>
+            </div>
+          )}
         </button>
 
         {/* Content */}

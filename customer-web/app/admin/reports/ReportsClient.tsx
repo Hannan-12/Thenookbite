@@ -354,7 +354,7 @@ export function ReportsClient() {
             { key: 'daily',          label: 'DAILY SALES' },
             { key: 'top_items',      label: 'TOP ITEMS' },
             { key: 'top_categories', label: 'BY CATEGORY' },
-            { key: 'orders_list',    label: 'ALL ORDERS' },
+            { key: 'orders_list',    label: 'COMPLETED ORDERS' },
           ] as { key: ReportType; label: string }[]).map(t => (
             <button
               key={t.key}

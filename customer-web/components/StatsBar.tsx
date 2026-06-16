@@ -6,8 +6,8 @@ interface Stat { to: number; suffix: string; label: string; }
 
 const STATS: Stat[] = [
   { to: 139, suffix: '+', label: 'Menu Items' },
-  { to: 12,  suffix: 'K+', label: 'Happy Customers' },
-  { to: 4.9, suffix: '/5', label: 'Average Rating' },
+  { to: 7,   suffix: '',  label: 'Food Categories' },
+  { to: 12,  suffix: '',  label: 'Hours Open Daily' },
   { to: 20,  suffix: 'min', label: 'Avg. Prep Time' },
 ];
 

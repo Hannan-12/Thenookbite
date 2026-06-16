@@ -184,7 +184,7 @@ export function AttendanceClient() {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="text-right hidden sm:block">
+                  <div className="text-right">
                     <p className="font-heading text-xs text-white/40">
                       IN {fmt(r.check_in)} · OUT {fmt(r.check_out)}
                     </p>

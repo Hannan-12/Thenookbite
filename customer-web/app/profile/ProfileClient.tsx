@@ -22,6 +22,7 @@ export function ProfileClient({
   const nextUrl = searchParams.get('next');
   const [name, setName]       = useState(initialName);
   const [phone, setPhone]     = useState(initialPhone);
+  const isDirty = name !== initialName || phone !== initialPhone;
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
   const [error, setError]     = useState<string | null>(null);
@@ -138,12 +139,12 @@ export function ProfileClient({
               type="submit"
               disabled={saving}
               className={`font-heading text-sm tracking-widest px-8 py-3 transition-colors duration-200 disabled:opacity-50 rounded-sm ${
-                saved
+                saved && !isDirty
                   ? 'bg-green-600 text-white'
                   : 'bg-brand-red text-white hover:bg-red-600'
               }`}
             >
-              {saving ? 'SAVING…' : saved ? 'SAVED ✓' : 'SAVE CHANGES'}
+              {saving ? 'SAVING…' : (saved && !isDirty) ? 'SAVED ✓' : 'SAVE CHANGES'}
             </button>
           </form>
 

@@ -7,6 +7,7 @@ import { formatPKR } from '@/lib/format';
 
 type Tab = 'summary' | 'purchases' | 'expenses' | 'vendors';
 type Preset = 'today' | '7d' | '30d' | 'month' | 'custom';
+interface Toast { msg: string; ok: boolean; }
 
 interface Summary {
   total_revenue: number;
@@ -314,8 +315,9 @@ function PurchasesTab() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [vendors, setVendors]     = useState<Vendor[]>([]);
   const [loading, setLoading]     = useState(true);
-  const [toast, setToast]         = useState<string | null>(null);
+  const [toast, setToast]         = useState<Toast | null>(null);
   const [deleteId, setDeleteId]   = useState<string | null>(null);
+  const [preset, setPreset]       = useState<Preset>('month');
 
   // form state
   const [vendorId, setVendorId]   = useState('');
@@ -325,18 +327,20 @@ function PurchasesTab() {
   const [date, setDate]           = useState(toISO(new Date()));
   const [adding, setAdding]       = useState(false);
 
-  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
+  function showToast(msg: string, ok = true) { setToast({ msg, ok }); setTimeout(() => setToast(null), 3000); }
+
+  const dates = presetDates(preset);
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin/ledger/purchases').then(r => r.ok ? r.json() : []),
+      fetch(`/api/admin/ledger/purchases?from_date=${dates.from}&to_date=${dates.to}`).then(r => r.ok ? r.json() : []),
       fetch('/api/admin/ledger/vendors').then(r => r.ok ? r.json() : []),
     ]).then(([p, v]) => {
       setPurchases(Array.isArray(p) ? p : []);
       setVendors(Array.isArray(v) ? v : []);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, []);
+  }, [dates.from, dates.to]);
 
   function handleVendorSelect(id: string) {
     setVendorId(id);
@@ -356,7 +360,7 @@ function PurchasesTab() {
     });
     const data = await res.json();
     setAdding(false);
-    if (!res.ok) { showToast(data.detail ?? 'Failed'); return; }
+    if (!res.ok) { showToast(data.detail ?? 'Failed', false); return; }
     setPurchases(prev => [data, ...prev]);
     setVendorId(''); setVendorName(''); setAmount(''); setDesc('');
     showToast('Purchase added');
@@ -365,13 +369,14 @@ function PurchasesTab() {
   async function handleDelete(id: string) {
     const res = await fetch(`/api/admin/ledger/purchases/${id}`, { method: 'DELETE' });
     if (res.ok) { setPurchases(prev => prev.filter(p => p.id !== id)); setDeleteId(null); showToast('Deleted'); }
+    else showToast('Delete failed', false);
   }
 
   const total = purchases.reduce((s, p) => s + p.amount, 0);
 
   return (
     <>
-      {toast && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#E4002B] text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none">{toast}</div>}
+      {toast && <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none ${toast.ok ? 'bg-green-600' : 'bg-[#E4002B]'}`}>{toast.msg}</div>}
 
       {/* Add form */}
       <form onSubmit={handleAdd} className="border border-white/5 bg-[#111] rounded-sm px-5 py-5 mb-6 space-y-4">
@@ -410,10 +415,22 @@ function PurchasesTab() {
         </div>
       </form>
 
+      {/* Date filter */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {(['today', '7d', 'month', '30d'] as Preset[]).map(p => (
+          <button key={p} onClick={() => setPreset(p)}
+            className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
+              preset === p ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+            }`}>
+            {p === 'today' ? 'TODAY' : p === '7d' ? 'LAST 7D' : p === 'month' ? 'THIS MONTH' : 'LAST 30D'}
+          </button>
+        ))}
+      </div>
+
       {/* List */}
       <div className="border border-white/5 rounded-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
-          <p className="font-heading text-xs tracking-widest text-white/40">ALL PURCHASES</p>
+          <p className="font-heading text-xs tracking-widest text-white/40">PURCHASES · {dates.from} → {dates.to}</p>
           {purchases.length > 0 && <p className="font-heading text-xs text-white/60">TOTAL: <span className="text-white">{formatPKR(total)}</span></p>}
         </div>
         {loading ? (
@@ -458,8 +475,9 @@ function PurchasesTab() {
 function ExpensesTab() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading]   = useState(true);
-  const [toast, setToast]       = useState<string | null>(null);
+  const [toast, setToast]       = useState<Toast | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [preset, setPreset]     = useState<Preset>('month');
 
   const [category, setCategory] = useState('Rent');
   const [amount, setAmount]     = useState('');
@@ -467,14 +485,16 @@ function ExpensesTab() {
   const [date, setDate]         = useState(toISO(new Date()));
   const [adding, setAdding]     = useState(false);
 
-  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
+  function showToast(msg: string, ok = true) { setToast({ msg, ok }); setTimeout(() => setToast(null), 3000); }
+
+  const dates = presetDates(preset);
 
   useEffect(() => {
-    fetch('/api/admin/ledger/expenses')
+    fetch(`/api/admin/ledger/expenses?from_date=${dates.from}&to_date=${dates.to}`)
       .then(r => r.ok ? r.json() : [])
       .then(data => { setExpenses(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
-  }, []);
+  }, [dates.from, dates.to]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -487,7 +507,7 @@ function ExpensesTab() {
     });
     const data = await res.json();
     setAdding(false);
-    if (!res.ok) { showToast(data.detail ?? 'Failed'); return; }
+    if (!res.ok) { showToast(data.detail ?? 'Failed', false); return; }
     setExpenses(prev => [data, ...prev]);
     setAmount(''); setDesc('');
     showToast('Expense added');
@@ -496,13 +516,14 @@ function ExpensesTab() {
   async function handleDelete(id: string) {
     const res = await fetch(`/api/admin/ledger/expenses/${id}`, { method: 'DELETE' });
     if (res.ok) { setExpenses(prev => prev.filter(e => e.id !== id)); setDeleteId(null); showToast('Deleted'); }
+    else showToast('Delete failed', false);
   }
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
 
   return (
     <>
-      {toast && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#E4002B] text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none">{toast}</div>}
+      {toast && <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none ${toast.ok ? 'bg-green-600' : 'bg-[#E4002B]'}`}>{toast.msg}</div>}
 
       {/* Add form */}
       <form onSubmit={handleAdd} className="border border-white/5 bg-[#111] rounded-sm px-5 py-5 mb-6 space-y-3">
@@ -535,10 +556,22 @@ function ExpensesTab() {
         </div>
       </form>
 
+      {/* Date filter */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {(['today', '7d', 'month', '30d'] as Preset[]).map(p => (
+          <button key={p} onClick={() => setPreset(p)}
+            className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
+              preset === p ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+            }`}>
+            {p === 'today' ? 'TODAY' : p === '7d' ? 'LAST 7D' : p === 'month' ? 'THIS MONTH' : 'LAST 30D'}
+          </button>
+        ))}
+      </div>
+
       {/* List */}
       <div className="border border-white/5 rounded-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
-          <p className="font-heading text-xs tracking-widest text-white/40">ALL EXPENSES</p>
+          <p className="font-heading text-xs tracking-widest text-white/40">EXPENSES · {dates.from} → {dates.to}</p>
           {expenses.length > 0 && <p className="font-heading text-xs text-white/60">TOTAL: <span className="text-white">{formatPKR(total)}</span></p>}
         </div>
         {loading ? (
@@ -586,7 +619,7 @@ function ExpensesTab() {
 function VendorsTab() {
   const [vendors, setVendors]   = useState<Vendor[]>([]);
   const [loading, setLoading]   = useState(true);
-  const [toast, setToast]       = useState<string | null>(null);
+  const [toast, setToast]       = useState<Toast | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editId, setEditId]     = useState<string | null>(null);
 
@@ -601,7 +634,7 @@ function VendorsTab() {
   const [editCat, setEditCat]     = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
-  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
+  function showToast(msg: string, ok = true) { setToast({ msg, ok }); setTimeout(() => setToast(null), 3000); }
 
   useEffect(() => {
     fetch('/api/admin/ledger/vendors')
@@ -621,7 +654,7 @@ function VendorsTab() {
     });
     const data = await res.json();
     setAdding(false);
-    if (!res.ok) { showToast(data.detail ?? 'Failed'); return; }
+    if (!res.ok) { showToast(data.detail ?? 'Failed', false); return; }
     setVendors(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
     setName(''); setPhone(''); setCat(''); setNotes('');
     showToast('Vendor added');
@@ -639,7 +672,7 @@ function VendorsTab() {
     });
     const data = await res.json();
     setEditSaving(false);
-    if (!res.ok) { showToast(data.detail ?? 'Failed'); return; }
+    if (!res.ok) { showToast(data.detail ?? 'Failed', false); return; }
     setVendors(prev => prev.map(v => v.id === editId ? data : v));
     setEditId(null);
     showToast('Vendor updated');
@@ -648,11 +681,12 @@ function VendorsTab() {
   async function handleDelete(id: string) {
     const res = await fetch(`/api/admin/ledger/vendors/${id}`, { method: 'DELETE' });
     if (res.ok) { setVendors(prev => prev.filter(v => v.id !== id)); setDeleteId(null); showToast('Deleted'); }
+    else showToast('Delete failed', false);
   }
 
   return (
     <>
-      {toast && <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#E4002B] text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none">{toast}</div>}
+      {toast && <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none ${toast.ok ? 'bg-green-600' : 'bg-[#E4002B]'}`}>{toast.msg}</div>}
 
       {/* Add form */}
       <form onSubmit={handleAdd} className="border border-white/5 bg-[#111] rounded-sm px-5 py-5 mb-6">

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '@/store/cart';
 import { formatPKR } from '@/lib/format';
 
@@ -28,6 +28,11 @@ export default function MyOrdersClient({ orders }: { orders: Order[] }) {
   const { addLine, clear } = useCart();
   const router = useRouter();
   const [reordering, setReordering] = useState<string | null>(null);
+
+  useEffect(() => {
+    const id = setInterval(() => router.refresh(), 30_000);
+    return () => clearInterval(id);
+  }, [router]);
 
   function handleReorder(order: Order) {
     const hasCart = useCart.getState().lines.length > 0;

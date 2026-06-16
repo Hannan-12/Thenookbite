@@ -56,7 +56,7 @@ export function OrderDetailClient({ order }: { order: Order }) {
     <div className="px-4 sm:px-8 py-8 max-w-2xl">
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-[#E4002B] text-white font-heading text-xs tracking-widest px-4 py-2 rounded-sm shadow-lg">
+        <div className="fixed top-4 right-4 z-50 bg-green-600 text-white font-heading text-xs tracking-widest px-4 py-2 rounded-sm shadow-lg">
           {toast}
         </div>
       )}
