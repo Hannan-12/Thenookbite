@@ -16,7 +16,7 @@ interface AttendanceRecord {
 const STATUS_STYLES: Record<string, string> = {
   present:    'border-green-500/30 bg-green-500/5 text-green-400',
   late:       'border-yellow-500/30 bg-yellow-500/5 text-yellow-400',
-  absent:     'border-white/10 bg-white/5 text-white/30',
+  absent:     'border-red-500/30 bg-red-500/5 text-red-400',
   no_records: 'border-white/5 bg-white/3 text-white/20',
 };
 
@@ -151,9 +151,9 @@ export function AttendanceClient() {
             <p className="font-heading text-2xl text-green-400">{presentToday}</p>
             <p className="font-heading text-[10px] tracking-widest text-green-400/60 mt-0.5">PRESENT</p>
           </div>
-          <div className="border border-white/10 bg-white/3 rounded-sm px-5 py-3 text-center">
-            <p className="font-heading text-2xl text-white/30">{absentToday}</p>
-            <p className="font-heading text-[10px] tracking-widest text-white/20 mt-0.5">ABSENT</p>
+          <div className="border border-red-500/30 bg-red-500/5 rounded-sm px-5 py-3 text-center">
+            <p className="font-heading text-2xl text-red-400">{absentToday}</p>
+            <p className="font-heading text-[10px] tracking-widest text-red-400/60 mt-0.5">ABSENT</p>
           </div>
           <div className="border border-yellow-500/30 bg-yellow-500/5 rounded-sm px-5 py-3 text-center">
             <p className="font-heading text-2xl text-yellow-400">{records.filter(r => r.status === 'late').length}</p>
