@@ -5,14 +5,10 @@ import { DealOfTheDay } from '@/components/DealOfTheDay';
 import { DealsBanner } from '@/components/DealsBanner';
 import { CategoryGrid } from '@/components/CategoryGrid';
 import { Benefits } from '@/components/Benefits';
-import { RecentOrders } from '@/components/RecentOrders';
 
 export default function HomePage() {
   return (
     <div>
-      {/* Recent orders — pinned just below navbar, only visible when logged in */}
-      <RecentOrders />
-
       {/* Hero auto-sliding carousel */}
       <HeroSlider />
 
