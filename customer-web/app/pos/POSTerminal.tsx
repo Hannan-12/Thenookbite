@@ -83,10 +83,12 @@ export function POSTerminal({
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Load session orders from DB on mount (survives page refresh) ─────────────
+  // ── Load today's orders for this staff member on mount ───────────────────────
   useEffect(() => {
-    if (!sessionId) return;
-    fetch(`/api/pos/session/${sessionId}/orders`)
+    if (!staffId) return;
+    const params = new URLSearchParams({ staff_id: staffId });
+    if (sessionId) params.set('session_id', sessionId);
+    fetch(`/api/pos/staff-orders?${params}`)
       .then(r => r.ok ? r.json() : [])
       .then((orders: Array<{
         id: string; total: number; customer_name: string; customer_phone: string;
@@ -117,7 +119,7 @@ export function POSTerminal({
         setSessionOrders(loaded);
       })
       .catch(() => {});
-  }, [sessionId]);
+  }, [staffId, sessionId]);
 
   // ── Phone lookup ─────────────────────────────────────────────────────────────
   const lookupPhone = useCallback(async (raw: string) => {
