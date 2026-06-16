@@ -29,9 +29,6 @@ export default function HomePage() {
 
       {/* Why choose us */}
       <Benefits />
-
-      {/* Scrolling feature strip (above footer, FreshMart-style) */}
-      <PromoMarquee />
     </div>
   );
 }
