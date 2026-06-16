@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { formatPKR } from '@/lib/format';
 import { elapsed, elapsedColor, useStopwatchTick } from '@/lib/useStopwatch';
+import { printOrderReceipt } from '@/lib/printReceipt';
 
 interface OrderItem { item_name: string; quantity: number; item_price: number; }
 interface Order {
@@ -166,12 +167,18 @@ export default function VerifyDisplay() {
                       <p className="text-blue-300/60 text-xs mt-1">📍 {order.delivery_address}</p>
                     )}
                   </div>
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                     <p className={`text-sm font-bold tabular-nums ${elapsedColor(order.created_at)}`}>
                       ⏱ {elapsed(order.created_at)}
                     </p>
-                    <p className="text-white/30 text-xs mt-1">{order.payment_method.toUpperCase()}</p>
-                    <p className="font-heading text-white text-base mt-1">{formatPKR(order.total)}</p>
+                    <p className="text-white/30 text-xs">{order.payment_method.toUpperCase()}</p>
+                    <p className="font-heading text-white text-base">{formatPKR(order.total)}</p>
+                    <button
+                      onClick={() => printOrderReceipt(order)}
+                      className="font-heading text-[9px] tracking-widest px-2 py-1 border border-white/10 text-white/30 hover:border-white/30 hover:text-white rounded-sm transition-colors mt-1"
+                    >
+                      🖨 PRINT
+                    </button>
                   </div>
                 </div>
 

@@ -4,11 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatPKR } from '@/lib/format';
+import { printOrderReceipt } from '@/lib/printReceipt';
 
 type OrderItem = { item_name: string; item_price: number; quantity: number };
 type Order = {
   id: string; status: string; payment_method: string; payment_status: string;
-  total: number; customer_name: string; table_number: string | null;
+  total: number; customer_name: string; customer_phone: string | null;
+  table_number: string | null; order_type: string | null;
+  delivery_address: string | null; rider_name: string | null;
   special_notes: string | null; created_at: string; order_items: OrderItem[];
 };
 
@@ -74,9 +77,17 @@ export function OrderDetailClient({ order }: { order: Order }) {
           <h1 className="font-heading text-3xl text-white">#{shortId}</h1>
           <p className="text-white/30 text-xs mt-1">{date}</p>
         </div>
-        <span className={`font-heading text-xs px-3 py-1.5 border rounded-sm ${STATUS_STYLES[status]}`}>
-          {status.toUpperCase()}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => printOrderReceipt(order)}
+            className="font-heading text-xs tracking-widest px-3 py-1.5 border border-white/10 text-white/40 hover:border-white/30 hover:text-white rounded-sm transition-colors"
+          >
+            🖨 PRINT
+          </button>
+          <span className={`font-heading text-xs px-3 py-1.5 border rounded-sm ${STATUS_STYLES[status]}`}>
+            {status.toUpperCase()}
+          </span>
+        </div>
       </div>
 
       {/* Customer info */}
@@ -85,10 +96,34 @@ export function OrderDetailClient({ order }: { order: Order }) {
           <span className="font-heading text-xs tracking-wider text-white/30">CUSTOMER</span>
           <span className="font-heading text-white text-sm">{order.customer_name}</span>
         </div>
+        {order.customer_phone && (
+          <div className="flex justify-between text-sm">
+            <span className="font-heading text-xs tracking-wider text-white/30">PHONE</span>
+            <span className="font-heading text-white text-sm">{order.customer_phone}</span>
+          </div>
+        )}
+        {order.order_type && (
+          <div className="flex justify-between text-sm">
+            <span className="font-heading text-xs tracking-wider text-white/30">TYPE</span>
+            <span className="font-heading text-white text-sm">{order.order_type.toUpperCase()}</span>
+          </div>
+        )}
         {order.table_number && (
           <div className="flex justify-between text-sm">
             <span className="font-heading text-xs tracking-wider text-white/30">TABLE</span>
             <span className="font-heading text-white text-sm">{order.table_number}</span>
+          </div>
+        )}
+        {order.delivery_address && (
+          <div className="flex justify-between text-sm gap-4">
+            <span className="font-heading text-xs tracking-wider text-white/30 flex-shrink-0">ADDRESS</span>
+            <span className="font-heading text-white text-sm text-right">{order.delivery_address}</span>
+          </div>
+        )}
+        {order.rider_name && (
+          <div className="flex justify-between text-sm">
+            <span className="font-heading text-xs tracking-wider text-white/30">RIDER</span>
+            <span className="font-heading text-white text-sm">{order.rider_name}</span>
           </div>
         )}
         <div className="flex justify-between text-sm">
