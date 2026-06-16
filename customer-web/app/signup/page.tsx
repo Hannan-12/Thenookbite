@@ -18,6 +18,7 @@ export default function SignupPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
+  const [sent, setSent]         = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,8 +44,39 @@ export default function SignupPage() {
         phone: phone ? normalizePhone(phone) : null,
       });
     }
-    router.push('/profile');
-    router.refresh();
+    setSent(true);
+    setLoading(false);
+  }
+
+  if (sent) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md text-center">
+          <div className="inline-block bg-brand-red text-white font-heading text-base px-3 py-1.5 tracking-wider mb-10">
+            TNB
+          </div>
+          <div className="bg-[#111] border border-white/5 rounded-sm p-10">
+            <div className="w-16 h-16 rounded-full bg-brand-red/10 border border-brand-red/20 flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl">✉️</span>
+            </div>
+            <h2 className="font-heading text-2xl text-white tracking-widest mb-3">CHECK YOUR EMAIL</h2>
+            <p className="text-white/50 text-sm font-body leading-relaxed mb-1">
+              We sent a verification link to
+            </p>
+            <p className="text-white font-heading tracking-wider mb-4">{email}</p>
+            <p className="text-white/30 text-xs font-body leading-relaxed mb-8">
+              Click the link in the email to verify your account. Check your spam folder if you don't see it.
+            </p>
+            <Link
+              href="/login"
+              className="inline-block w-full bg-brand-red text-white font-heading text-sm py-4 tracking-widest hover:bg-red-600 transition-colors rounded-sm"
+            >
+              GO TO SIGN IN →
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
