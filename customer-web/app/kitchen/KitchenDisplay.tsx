@@ -259,8 +259,8 @@ function OrderCard({
           )}
         </div>
         <div className="text-right">
-          <p className={`text-xs tracking-widest font-bold tabular-nums ${elapsedColor(order.created_at)}`}>⏱ {elapsed(order.created_at)}</p>
-          <p className="text-white text-xs mt-0.5">{order.customer_name}</p>
+          <p className={`text-2xl tracking-widest font-bold tabular-nums ${elapsedColor(order.created_at)}`}>⏱ {elapsed(order.created_at)}</p>
+          <p className="text-white text-sm mt-0.5">{order.customer_name}</p>
         </div>
       </div>
 
