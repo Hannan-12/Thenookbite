@@ -21,13 +21,13 @@ export default async function ProfilePage() {
     await supabase.from('profiles').upsert({
       id: user.id,
       full_name: user.user_metadata?.full_name ?? null,
-      phone: user.user_metadata?.phone ?? null,
+      phone: user.user_metadata?.phone ?? user.phone ?? null,
     });
   }
 
   // Fall back to auth metadata if profile row is missing or incomplete
-  const metaName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? '';
-  const metaPhone = user.user_metadata?.phone ?? '';
+  const metaName  = user.user_metadata?.full_name ?? user.user_metadata?.name ?? '';
+  const metaPhone = user.user_metadata?.phone ?? user.phone ?? '';
 
   return (
     <ProfileClient

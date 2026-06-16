@@ -35,7 +35,7 @@ export default function SignupPage() {
     const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim() } },
+      options: { data: { full_name: name.trim(), phone: phone ? normalizePhone(phone) : null } },
     });
     if (err) { setError(err.message); setLoading(false); return; }
     if (data.user) {
