@@ -5,6 +5,7 @@ import { DealOfTheDay } from '@/components/DealOfTheDay';
 import { DealsBanner } from '@/components/DealsBanner';
 import { CategoryGrid } from '@/components/CategoryGrid';
 import { Benefits } from '@/components/Benefits';
+import { RecentOrders } from '@/components/RecentOrders';
 
 export default function HomePage() {
   return (
@@ -17,6 +18,9 @@ export default function HomePage() {
 
       {/* Animated stats / trust bar */}
       <StatsBar />
+
+      {/* Recent orders — only visible when logged in */}
+      <RecentOrders />
 
       {/* Deal of the day — countdown + stock bar */}
       <DealOfTheDay />
