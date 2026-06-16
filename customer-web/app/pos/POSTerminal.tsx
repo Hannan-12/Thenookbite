@@ -30,6 +30,7 @@ interface SessionOrder {
   customerName: string;
   phone: string;
   table: string;
+  address: string;
   orderType: OrderType;
   payment: PaymentMethod;
   items: CartLine[];
@@ -37,7 +38,7 @@ interface SessionOrder {
   placedAt: Date;
 }
 
-type OrderType = 'dine-in' | 'takeaway';
+type OrderType = 'dine-in' | 'takeaway' | 'delivery';
 type PaymentMethod = 'cash' | 'card';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -65,6 +66,7 @@ export function POSTerminal({
   const [cart, setCart]             = useState<CartLine[]>([]);
   const [orderType, setOrderType]   = useState<OrderType>('dine-in');
   const [table, setTable]           = useState('');
+  const [address, setAddress]       = useState('');
   const [customer, setCustomer]     = useState('');
   const [phone, setPhone]           = useState('');
   const [phoneError, setPhoneError] = useState<string | null>(null);
@@ -140,6 +142,7 @@ export function POSTerminal({
   function clearCart() {
     setCart([]);
     setTable('');
+    setAddress('');
     setCustomer('');
     setPhone('');
     setPhoneError(null);
@@ -162,18 +165,24 @@ export function POSTerminal({
     }
     setPlacing(true);
     try {
+      const nameDefault =
+        orderType === 'dine-in'  ? `Table ${table || '?'}` :
+        orderType === 'delivery' ? 'Delivery'               : 'Counter';
+
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customer_name: customer || (orderType === 'dine-in' ? `Table ${table || '?'}` : 'Counter'),
-          customer_phone: normalizedPhone,
-          table_number: orderType === 'dine-in' ? (table || null) : null,
-          special_notes: notes || null,
-          payment_method: payment,
-          user_id: null,
-          staff_id: staffId,
-          session_id: sessionId,
+          customer_name:    customer || nameDefault,
+          customer_phone:   normalizedPhone,
+          table_number:     orderType === 'dine-in' ? (table || null) : null,
+          delivery_address: orderType === 'delivery' ? (address || null) : null,
+          order_type:       orderType,
+          special_notes:    notes || null,
+          payment_method:   payment,
+          user_id:          null,
+          staff_id:         staffId,
+          session_id:       sessionId,
           items: cart.map(l => ({
             menu_item_id: l.menu_item_id,
             item_name: l.name,
@@ -190,9 +199,10 @@ export function POSTerminal({
       const completedOrder: SessionOrder = {
         id: order.id,
         total: order.total,
-        customerName: customer || (orderType === 'dine-in' ? `Table ${table || '?'}` : 'Counter'),
+        customerName: customer || nameDefault,
         phone: normalizedPhone,
         table,
+        address,
         orderType,
         payment,
         items: [...cart],
@@ -218,7 +228,7 @@ export function POSTerminal({
   function printReceipt(order?: SessionOrder) {
     const target = order ?? lastOrder;
     if (!target) return;
-    const { id, total, customerName, phone, table, orderType, payment, items, notes, placedAt } = target;
+    const { id, total, customerName, phone, table, address, orderType, payment, items, notes, placedAt } = target;
     const dateStr = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const subtotal = items.reduce((s, l) => s + l.price * l.quantity, 0);
@@ -284,8 +294,12 @@ export function POSTerminal({
       </tr>
       <tr>
         <td class="small">Type</td>
-        <td class="small right">${orderType === 'dine-in' ? `DINE-IN${table ? ` · TABLE ${table}` : ''}` : 'TAKEAWAY'}</td>
+        <td class="small right">${
+          orderType === 'dine-in'  ? `DINE-IN${table ? ` · TABLE ${table}` : ''}` :
+          orderType === 'delivery' ? 'DELIVERY' : 'TAKEAWAY'
+        }</td>
       </tr>
+      ${address ? `<tr><td class="small">Address</td><td class="small right" style="max-width:120px;word-break:break-word;">${address}</td></tr>` : ''}
       ${customerName ? `<tr><td class="small">Customer</td><td class="small right">${customerName}</td></tr>` : ''}
       ${phone ? `<tr><td class="small">Phone</td><td class="small right">${phone}</td></tr>` : ''}
       <tr>
@@ -365,18 +379,22 @@ export function POSTerminal({
     <div className="flex flex-col h-full bg-[#111111]">
       {/* Order type */}
       <div className="px-4 py-3 border-b border-white/5 flex-shrink-0">
-        <div className="flex gap-2">
-          {(['dine-in', 'takeaway'] as const).map(t => (
+        <div className="flex gap-1.5">
+          {([
+            { value: 'dine-in',  label: '🍽 DINE IN'  },
+            { value: 'takeaway', label: '🥡 TAKEAWAY' },
+            { value: 'delivery', label: '🛵 DELIVERY' },
+          ] as const).map(t => (
             <button
-              key={t}
-              onClick={() => setOrderType(t)}
-              className={`flex-1 font-heading text-xs tracking-widest py-2.5 rounded-sm border transition-colors duration-100 ${
-                orderType === t
+              key={t.value}
+              onClick={() => setOrderType(t.value)}
+              className={`flex-1 font-heading text-[10px] tracking-widest py-2.5 rounded-sm border transition-colors duration-100 ${
+                orderType === t.value
                   ? 'bg-[#E4002B] border-[#E4002B] text-white'
                   : 'border-white/10 text-white/30 hover:text-white'
               }`}
             >
-              {t === 'dine-in' ? '🍽 DINE IN' : '🥡 TAKEAWAY'}
+              {t.label}
             </button>
           ))}
         </div>
@@ -423,6 +441,15 @@ export function POSTerminal({
             />
           )}
         </div>
+
+        {orderType === 'delivery' && (
+          <input
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            placeholder="Delivery address…"
+            className="w-full mt-2 bg-[#1a1a1a] border border-[#E4002B]/30 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/60 rounded-sm font-body"
+          />
+        )}
 
         {/* Past orders */}
         {pastOrders.length > 0 && (
@@ -790,7 +817,7 @@ export function POSTerminal({
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-heading text-sm text-white">#{o.id.slice(-6).toUpperCase()}</span>
                             <span className="font-heading text-[10px] px-1.5 py-0.5 border border-white/10 text-white/30 rounded-sm">
-                              {o.orderType === 'dine-in' ? (o.table ? `TABLE ${o.table}` : 'DINE-IN') : 'TAKEAWAY'}
+                              {o.orderType === 'dine-in' ? (o.table ? `TABLE ${o.table}` : 'DINE-IN') : o.orderType === 'delivery' ? 'DELIVERY' : 'TAKEAWAY'}
                             </span>
                             {idx === 0 && (
                               <span className="font-heading text-[9px] px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 text-green-400 rounded-sm">LATEST</span>
