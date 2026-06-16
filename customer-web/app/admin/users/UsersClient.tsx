@@ -13,6 +13,7 @@ interface Customer {
   order_count: number;
   total_spent: number;
   last_order_at: string | null;
+  is_banned: boolean;
 }
 
 function fmtDate(iso: string | null) {
@@ -26,15 +27,29 @@ function fmtDateTime(iso: string | null) {
 }
 
 export function UsersClient({ initialUsers }: { initialUsers: Customer[] }) {
-  const [users, setUsers]     = useState<Customer[]>(initialUsers);
-  const [search, setSearch]   = useState('');
-  const [loading, setLoading] = useState(false);
+  const [users, setUsers]         = useState<Customer[]>(initialUsers);
+  const [search, setSearch]       = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [banningId, setBanningId] = useState<string | null>(null);
 
   async function refresh() {
     setLoading(true);
     const res = await fetch('/api/admin/users');
     if (res.ok) setUsers(await res.json());
     setLoading(false);
+  }
+
+  async function toggleBan(id: string, currentlyBanned: boolean) {
+    setBanningId(id);
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_banned: !currentlyBanned }),
+    });
+    if (res.ok) {
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, is_banned: !currentlyBanned } : u));
+    }
+    setBanningId(null);
   }
 
   const filtered = users.filter(u => {
@@ -118,13 +133,23 @@ export function UsersClient({ initialUsers }: { initialUsers: Customer[] }) {
                   <th className="text-right px-5 py-3 tracking-widest text-white/30">TOTAL SPENT</th>
                   <th className="text-right px-5 py-3 tracking-widest text-white/30 hidden lg:table-cell">LAST ORDER</th>
                   <th className="text-right px-5 py-3 tracking-widest text-white/30 hidden xl:table-cell">JOINED</th>
+                  <th className="px-5 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filtered.map(u => (
-                  <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                  <tr key={u.id} className={`transition-colors ${u.is_banned ? 'bg-red-950/20' : 'hover:bg-white/[0.02]'}`}>
                     <td className="px-5 py-3.5">
-                      <p className="text-white">{u.full_name ?? <span className="text-white/30 italic">No name</span>}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className={u.is_banned ? 'text-white/40 line-through' : 'text-white'}>
+                          {u.full_name ?? <span className="text-white/30 italic">No name</span>}
+                        </p>
+                        {u.is_banned && (
+                          <span className="font-heading text-[9px] tracking-widest px-1.5 py-0.5 bg-red-500/20 border border-red-500/40 text-red-400 rounded-sm">
+                            BANNED
+                          </span>
+                        )}
+                      </div>
                       <p className="text-white/30 mt-0.5">{u.email}</p>
                     </td>
                     <td className="px-5 py-3.5 text-white/40 hidden md:table-cell">
@@ -151,6 +176,19 @@ export function UsersClient({ initialUsers }: { initialUsers: Customer[] }) {
                     </td>
                     <td className="px-5 py-3.5 text-right text-white/30 hidden xl:table-cell">
                       {fmtDate(u.joined_at)}
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <button
+                        onClick={() => toggleBan(u.id, u.is_banned)}
+                        disabled={banningId === u.id}
+                        className={`font-heading text-[10px] tracking-widest px-3 py-1.5 rounded-sm border transition-colors disabled:opacity-40 ${
+                          u.is_banned
+                            ? 'border-green-500/30 text-green-400/70 hover:text-green-400 hover:border-green-500/60'
+                            : 'border-red-500/20 text-red-400/50 hover:text-red-400 hover:border-red-500/50'
+                        }`}
+                      >
+                        {banningId === u.id ? '…' : u.is_banned ? 'UNBAN' : 'BAN'}
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -24,7 +24,7 @@ export default async function UsersPage() {
 
   const [profilesRes, ordersRes] = await Promise.all([
     userIds.length > 0
-      ? db.from('profiles').select('id, full_name, phone').in('id', userIds)
+      ? db.from('profiles').select('id, full_name, phone, is_banned').in('id', userIds)
       : Promise.resolve({ data: [] }),
     userIds.length > 0
       ? db.from('orders').select('user_id, total, created_at, status').in('user_id', userIds).order('created_at', { ascending: false })
@@ -32,7 +32,7 @@ export default async function UsersPage() {
   ]);
 
   const profileMap = Object.fromEntries(
-    (profilesRes.data ?? []).map((p: { id: string; full_name: string | null; phone: string | null }) => [p.id, p])
+    (profilesRes.data ?? []).map((p: { id: string; full_name: string | null; phone: string | null; is_banned: boolean | null }) => [p.id, p])
   );
 
   const ordersByUser: Record<string, { count: number; totalSpent: number; lastOrder: string | null }> = {};
@@ -52,6 +52,7 @@ export default async function UsersPage() {
       email: u.email ?? '',
       full_name: profile?.full_name ?? (u.user_metadata?.full_name as string | null) ?? null,
       phone: profile?.phone ?? null,
+      is_banned: profile?.is_banned ?? false,
       joined_at: u.created_at,
       last_sign_in: u.last_sign_in_at ?? null,
       order_count: stats.count,

@@ -22,6 +22,19 @@ export async function POST(req: NextRequest) {
   }
 
   const db = createServiceClient();
+
+  // Block banned customers
+  if (user_id) {
+    const { data: profile } = await db
+      .from('profiles')
+      .select('is_banned')
+      .eq('id', user_id)
+      .single();
+    if (profile?.is_banned) {
+      return NextResponse.json({ detail: 'Your account has been suspended. Please contact the restaurant.' }, { status: 403 });
+    }
+  }
+
   const total = items.reduce((sum: number, i: { item_price: number; quantity: number }) => sum + i.item_price * i.quantity, 0);
 
   const { data: order, error: orderErr } = await db

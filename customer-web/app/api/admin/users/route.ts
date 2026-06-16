@@ -31,11 +31,11 @@ export async function GET() {
   // Fetch profiles
   const { data: profiles } = await db
     .from('profiles')
-    .select('id, full_name, phone')
+    .select('id, full_name, phone, is_banned')
     .in('id', userIds);
 
   const profileMap = Object.fromEntries(
-    (profiles ?? []).map((p: { id: string; full_name: string | null; phone: string | null }) => [p.id, p])
+    (profiles ?? []).map((p: { id: string; full_name: string | null; phone: string | null; is_banned: boolean | null }) => [p.id, p])
   );
 
   // Fetch order stats per user
@@ -62,6 +62,7 @@ export async function GET() {
       email: u.email,
       full_name: profile?.full_name ?? u.user_metadata?.full_name ?? null,
       phone: profile?.phone ?? null,
+      is_banned: profile?.is_banned ?? false,
       joined_at: u.created_at,
       last_sign_in: u.last_sign_in_at ?? null,
       order_count: stats.count,
