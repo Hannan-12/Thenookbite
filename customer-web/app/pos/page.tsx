@@ -36,6 +36,15 @@ export default async function POSPage() {
   const staffName = staffRow?.full_name ?? (isAdmin ? 'Admin' : 'Staff');
   const staffRole = staffRow?.role ?? (isAdmin ? 'admin' : 'cashier');
 
+  // Open a new POS session in DB
+  const { data: session } = await db
+    .from('pos_sessions')
+    .insert({ staff_id: user.id })
+    .select('id')
+    .single();
+
+  const sessionId = session?.id ?? '';
+
   const { data, error } = await db
     .from('menu_items')
     .select('*')
@@ -60,6 +69,7 @@ export default async function POSPage() {
       staffId={user.id}
       staffName={staffName}
       staffRole={staffRole}
+      sessionId={sessionId}
     />
   );
 }

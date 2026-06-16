@@ -52,11 +52,13 @@ export function POSTerminal({
   staffId,
   staffName,
   staffRole,
+  sessionId,
 }: {
   cards: MenuCard[];
   staffId: string;
   staffName: string;
   staffRole: string;
+  sessionId: string;
 }) {
   const [search, setSearch]         = useState('');
   const [category, setCategory]     = useState<Category | 'All'>('All');
@@ -171,6 +173,7 @@ export function POSTerminal({
           payment_method: payment,
           user_id: null,
           staff_id: staffId,
+          session_id: sessionId,
           items: cart.map(l => ({
             menu_item_id: l.menu_item_id,
             item_name: l.name,
@@ -606,7 +609,11 @@ export function POSTerminal({
               )}
             </button>
             <button
-              onClick={async () => { await createClient().auth.signOut(); window.location.href = '/pos/login'; }}
+              onClick={async () => {
+                await fetch(`/api/pos/session/${sessionId}`, { method: 'PATCH' });
+                await createClient().auth.signOut();
+                window.location.href = '/pos/login';
+              }}
               className="font-heading text-[10px] tracking-widest text-white/20 hover:text-white transition-colors"
             >
               SIGN OUT
