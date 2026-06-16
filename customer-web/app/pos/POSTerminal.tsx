@@ -209,14 +209,19 @@ export function POSTerminal({
   function printReceipt() {
     if (!lastOrder) return;
     const { id, total, customerName, phone, table, orderType, payment, items, notes, placedAt } = lastOrder;
-    const dateStr = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
-    const timeStr = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
+    const timeStr = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const subtotal = items.reduce((s, l) => s + l.price * l.quantity, 0);
+    const itemCount = items.reduce((s, l) => s + l.quantity, 0);
 
-    const rows = items.map(l =>
-      `<tr>
-        <td style="padding:3px 0;font-size:12px;">${l.name}</td>
-        <td style="padding:3px 0;font-size:12px;text-align:center;">${l.quantity}</td>
-        <td style="padding:3px 0;font-size:12px;text-align:right;">Rs.${(l.price * l.quantity).toLocaleString()}</td>
+    const rows = items.map(l => `
+      <tr>
+        <td style="padding:4px 0 2px;font-size:12px;vertical-align:top;">${l.name}</td>
+        <td style="padding:4px 0 2px;font-size:12px;text-align:center;vertical-align:top;white-space:nowrap;">x${l.quantity}</td>
+        <td style="padding:4px 0 2px;font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;">Rs.${(l.price * l.quantity).toLocaleString()}</td>
+      </tr>
+      <tr>
+        <td colspan="3" style="padding:0 0 4px;font-size:10px;color:#555;">@ Rs.${l.price.toLocaleString()} each</td>
       </tr>`
     ).join('');
 
@@ -227,59 +232,122 @@ export function POSTerminal({
 <title>Receipt #${id.slice(-6).toUpperCase()}</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Courier New', monospace; width: 72mm; margin: 0 auto; padding: 8px; font-size: 12px; color: #000; }
-  .center { text-align: center; }
-  .bold { font-weight: bold; }
-  .divider { border-top: 1px dashed #000; margin: 6px 0; }
-  table { width: 100%; border-collapse: collapse; }
-  .total-row td { font-weight: bold; font-size: 14px; padding-top: 4px; }
-  @media print { @page { margin: 0; size: 72mm auto; } }
+  body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0 auto; padding: 6mm 4mm 10mm; font-size: 12px; color: #000; background: #fff; }
+  .center  { text-align: center; }
+  .right   { text-align: right; }
+  .bold    { font-weight: bold; }
+  .small   { font-size: 10px; }
+  .dash    { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+  .solid   { border: none; border-top: 1px solid #000; margin: 5px 0; }
+  table    { width: 100%; border-collapse: collapse; }
+  @media print { @page { margin: 0; size: 80mm auto; } body { padding: 4mm 3mm 12mm; } }
 </style>
 </head>
 <body>
-  <div class="center bold" style="font-size:18px;letter-spacing:2px;">TNB</div>
-  <div class="center" style="font-size:10px;margin-bottom:2px;">The Nook Bite</div>
-  <div class="center" style="font-size:10px;">Cashier: ${staffName}</div>
-  <div class="divider"></div>
-  <div style="font-size:11px;">Order: <b>#${id.slice(-6).toUpperCase()}</b></div>
-  <div style="font-size:11px;">${dateStr} ${timeStr}</div>
-  <div style="font-size:11px;">${orderType === 'dine-in' ? `Table: ${table || '—'}` : 'Takeaway'}</div>
-  ${customerName ? `<div style="font-size:11px;">Customer: ${customerName}</div>` : ''}
-  ${phone ? `<div style="font-size:11px;">Phone: ${phone}</div>` : ''}
-  <div class="divider"></div>
-  <table>
-    <thead>
+
+  <!-- LOGO BLOCK -->
+  <div class="center" style="margin-bottom:6px;">
+    <div style="display:inline-block;border:3px solid #000;padding:4px 14px;margin-bottom:4px;">
+      <div style="font-size:28px;font-weight:900;letter-spacing:6px;line-height:1;">TNB</div>
+    </div>
+    <div style="font-size:13px;font-weight:bold;letter-spacing:3px;margin-bottom:1px;">THE NOOK BITE</div>
+    <div class="small" style="color:#333;">Mandi Bahauddin, Punjab, Pakistan</div>
+    <div class="small" style="color:#333;">12 PM – 12 AM Daily</div>
+  </div>
+
+  <hr class="solid">
+
+  <!-- ORDER META -->
+  <div style="margin:4px 0;">
+    <table>
       <tr>
-        <th style="text-align:left;font-size:11px;padding-bottom:2px;">Item</th>
-        <th style="text-align:center;font-size:11px;">Qty</th>
-        <th style="text-align:right;font-size:11px;">Amt</th>
+        <td class="small">Order #</td>
+        <td class="small right"><b>${id.slice(-6).toUpperCase()}</b></td>
       </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <div class="divider"></div>
-  <table>
-    <tr class="total-row">
-      <td>TOTAL</td>
-      <td></td>
-      <td style="text-align:right;">Rs.${total.toLocaleString()}</td>
+      <tr>
+        <td class="small">Date</td>
+        <td class="small right">${dateStr}</td>
+      </tr>
+      <tr>
+        <td class="small">Time</td>
+        <td class="small right">${timeStr}</td>
+      </tr>
+      <tr>
+        <td class="small">Type</td>
+        <td class="small right">${orderType === 'dine-in' ? `DINE-IN${table ? ` · TABLE ${table}` : ''}` : 'TAKEAWAY'}</td>
+      </tr>
+      ${customerName ? `<tr><td class="small">Customer</td><td class="small right">${customerName}</td></tr>` : ''}
+      ${phone ? `<tr><td class="small">Phone</td><td class="small right">${phone}</td></tr>` : ''}
+      <tr>
+        <td class="small">Cashier</td>
+        <td class="small right">${staffName}</td>
+      </tr>
+    </table>
+  </div>
+
+  <hr class="dash">
+
+  <!-- ITEMS -->
+  <div style="margin:2px 0 4px;">
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;font-size:11px;padding-bottom:4px;font-weight:bold;">ITEM</th>
+          <th style="text-align:center;font-size:11px;padding-bottom:4px;font-weight:bold;">QTY</th>
+          <th style="text-align:right;font-size:11px;padding-bottom:4px;font-weight:bold;">AMOUNT</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+
+  <hr class="dash">
+
+  <!-- TOTALS -->
+  <table style="margin:4px 0;">
+    <tr>
+      <td class="small">Subtotal (${itemCount} item${itemCount !== 1 ? 's' : ''})</td>
+      <td class="small right">Rs.${subtotal.toLocaleString()}</td>
     </tr>
     <tr>
-      <td colspan="3" style="font-size:11px;padding-top:2px;">Payment: ${payment.toUpperCase()}</td>
+      <td class="small" style="color:#555;">Tax / Service Charge</td>
+      <td class="small right" style="color:#555;">Incl.</td>
     </tr>
   </table>
-  ${notes ? `<div class="divider"></div><div style="font-size:10px;">Note: ${notes}</div>` : ''}
-  <div class="divider"></div>
-  <div class="center" style="font-size:10px;margin-top:4px;">Thank you for visiting TNB!</div>
+
+  <hr class="solid">
+
+  <table style="margin:4px 0 6px;">
+    <tr>
+      <td style="font-size:15px;font-weight:900;letter-spacing:1px;">TOTAL</td>
+      <td style="font-size:15px;font-weight:900;text-align:right;">Rs.${total.toLocaleString()}</td>
+    </tr>
+    <tr>
+      <td class="small" style="padding-top:3px;">Payment Method</td>
+      <td class="small right" style="padding-top:3px;font-weight:bold;">${payment === 'cash' ? 'CASH' : 'CARD'}</td>
+    </tr>
+  </table>
+
+  ${notes ? `<hr class="dash"><div class="small" style="margin:3px 0;"><b>Note:</b> ${notes}</div>` : ''}
+
+  <hr class="solid">
+
+  <!-- FOOTER -->
+  <div class="center" style="margin-top:8px;">
+    <div style="font-size:11px;font-weight:bold;letter-spacing:1px;margin-bottom:3px;">THANK YOU FOR YOUR VISIT!</div>
+    <div class="small" style="color:#444;margin-bottom:2px;">Please come again</div>
+    <div class="small" style="color:#777;">Powered by TNB POS System</div>
+  </div>
+
 </body>
 </html>`;
 
-    const w = window.open('', '_blank', 'width=400,height=600');
+    const w = window.open('', '_blank', 'width=380,height=700');
     if (!w) return;
     w.document.write(html);
     w.document.close();
     w.focus();
-    setTimeout(() => { w.print(); }, 300);
+    setTimeout(() => { w.print(); }, 400);
   }
 
   // Cart panel JSX — shared between desktop sidebar and mobile bottom sheet
