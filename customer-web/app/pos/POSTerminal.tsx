@@ -267,9 +267,7 @@ export function POSTerminal({
 
   <!-- LOGO BLOCK -->
   <div class="center" style="margin-bottom:6px;">
-    <div style="display:inline-block;border:3px solid #000;padding:4px 14px;margin-bottom:4px;">
-      <div style="font-size:28px;font-weight:900;letter-spacing:6px;line-height:1;">TNB</div>
-    </div>
+    <img src="/logo-dark.png" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
     <div style="font-size:13px;font-weight:bold;letter-spacing:3px;margin-bottom:1px;">THE NOOK BITE</div>
     <div class="small" style="color:#333;">Mandi Bahauddin, Punjab, Pakistan</div>
     <div class="small" style="color:#333;">12 PM – 12 AM Daily</div>
