@@ -16,11 +16,24 @@ export default async function ProfilePage() {
     .eq('id', user.id)
     .single();
 
+  // Auto-create profile row if it doesn't exist yet
+  if (!profile) {
+    await supabase.from('profiles').upsert({
+      id: user.id,
+      full_name: user.user_metadata?.full_name ?? null,
+      phone: user.user_metadata?.phone ?? null,
+    });
+  }
+
+  // Fall back to auth metadata if profile row is missing or incomplete
+  const metaName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? '';
+  const metaPhone = user.user_metadata?.phone ?? '';
+
   return (
     <ProfileClient
       userId={user.id}
-      initialName={profile?.full_name ?? ''}
-      initialPhone={profile?.phone ?? ''}
+      initialName={profile?.full_name || metaName}
+      initialPhone={profile?.phone || metaPhone}
       email={user.email ?? ''}
     />
   );
