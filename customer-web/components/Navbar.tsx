@@ -51,6 +51,7 @@ export function Navbar() {
   const profileLink = mounted && user
     ? { href: '/my-orders', label: 'MY ORDERS' }
     : { href: '/login',     label: 'SIGN IN' };
+  const showProfile = mounted && !!user;
 
   return (
     <>
@@ -102,6 +103,11 @@ export function Navbar() {
             <Link href={profileLink.href} className="text-muted hover:text-primary font-heading text-sm tracking-widest px-4 py-2 transition-colors duration-200">
               {profileLink.label}
             </Link>
+            {showProfile && (
+              <Link href="/profile" className="text-muted hover:text-primary font-heading text-sm tracking-widest px-4 py-2 transition-colors duration-200">
+                PROFILE
+              </Link>
+            )}
             <div className="ml-2 pl-4 border-l border-theme">
               <ThemeToggle />
             </div>
@@ -156,6 +162,7 @@ export function Navbar() {
               { href: '/menu',           label: 'MENU' },
               { href: '/cart',           label: mounted && totalItems > 0 ? `CART (${totalItems})` : 'CART' },
               { href: profileLink.href,  label: profileLink.label },
+              ...(showProfile ? [{ href: '/profile', label: 'PROFILE' }] : []),
             ].map((item) => (
               <Link
                 key={item.href}
