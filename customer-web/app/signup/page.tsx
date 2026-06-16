@@ -14,15 +14,15 @@ export default function SignupPage() {
   const [name, setName]         = useState('');
   const [phone, setPhone]       = useState('');
   const [email, setEmail]       = useState('');
-  const [otp, setOtp]           = useState('');
-  const [step, setStep]         = useState<'details' | 'otp'>('details');
+  const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
 
-  async function handleSendOtp(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { setError('Please enter your name.'); return; }
-    if (!email.trim()) { setError('Please enter your email.'); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     if (phone && !isValidPakistaniPhone(normalizePhone(phone))) {
       setError('Enter a valid Pakistani mobile number (03XXXXXXXXX).');
       return;
@@ -30,37 +30,19 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    const { error: err } = await supabase.auth.signInWithOtp({
+    const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
-      options: { shouldCreateUser: true, data: { full_name: name.trim() } },
+      password,
+      options: { data: { full_name: name.trim() } },
     });
-    setLoading(false);
-    if (err) { setError(err.message); return; }
-    setStep('otp');
-  }
-
-  async function handleVerifyOtp(e: React.FormEvent) {
-    e.preventDefault();
-    if (otp.length < 4) { setError('Enter the code sent to your email.'); return; }
-    setLoading(true);
-    setError(null);
-    const supabase = createClient();
-    const { data, error: err } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: otp,
-      type: 'email',
-    });
-    if (err || !data.user) {
-      setError(err?.message ?? 'Invalid code. Please try again.');
-      setLoading(false);
-      return;
+    if (err) { setError(err.message); setLoading(false); return; }
+    if (data.user) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        full_name: name.trim(),
+        phone: phone ? normalizePhone(phone) : null,
+      });
     }
-    // Save profile with name + phone
-    await supabase.from('profiles').upsert({
-      id: data.user.id,
-      full_name: name.trim(),
-      phone: phone ? normalizePhone(phone) : null,
-    });
     router.push('/profile');
     router.refresh();
   }
@@ -77,130 +59,101 @@ export default function SignupPage() {
         </div>
 
         <div className="bg-[#111] border border-white/5 rounded-sm p-8">
-          {step === 'details' ? (
-            <form onSubmit={handleSendOtp} className="space-y-4">
-              <div>
-                <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
-                  FULL NAME <span className="text-brand-red">*</span>
-                </label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
+                FULL NAME <span className="text-brand-red">*</span>
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                required
+                autoFocus
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
+                PHONE NUMBER
+                <span className="text-white/20 normal-case font-body tracking-normal ml-2">(optional)</span>
+              </label>
+              <div className="relative">
                 <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                  required
-                  autoFocus
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="03001234567"
+                  maxLength={11}
                   className={inputClass}
                 />
+                {phone && isValidPakistaniPhone(normalizePhone(phone)) && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-400 text-sm">✓</span>
+                )}
               </div>
+              <p className="text-white/20 text-xs mt-1.5 font-body">Used to match your past orders</p>
+            </div>
 
-              <div>
-                <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
-                  PHONE NUMBER
-                  <span className="text-white/20 normal-case font-body tracking-normal ml-2">(optional)</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="03001234567"
-                    maxLength={11}
-                    className={inputClass}
-                  />
-                  {phone && isValidPakistaniPhone(normalizePhone(phone)) && (
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-400 text-sm">✓</span>
-                  )}
-                </div>
-                <p className="text-white/20 text-xs mt-1.5 font-body">Used to match your past orders</p>
-              </div>
+            <div>
+              <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
+                EMAIL ADDRESS <span className="text-brand-red">*</span>
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className={inputClass}
+              />
+            </div>
 
-              <div>
-                <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
-                  EMAIL ADDRESS <span className="text-brand-red">*</span>
-                </label>
+            <div>
+              <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
+                PASSWORD <span className="text-brand-red">*</span>
+              </label>
+              <div className="relative">
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  type={showPass ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
                   required
                   className={inputClass}
                 />
-                <p className="text-white/20 text-xs mt-1.5 font-body">A 6-digit verification code will be sent here</p>
+                <button
+                  type="button"
+                  onClick={() => setShowPass(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors text-xs font-heading tracking-wider"
+                >
+                  {showPass ? 'HIDE' : 'SHOW'}
+                </button>
               </div>
+            </div>
 
-              {error && (
-                <p className="text-brand-red text-sm flex items-center gap-2">
-                  <span>⚠</span> {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-brand-red text-white font-heading text-sm py-4 tracking-widest hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-sm mt-2"
-              >
-                {loading ? 'SENDING CODE…' : 'SEND VERIFICATION CODE →'}
-              </button>
-
-              <p className="text-center text-sm text-white/30 pt-2">
-                Already have an account?{' '}
-                <Link href="/login" className="text-white font-heading tracking-wider hover:text-brand-red transition-colors">
-                  SIGN IN
-                </Link>
+            {error && (
+              <p className="text-brand-red text-sm flex items-center gap-2">
+                <span>⚠</span> {error}
               </p>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 rounded-full bg-brand-red/10 border border-brand-red/20 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">✉️</span>
-                </div>
-                <p className="text-white/60 text-sm font-body">Code sent to</p>
-                <p className="text-white font-heading text-base tracking-wider mt-1">{email}</p>
-                <p className="text-white/30 text-xs mt-1 font-body">Check your inbox (and spam folder)</p>
-              </div>
+            )}
 
-              <div>
-                <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
-                  ENTER CODE <span className="text-brand-red">*</span>
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="······"
-                  required
-                  autoFocus
-                  className={`${inputClass} text-center text-2xl tracking-[0.5em]`}
-                />
-              </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-brand-red text-white font-heading text-sm py-4 tracking-widest hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-sm mt-2"
+            >
+              {loading ? 'CREATING ACCOUNT…' : 'CREATE ACCOUNT →'}
+            </button>
 
-              {error && (
-                <p className="text-brand-red text-sm flex items-center gap-2">
-                  <span>⚠</span> {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-brand-red text-white font-heading text-sm py-4 tracking-widest hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-sm"
-              >
-                {loading ? 'VERIFYING…' : 'VERIFY & CREATE ACCOUNT →'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => { setStep('details'); setOtp(''); setError(null); }}
-                className="w-full text-white/30 font-heading text-xs tracking-widest hover:text-white transition-colors py-2"
-              >
-                ← GO BACK
-              </button>
-            </form>
-          )}
+            <p className="text-center text-sm text-white/30 pt-2">
+              Already have an account?{' '}
+              <Link href="/login" className="text-white font-heading tracking-wider hover:text-brand-red transition-colors">
+                SIGN IN
+              </Link>
+            </p>
+          </form>
         </div>
 
         <p className="mt-6 text-center text-xs text-white/20">
