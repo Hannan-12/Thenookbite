@@ -36,15 +36,31 @@ export default async function POSPage() {
   const staffName = staffRow?.full_name ?? (isAdmin ? 'Admin' : 'Staff');
   const staffRole = staffRow?.role ?? (isAdmin ? 'admin' : 'cashier');
 
-  // Open a new POS session in DB
-  const { data: session, error: sessErr } = await db
-    .from('pos_sessions')
-    .insert({ staff_id: user.id })
-    .select('id')
-    .single();
+  // Reuse today's active session if one exists, otherwise open a new one
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-  if (sessErr) console.error('[POS] Failed to create session:', sessErr.message);
-  const sessionId = session?.id ?? '';
+  const { data: existing } = await db
+    .from('pos_sessions')
+    .select('id')
+    .eq('staff_id', user.id)
+    .is('ended_at', null)
+    .gte('started_at', todayStart.toISOString())
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let sessionId = existing?.id ?? '';
+
+  if (!sessionId) {
+    const { data: newSession, error: sessErr } = await db
+      .from('pos_sessions')
+      .insert({ staff_id: user.id })
+      .select('id')
+      .single();
+    if (sessErr) console.error('[POS] Failed to create session:', sessErr.message);
+    sessionId = newSession?.id ?? '';
+  }
 
   const { data, error } = await db
     .from('menu_items')
