@@ -10,6 +10,9 @@ import { RecentOrders } from '@/components/RecentOrders';
 export default function HomePage() {
   return (
     <div>
+      {/* Recent orders — pinned just below navbar, only visible when logged in */}
+      <RecentOrders />
+
       {/* Hero auto-sliding carousel */}
       <HeroSlider />
 
@@ -18,9 +21,6 @@ export default function HomePage() {
 
       {/* Animated stats / trust bar */}
       <StatsBar />
-
-      {/* Recent orders — only visible when logged in */}
-      <RecentOrders />
 
       {/* Deal of the day — countdown + stock bar */}
       <DealOfTheDay />
