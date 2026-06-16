@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { isValidPakistaniPhone, normalizePhone } from '@/lib/format';
 
 const inputClass =
   'w-full bg-white/5 border border-white/10 px-4 py-3 focus:outline-none focus:border-brand-red/60 transition-colors text-sm font-body text-white placeholder:text-white/20 rounded-sm';
@@ -14,29 +13,22 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get('next') ?? '/profile';
 
-  const [phone, setPhone]       = useState('');
+  const [email, setEmail]       = useState('');
   const [otp, setOtp]           = useState('');
-  const [step, setStep]         = useState<'phone' | 'otp'>('phone');
+  const [step, setStep]         = useState<'email' | 'otp'>('email');
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
 
-  function toIntl(ph: string) {
-    const n = normalizePhone(ph);
-    if (n.startsWith('0')) return '+92' + n.slice(1);
-    return n;
-  }
-
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
-    const norm = normalizePhone(phone);
-    if (!isValidPakistaniPhone(norm)) {
-      setError('Enter a valid Pakistani mobile number (03XXXXXXXXX).');
-      return;
-    }
+    if (!email.trim()) { setError('Please enter your email.'); return; }
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    const { error: err } = await supabase.auth.signInWithOtp({ phone: toIntl(phone) });
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { shouldCreateUser: false },
+    });
     setLoading(false);
     if (err) { setError(err.message); return; }
     setStep('otp');
@@ -44,58 +36,41 @@ function LoginForm() {
 
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault();
-    if (otp.length < 4) { setError('Enter the OTP sent to your number.'); return; }
+    if (otp.length < 4) { setError('Enter the OTP sent to your email.'); return; }
     setLoading(true);
     setError(null);
     const supabase = createClient();
     const { data, error: err } = await supabase.auth.verifyOtp({
-      phone: toIntl(phone),
+      email: email.trim(),
       token: otp,
-      type: 'sms',
+      type: 'email',
     });
     if (err || !data.user) {
       setError(err?.message ?? 'Invalid OTP. Please try again.');
       setLoading(false);
       return;
     }
-
-    // Block admin
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    if (adminEmail && data.user.email === adminEmail) {
-      await supabase.auth.signOut();
-      setError('Admin accounts cannot log in here.');
-      setLoading(false);
-      return;
-    }
-
     router.push(next);
     router.refresh();
   }
 
-  if (step === 'phone') {
+  if (step === 'email') {
     return (
       <form onSubmit={handleSendOtp} className="space-y-4">
         <div>
           <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
-            PHONE NUMBER <span className="text-brand-red">*</span>
+            EMAIL ADDRESS <span className="text-brand-red">*</span>
           </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm font-body select-none">+92</span>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="03001234567"
-              maxLength={11}
-              required
-              autoFocus
-              className={`${inputClass} pl-12`}
-            />
-            {isValidPakistaniPhone(normalizePhone(phone)) && (
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-400 text-sm">✓</span>
-            )}
-          </div>
-          <p className="text-white/20 text-xs mt-1.5 font-body">We&apos;ll send an OTP to verify your number</p>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            autoFocus
+            className={inputClass}
+          />
+          <p className="text-white/20 text-xs mt-1.5 font-body">A 6-digit code will be sent to your inbox</p>
         </div>
 
         {error && (
@@ -109,7 +84,7 @@ function LoginForm() {
           disabled={loading}
           className="w-full bg-brand-red text-white font-heading text-sm py-4 tracking-widest hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-sm mt-2"
         >
-          {loading ? 'SENDING OTP…' : 'SEND OTP →'}
+          {loading ? 'SENDING CODE…' : 'SEND CODE →'}
         </button>
 
         <p className="text-center text-sm text-white/30 pt-2">
@@ -126,22 +101,23 @@ function LoginForm() {
     <form onSubmit={handleVerifyOtp} className="space-y-4">
       <div className="text-center mb-6">
         <div className="w-14 h-14 rounded-full bg-brand-red/10 border border-brand-red/20 flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl">📱</span>
+          <span className="text-2xl">✉️</span>
         </div>
-        <p className="text-white/60 text-sm font-body">OTP sent to</p>
-        <p className="text-white font-heading text-base tracking-wider mt-1">{phone}</p>
+        <p className="text-white/60 text-sm font-body">Code sent to</p>
+        <p className="text-white font-heading text-base tracking-wider mt-1">{email}</p>
+        <p className="text-white/30 text-xs mt-1 font-body">Check your inbox (and spam folder)</p>
       </div>
 
       <div>
         <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
-          ENTER OTP <span className="text-brand-red">*</span>
+          ENTER CODE <span className="text-brand-red">*</span>
         </label>
         <input
           type="text"
           inputMode="numeric"
           value={otp}
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-          placeholder="••••••"
+          placeholder="······"
           required
           autoFocus
           className={`${inputClass} text-center text-2xl tracking-[0.5em]`}
@@ -164,10 +140,10 @@ function LoginForm() {
 
       <button
         type="button"
-        onClick={() => { setStep('phone'); setOtp(''); setError(null); }}
+        onClick={() => { setStep('email'); setOtp(''); setError(null); }}
         className="w-full text-white/30 font-heading text-xs tracking-widest hover:text-white transition-colors py-2"
       >
-        ← CHANGE NUMBER
+        ← CHANGE EMAIL
       </button>
     </form>
   );
@@ -182,7 +158,7 @@ export default function LoginPage() {
             TNB
           </div>
           <h1 className="font-heading text-4xl text-white leading-none">WELCOME BACK</h1>
-          <p className="mt-3 text-sm text-white/40">Sign in with your phone number.</p>
+          <p className="mt-3 text-sm text-white/40">Sign in with your email — we'll send you a code.</p>
         </div>
 
         <div className="bg-[#111] border border-white/5 rounded-sm p-8">
