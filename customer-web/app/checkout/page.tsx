@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   const [tip, setTip]               = useState(0);
   const [customTip, setCustomTip]   = useState('');
   const [orderType, setOrderType]   = useState<'dine-in' | 'takeaway' | 'delivery'>('dine-in');
+  const [showCardModal, setShowCardModal] = useState(false);
 
   const tipAmount = tip === -1 ? (parseInt(customTip) || 0) : tip;
   const grandTotal = totalPrice() + tipAmount;
@@ -289,20 +290,37 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* Payment method — cash only, label changes by order type */}
-            <div className="bg-card border border-theme rounded-sm px-4 py-4 flex items-center gap-3">
-              <span className="text-2xl">💵</span>
-              <div>
-                <p className="font-heading text-sm text-primary tracking-wider">
-                  {orderType === 'dine-in'  && 'CASH — PAY AT TABLE'}
-                  {orderType === 'takeaway' && 'CASH — PAY AT COUNTER'}
-                  {orderType === 'delivery' && 'CASH — PAY TO RIDER'}
-                </p>
-                <p className="text-xs text-muted mt-0.5">
-                  {orderType === 'dine-in'  && 'Pay when your order arrives at your table.'}
-                  {orderType === 'takeaway' && 'Pay at the counter when you collect your order.'}
-                  {orderType === 'delivery' && 'Pay the rider when your order is delivered.'}
-                </p>
+            {/* Payment method */}
+            <div>
+              <label className="font-heading text-xs tracking-[0.25em] text-muted block mb-3">
+                PAYMENT METHOD <span className="text-brand-red">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Cash */}
+                <div className="bg-card border border-brand-red rounded-sm px-4 py-4 flex items-center gap-3">
+                  <span className="text-2xl">💵</span>
+                  <div>
+                    <p className="font-heading text-sm text-primary tracking-wider">
+                      {orderType === 'dine-in'  && 'CASH — AT TABLE'}
+                      {orderType === 'takeaway' && 'CASH — AT COUNTER'}
+                      {orderType === 'delivery' && 'CASH — TO RIDER'}
+                    </p>
+                    <p className="text-xs text-muted mt-0.5">Pay when you receive your order</p>
+                  </div>
+                </div>
+
+                {/* Online / Card — coming soon */}
+                <button
+                  type="button"
+                  onClick={() => setShowCardModal(true)}
+                  className="bg-card border border-theme rounded-sm px-4 py-4 flex items-center gap-3 text-left hover:border-brand-red/40 transition-colors duration-150 opacity-70"
+                >
+                  <span className="text-2xl">💳</span>
+                  <div>
+                    <p className="font-heading text-sm text-muted tracking-wider">ONLINE PAYMENT</p>
+                    <p className="text-xs text-muted/50 mt-0.5">Card / JazzCash / Easypaisa</p>
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -351,6 +369,36 @@ export default function CheckoutPage() {
           </aside>
         </div>
       </div>
+
+      {/* Online payment coming-soon modal */}
+      {showCardModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          onClick={() => setShowCardModal(false)}
+        >
+          <div
+            className="bg-[#111] border border-white/10 rounded-sm max-w-sm w-full p-8 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-16 h-16 rounded-full bg-brand-red/10 border border-brand-red/20 flex items-center justify-center mx-auto mb-5">
+              <span className="text-3xl">💳</span>
+            </div>
+            <h2 className="font-heading text-2xl text-white tracking-widest mb-2">COMING SOON</h2>
+            <p className="text-muted text-sm leading-relaxed mb-1">
+              Online payment (card, JazzCash, Easypaisa) is not yet available.
+            </p>
+            <p className="text-muted/60 text-xs leading-relaxed mb-8">
+              Please select cash payment to complete your order.
+            </p>
+            <button
+              onClick={() => setShowCardModal(false)}
+              className="w-full bg-brand-red text-white font-heading text-sm py-3 tracking-widest hover:bg-red-600 transition-colors rounded-sm"
+            >
+              GOT IT — CONTINUE WITH CASH
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
