@@ -93,16 +93,16 @@ export default function OrderStatusDisplay() {
       <div className="flex items-center justify-between px-8 py-5 bg-black border-b border-white/10 flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="bg-[#E4002B] text-white font-heading text-xl px-4 py-2 tracking-widest">TNB</div>
-          <span className="text-white/30 text-sm tracking-[0.3em]">ORDER STATUS</span>
+          <span className="text-white text-sm tracking-[0.3em]">ORDER STATUS</span>
         </div>
         <div className="flex items-center gap-6">
           {reconnect && (
             <span className="text-yellow-400 text-xs tracking-widest animate-pulse">SYNCING…</span>
           )}
-          <span className="text-white/30 text-sm">{time}</span>
+          <span className="text-white text-sm">{time}</span>
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-white/30 text-xs tracking-widest">LIVE</span>
+            <span className="text-white text-xs tracking-widest">LIVE</span>
           </span>
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function OrderStatusDisplay() {
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {preparing.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <p className="text-white/10 text-lg tracking-widest text-center">NO ORDERS PREPARING</p>
+                <p className="text-white text-lg tracking-widest text-center">NO ORDERS PREPARING</p>
               </div>
             ) : (
               preparing.map(order => (
@@ -146,7 +146,7 @@ export default function OrderStatusDisplay() {
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {ready.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <p className="text-white/10 text-lg tracking-widest text-center">NO ORDERS READY YET</p>
+                <p className="text-white text-lg tracking-widest text-center">NO ORDERS READY YET</p>
               </div>
             ) : (
               ready.map(order => (
@@ -165,7 +165,7 @@ export default function OrderStatusDisplay() {
 
       {/* Footer */}
       <div className="px-8 py-3 bg-black border-t border-white/5 flex items-center justify-center flex-shrink-0">
-        <p className="text-white/20 text-xs tracking-widest">PLEASE COLLECT YOUR ORDER FROM THE COUNTER WHEN YOUR NUMBER IS CALLED</p>
+        <p className="text-white text-xs tracking-widest">PLEASE COLLECT YOUR ORDER FROM THE COUNTER WHEN YOUR NUMBER IS CALLED</p>
       </div>
     </div>
   );
@@ -193,11 +193,11 @@ function OrderTile({
       <div className="px-6 py-5 flex items-center justify-between gap-4">
         <div>
           <p className={`font-heading text-5xl leading-none tracking-widest ${isReady ? 'text-green-400' : 'text-yellow-400'}`}>
-            #{order.id.slice(-4).toUpperCase()}
+            #{parseInt(order.id.replace(/-/g, '').slice(-4), 16).toString().padStart(4, '0')}
           </p>
-          <p className="text-white/50 text-base mt-2">{order.customer_name}</p>
+          <p className="text-white text-base mt-2">{order.customer_name}</p>
           {order.table_number && (
-            <p className="text-white/30 text-sm mt-1 tracking-wider">TABLE {order.table_number}</p>
+            <p className="text-white text-sm mt-1 tracking-wider">TABLE {order.table_number}</p>
           )}
           <p className={`text-sm mt-2 tabular-nums font-bold ${elapsedColor(order.created_at)}`}>⏱ {elapsed(order.created_at)}</p>
         </div>
