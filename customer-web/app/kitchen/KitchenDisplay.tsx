@@ -40,13 +40,10 @@ export default function KitchenDisplay() {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const { data, error: err } = await supabaseRef.current
-        .from('orders')
-        .select('*, order_items(*)')
-        .in('status', ['pending', 'preparing'])
-        .order('created_at', { ascending: true });
-      if (err) throw err;
-      setOrders((data ?? []) as Order[]);
+      const res = await fetch('/api/kitchen', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setOrders(data as Order[]);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load orders');
@@ -58,11 +55,12 @@ export default function KitchenDisplay() {
   const advanceStatus = useCallback(async (id: string, next: OrderStatus) => {
     setUpdatingIds(prev => new Set(prev).add(id));
     try {
-      const { error: err } = await supabaseRef.current
-        .from('orders')
-        .update({ status: next, updated_at: new Date().toISOString() })
-        .eq('id', id);
-      if (err) throw err;
+      const res = await fetch(`/api/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: next }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       if (next === 'ready') {
         setOrders(prev => prev.filter(o => o.id !== id));
       } else {
@@ -84,16 +82,11 @@ export default function KitchenDisplay() {
         if (payload.eventType === 'INSERT') {
           const row = payload.new as Order;
           if (['pending', 'preparing'].includes(row.status)) {
-            const { data } = await supabaseRef.current
-              .from('orders')
-              .select('*, order_items(*)')
-              .eq('id', row.id)
-              .single();
-            if (data) {
-              setOrders(prev =>
-                [...prev.filter(o => o.id !== data.id), data as Order]
-                  .sort((a, b) => a.created_at.localeCompare(b.created_at))
-              );
+            // Re-fetch from server to get full order with items (anon key can't read via RLS)
+            const res = await fetch(`/api/kitchen`, { cache: 'no-store' });
+            if (res.ok) {
+              const data = await res.json();
+              setOrders(data as Order[]);
             }
           }
         }
