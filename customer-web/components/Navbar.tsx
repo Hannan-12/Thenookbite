@@ -62,23 +62,23 @@ export function Navbar() {
             : 'bg-surface border-b border-theme'
         }`}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-[108px] flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0" onClick={() => setMenuOpen(false)}>
             <Image
               src="/logo-light.png"
               alt="The Nook Bite"
-              width={52}
-              height={52}
-              className="block dark:hidden w-[52px] h-[52px] object-contain"
+              width={105}
+              height={105}
+              className="block dark:hidden w-[105px] h-[105px] object-contain"
               priority
             />
             <Image
               src="/logo-dark.png"
               alt="The Nook Bite"
-              width={52}
-              height={52}
-              className="hidden dark:block w-[52px] h-[52px] object-contain"
+              width={105}
+              height={105}
+              className="hidden dark:block w-[105px] h-[105px] object-contain"
               priority
             />
           </Link>
@@ -155,12 +155,12 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile drawer — top-16 matches the new h-16 navbar */}
+      {/* Mobile drawer */}
       {menuOpen && (
         <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMenuOpen(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <nav
-            className="absolute top-16 left-0 right-0 bg-surface border-b border-theme animate-fade-up shadow-lg"
+            className="absolute top-[108px] left-0 right-0 bg-surface border-b border-theme animate-fade-up shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             {[
