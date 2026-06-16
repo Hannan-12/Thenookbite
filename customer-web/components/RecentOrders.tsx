@@ -24,8 +24,14 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   completed: { label: 'COMPLETED', cls: 'bg-white/5 text-white/30 border-white/10' },
 };
 
+type State =
+  | { kind: 'loading' }
+  | { kind: 'guest' }
+  | { kind: 'no-orders' }
+  | { kind: 'orders'; orders: Order[] };
+
 export function RecentOrders() {
-  const [orders, setOrders] = useState<Order[] | null>(null);
+  const [state, setState] = useState<State>({ kind: 'loading' });
   const [reordering, setReordering] = useState<string | null>(null);
   const { addLine, clear } = useCart();
   const router = useRouter();
@@ -33,14 +39,34 @@ export function RecentOrders() {
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { setOrders([]); return; }
-      const { data: rows } = await supabase
-        .from('orders')
-        .select('id, status, payment_method, total, created_at, order_items(item_name, item_price, quantity)')
-        .eq('user_id', data.user.id)
-        .order('created_at', { ascending: false })
-        .limit(3);
-      setOrders(rows ?? []);
+      if (!data.user) { setState({ kind: 'guest' }); return; }
+
+      // Get profile phone for guest-order matching
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('id', data.user.id)
+        .single();
+
+      const sel = 'id, status, payment_method, total, created_at, order_items(item_name, item_price, quantity)';
+
+      const [byUser, byPhone] = await Promise.all([
+        supabase.from('orders').select(sel).eq('user_id', data.user.id),
+        profile?.phone
+          ? supabase.from('orders').select(sel).is('user_id', null).eq('customer_phone', profile.phone)
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      const seen = new Set<string>();
+      const merged: Order[] = [];
+      for (const o of [...(byUser.data ?? []), ...((byPhone as { data: Order[] | null }).data ?? [])]) {
+        if (!seen.has(o.id)) { seen.add(o.id); merged.push(o); }
+      }
+      merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const rows = merged.slice(0, 3);
+
+      if (rows.length === 0) { setState({ kind: 'no-orders' }); return; }
+      setState({ kind: 'orders', orders: rows });
     });
   }, []);
 
@@ -53,11 +79,53 @@ export function RecentOrders() {
     router.push('/checkout');
   }
 
-  // Not logged in or no orders — render nothing
-  if (!orders || orders.length === 0) return null;
+  // Don't show anything while loading or if guest with no prompt needed
+  if (state.kind === 'loading') return null;
+
+  // Guest — show sign-in nudge
+  if (state.kind === 'guest') {
+    return (
+      <section className="bg-[#0a0a0a] py-10 px-4 sm:px-6 border-t border-white/5">
+        <div className="mx-auto max-w-5xl flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="font-heading text-xs tracking-[0.3em] text-brand-red mb-1">YOUR ORDERS</p>
+            <p className="font-heading text-white/50 text-sm tracking-wider">Sign in to see your order history and reorder in one tap.</p>
+          </div>
+          <Link
+            href="/login?next=/"
+            className="font-heading text-sm tracking-widest px-6 py-3 bg-brand-red text-white hover:bg-red-600 transition-colors duration-200 rounded-sm flex-shrink-0"
+          >
+            SIGN IN →
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  // Logged in but no orders yet
+  if (state.kind === 'no-orders') {
+    return (
+      <section className="bg-[#0a0a0a] py-10 px-4 sm:px-6 border-t border-white/5">
+        <div className="mx-auto max-w-5xl flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="font-heading text-xs tracking-[0.3em] text-brand-red mb-1">YOUR ORDERS</p>
+            <p className="font-heading text-white/50 text-sm tracking-wider">You haven't placed any orders yet.</p>
+          </div>
+          <Link
+            href="/menu"
+            className="font-heading text-sm tracking-widest px-6 py-3 bg-brand-red text-white hover:bg-red-600 transition-colors duration-200 rounded-sm flex-shrink-0"
+          >
+            ORDER NOW →
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  const { orders } = state;
 
   return (
-    <section className="bg-[#0a0a0a] py-14 px-4 sm:px-6">
+    <section className="bg-[#0a0a0a] py-14 px-4 sm:px-6 border-t border-white/5">
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <div className="flex items-end justify-between mb-8">
@@ -87,7 +155,6 @@ export function RecentOrders() {
             return (
               <div key={order.id} className="border border-white/5 bg-white/[0.02] rounded-sm overflow-hidden">
                 <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
-                  {/* Left: ID + status + date */}
                   <div className="flex items-center gap-3 flex-wrap min-w-0">
                     <span className="font-heading text-base text-white tracking-widest flex-shrink-0">
                       #{order.id.slice(-6).toUpperCase()}
@@ -99,8 +166,6 @@ export function RecentOrders() {
                       {date} · {time}
                     </span>
                   </div>
-
-                  {/* Right: total + reorder */}
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <span className="font-heading text-white text-base">{formatPKR(order.total)}</span>
                     <button
@@ -112,8 +177,6 @@ export function RecentOrders() {
                     </button>
                   </div>
                 </div>
-
-                {/* Items preview */}
                 <div className="px-5 pb-4 flex flex-wrap gap-x-4 gap-y-1">
                   {order.order_items?.slice(0, 4).map((item, i) => (
                     <span key={i} className="text-white/30 text-xs font-body">
