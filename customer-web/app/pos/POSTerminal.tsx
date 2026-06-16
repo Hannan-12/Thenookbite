@@ -83,6 +83,42 @@ export function POSTerminal({
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ── Load session orders from DB on mount (survives page refresh) ─────────────
+  useEffect(() => {
+    if (!sessionId) return;
+    fetch(`/api/pos/session/${sessionId}/orders`)
+      .then(r => r.ok ? r.json() : [])
+      .then((orders: Array<{
+        id: string; total: number; customer_name: string; customer_phone: string;
+        table_number: string | null; delivery_address: string | null;
+        order_type: string; payment_method: string;
+        special_notes: string | null; created_at: string;
+        order_items: { item_name: string; item_price: number; quantity: number }[];
+      }>) => {
+        const loaded: SessionOrder[] = orders.map(o => ({
+          id: o.id,
+          total: o.total,
+          customerName: o.customer_name,
+          phone: o.customer_phone ?? '',
+          table: o.table_number ?? '',
+          address: o.delivery_address ?? '',
+          orderType: (o.order_type as OrderType) ?? 'dine-in',
+          payment: (o.payment_method as PaymentMethod) ?? 'cash',
+          notes: o.special_notes ?? '',
+          placedAt: new Date(o.created_at),
+          items: o.order_items.map(i => ({
+            key: i.item_name,
+            name: i.item_name,
+            price: i.item_price,
+            quantity: i.quantity,
+            menu_item_id: '',
+          })),
+        }));
+        setSessionOrders(loaded);
+      })
+      .catch(() => {});
+  }, [sessionId]);
+
   // ── Phone lookup ─────────────────────────────────────────────────────────────
   const lookupPhone = useCallback(async (raw: string) => {
     const normalized = normalizePhone(raw);
@@ -229,10 +265,11 @@ export function POSTerminal({
     const target = order ?? lastOrder;
     if (!target) return;
     const { id, total, customerName, phone, table, address, orderType, payment, items, notes, placedAt } = target;
-    const dateStr = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
-    const timeStr = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const dateStr  = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
+    const timeStr  = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const subtotal = items.reduce((s, l) => s + l.price * l.quantity, 0);
     const itemCount = items.reduce((s, l) => s + l.quantity, 0);
+    const logoUrl  = `${window.location.origin}/logo-dark.png`;
 
     const rows = items.map(l => `
       <tr>
@@ -267,7 +304,7 @@ export function POSTerminal({
 
   <!-- LOGO BLOCK -->
   <div class="center" style="margin-bottom:6px;">
-    <img src="/logo-dark.png" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
+    <img src="${logoUrl}" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
     <div style="font-size:13px;font-weight:bold;letter-spacing:3px;margin-bottom:1px;">THE NOOK BITE</div>
     <div class="small" style="color:#333;">Mandi Bahauddin, Punjab, Pakistan</div>
     <div class="small" style="color:#333;">12 PM – 12 AM Daily</div>

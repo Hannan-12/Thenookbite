@@ -77,6 +77,7 @@ export function POSSessionsClient() {
   }
 
   function printSessionSummary(session: POSSession) {
+    const logoUrl   = `${window.location.origin}/logo-dark.png`;
     const startLabel = new Date(session.started_at).toLocaleString('en-PK', {
       day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
     });
@@ -113,7 +114,7 @@ export function POSSessionsClient() {
   @media print { @page { margin:0;size:80mm auto; } body { padding:4mm 3mm 12mm; } }
 </style></head><body>
   <div class="center" style="margin-bottom:6px;">
-    <img src="/logo-dark.png" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
+    <img src="${logoUrl}" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
     <div style="font-size:13px;font-weight:bold;letter-spacing:3px;margin-bottom:1px;">THE NOOK BITE</div>
     <div style="font-size:10px;color:#333;">SESSION SUMMARY</div>
   </div>
@@ -164,6 +165,7 @@ export function POSSessionsClient() {
   }
 
   function printOrderReceipt(order: SessionOrder, staffName: string) {
+    const logoUrl   = `${window.location.origin}/logo-dark.png`;
     const placedAt  = new Date(order.created_at);
     const dateStr   = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr   = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -191,7 +193,7 @@ export function POSSessionsClient() {
   @media print { @page { margin:0;size:80mm auto; } body { padding:4mm 3mm 12mm; } }
 </style></head><body>
   <div class="center" style="margin-bottom:6px;">
-    <img src="/logo-dark.png" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
+    <img src="${logoUrl}" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
     <div style="font-size:13px;font-weight:bold;letter-spacing:3px;margin-bottom:1px;">THE NOOK BITE</div>
     <div style="font-size:10px;color:#333;">Mandi Bahauddin, Punjab, Pakistan</div>
     <div style="font-size:10px;color:#333;">12 PM – 12 AM Daily</div>
