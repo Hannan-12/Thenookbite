@@ -69,7 +69,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
     }
   }
 
-  const inputClass = 'w-full bg-[#1a1a1a] border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/60 transition-colors rounded-sm';
+  const inputClass = 'w-full bg-[#1a1a1a] border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/60 transition-colors rounded-sm';
 
   return (
     <div className="px-4 sm:px-8 py-8">
@@ -100,15 +100,15 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
           <h2 className="font-heading text-sm tracking-widest text-white mb-5">CREATE STAFF ACCOUNT</h2>
           <form onSubmit={createStaff} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-heading text-[10px] tracking-widest text-white/40 block mb-1.5">FULL NAME</label>
+              <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">FULL NAME</label>
               <input value={name} onChange={e => setName(e.target.value)} placeholder="Staff name" required className={inputClass} />
             </div>
             <div>
-              <label className="font-heading text-[10px] tracking-widest text-white/40 block mb-1.5">EMAIL</label>
+              <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">EMAIL</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="staff@email.com" required className={inputClass} />
             </div>
             <div>
-              <label className="font-heading text-[10px] tracking-widest text-white/40 block mb-1.5">PASSWORD</label>
+              <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">PASSWORD</label>
               <div className="relative">
                 <input
                   type={showPass ? 'text' : 'password'}
@@ -120,13 +120,13 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                   className={inputClass}
                 />
                 <button type="button" onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 font-heading text-[10px] tracking-wider text-white/30 hover:text-white transition-colors">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 font-heading text-[10px] tracking-wider text-white hover:text-white transition-colors">
                   {showPass ? 'HIDE' : 'SHOW'}
                 </button>
               </div>
             </div>
             <div>
-              <label className="font-heading text-[10px] tracking-widest text-white/40 block mb-1.5">ROLE</label>
+              <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">ROLE</label>
               <select value={role} onChange={e => setRole(e.target.value as 'cashier' | 'manager')}
                 className={inputClass + ' cursor-pointer'}>
                 <option value="cashier">Cashier</option>
@@ -134,7 +134,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
               </select>
             </div>
             <div>
-              <label className="font-heading text-[10px] tracking-widest text-white/40 block mb-1.5">STAFF TYPE</label>
+              <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">STAFF TYPE</label>
               <select value={staffType} onChange={e => setStaffType(e.target.value as 'pos' | 'non-pos')}
                 className={inputClass + ' cursor-pointer'}>
                 <option value="pos">POS (Cashier / Manager)</option>
@@ -142,8 +142,8 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
               </select>
             </div>
             <div>
-              <label className="font-heading text-[10px] tracking-widest text-white/40 block mb-1.5">
-                CHECK-IN PIN <span className="text-white/20">(4 digits — for tablet check-in)</span>
+              <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">
+                CHECK-IN PIN <span className="text-white">(4 digits — for tablet check-in)</span>
               </label>
               <input
                 value={pin}
@@ -167,7 +167,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                 {loading ? 'CREATING…' : 'CREATE & SEND EMAIL'}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
-                className="font-heading text-xs tracking-widest px-6 py-2.5 border border-white/10 text-white/40 hover:text-white hover:border-white/30 transition-colors rounded-sm">
+                className="font-heading text-xs tracking-widest px-6 py-2.5 border border-white/10 text-white hover:text-white hover:border-white/30 transition-colors rounded-sm">
                 CANCEL
               </button>
             </div>
@@ -178,13 +178,13 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
       {/* Staff list */}
       <div className="border border-white/5 rounded-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-white/5">
-          <h2 className="font-heading text-xs tracking-widest text-white/40">
+          <h2 className="font-heading text-xs tracking-widest text-white">
             {staff.length} STAFF MEMBER{staff.length !== 1 ? 'S' : ''}
           </h2>
         </div>
 
         {staff.length === 0 ? (
-          <div className="px-5 py-16 text-center text-white/20 font-heading text-sm tracking-wider">
+          <div className="px-5 py-16 text-center text-white font-heading text-sm tracking-wider">
             NO STAFF YET — CREATE YOUR FIRST ACCOUNT ABOVE
           </div>
         ) : (
@@ -195,16 +195,16 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                   <div className={`w-2 h-2 rounded-full flex-shrink-0 ${s.is_active ? 'bg-green-500' : 'bg-white/10'}`} />
                   <div>
                     <p className="font-heading text-sm text-white">{s.full_name}</p>
-                    <p className="font-heading text-xs text-white/30 mt-0.5">{s.email}</p>
-                    <p className="font-heading text-[10px] text-white/20 mt-0.5 uppercase group/pin flex items-center gap-1">
+                    <p className="font-heading text-xs text-white mt-0.5">{s.email}</p>
+                    <p className="font-heading text-[10px] text-white mt-0.5 uppercase group/pin flex items-center gap-1">
                       {s.staff_type} · PIN:&nbsp;
                       <span className="relative">
                         <span className="group-hover/pin:hidden">••••</span>
-                        <span className="hidden group-hover/pin:inline tracking-widest text-white/40">{s.pin ?? '—'}</span>
+                        <span className="hidden group-hover/pin:inline tracking-widest text-white">{s.pin ?? '—'}</span>
                       </span>
                     </p>
                     {s.last_seen && (
-                      <p className="font-heading text-[10px] text-white/20 mt-0.5">
+                      <p className="font-heading text-[10px] text-white mt-0.5">
                         LAST SEEN {new Date(s.last_seen).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · {new Date(s.last_seen).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     )}
@@ -214,7 +214,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                   <span className={`font-heading text-[10px] tracking-widest px-2 py-1 rounded-sm border ${
                     s.role === 'manager'
                       ? 'border-[#E4002B]/30 text-[#E4002B]/70'
-                      : 'border-white/10 text-white/30'
+                      : 'border-white/10 text-white'
                   }`}>
                     {s.role.toUpperCase()}
                   </span>
@@ -222,7 +222,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                     onClick={() => toggleActive(s.id, s.is_active)}
                     className={`font-heading text-[10px] tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
                       s.is_active
-                        ? 'border-white/10 text-white/30 hover:border-red-500/40 hover:text-red-400'
+                        ? 'border-white/10 text-white hover:border-red-500/40 hover:text-red-400'
                         : 'border-green-500/30 text-green-400/60 hover:text-green-400'
                     }`}
                   >

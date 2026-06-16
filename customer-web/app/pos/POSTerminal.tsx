@@ -435,7 +435,7 @@ export function POSTerminal({
               className={`flex-1 font-heading text-[10px] tracking-widest py-2.5 rounded-sm border transition-colors duration-100 ${
                 orderType === t.value
                   ? 'bg-[#E4002B] border-[#E4002B] text-white'
-                  : 'border-white/10 text-white/30 hover:text-white'
+                  : 'border-white/10 text-white hover:text-white'
               }`}
             >
               {t.label}
@@ -451,12 +451,12 @@ export function POSTerminal({
               onChange={e => handlePhoneChange(e.target.value)}
               placeholder="03XX-XXXXXXX (required)"
               maxLength={12}
-              className={`w-full bg-[#1a1a1a] border px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none rounded-sm font-body pr-16 ${
+              className={`w-full bg-[#1a1a1a] border px-3 py-2.5 text-sm text-white placeholder:text-white focus:outline-none rounded-sm font-body pr-16 ${
                 phoneError ? 'border-[#E4002B]/60' : 'border-white/10 focus:border-[#E4002B]/40'
               }`}
             />
             {lookingUp && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 font-heading text-[9px] tracking-widest text-white/20 animate-pulse">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 font-heading text-[9px] tracking-widest text-white animate-pulse">
                 LOOKING…
               </span>
             )}
@@ -474,14 +474,14 @@ export function POSTerminal({
             value={customer}
             onChange={e => setCustomer(e.target.value)}
             placeholder="Customer name"
-            className="flex-1 bg-[#1a1a1a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/40 rounded-sm font-body"
+            className="flex-1 bg-[#1a1a1a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/40 rounded-sm font-body"
           />
           {orderType === 'dine-in' && (
             <input
               value={table}
               onChange={e => setTable(e.target.value)}
               placeholder="Table #"
-              className="w-20 bg-[#1a1a1a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/40 rounded-sm font-body"
+              className="w-20 bg-[#1a1a1a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/40 rounded-sm font-body"
             />
           )}
         </div>
@@ -492,13 +492,13 @@ export function POSTerminal({
               value={address}
               onChange={e => setAddress(e.target.value)}
               placeholder="Delivery address…"
-              className="flex-1 bg-[#1a1a1a] border border-[#E4002B]/30 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/60 rounded-sm font-body"
+              className="flex-1 bg-[#1a1a1a] border border-[#E4002B]/30 px-3 py-2.5 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/60 rounded-sm font-body"
             />
             <input
               value={rider}
               onChange={e => setRider(e.target.value)}
               placeholder="Rider name…"
-              className="w-36 bg-[#1a1a1a] border border-blue-500/30 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-blue-400/60 rounded-sm font-body"
+              className="w-36 bg-[#1a1a1a] border border-blue-500/30 px-3 py-2.5 text-sm text-white placeholder:text-white focus:outline-none focus:border-blue-400/60 rounded-sm font-body"
             />
           </div>
         )}
@@ -507,7 +507,7 @@ export function POSTerminal({
         {pastOrders.length > 0 && (
           <div className="mt-2 border border-white/5 rounded-sm bg-[#0d0d0d]">
             <div className="px-3 py-1.5 border-b border-white/5">
-              <span className="font-heading text-[9px] tracking-widest text-white/30">
+              <span className="font-heading text-[9px] tracking-widest text-white">
                 RETURNING CUSTOMER · {pastOrders.length} PREV ORDER{pastOrders.length !== 1 ? 'S' : ''}
               </span>
             </div>
@@ -515,12 +515,12 @@ export function POSTerminal({
               {pastOrders.map(o => (
                 <div key={o.id} className="px-3 py-2">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-heading text-[10px] text-white/50">
+                    <span className="font-heading text-[10px] text-white">
                       #{o.id.slice(-6).toUpperCase()} · {new Date(o.created_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                     </span>
-                    <span className="font-heading text-[10px] text-white/50">{formatPKR(o.total)}</span>
+                    <span className="font-heading text-[10px] text-white">{formatPKR(o.total)}</span>
                   </div>
-                  <p className="font-body text-[10px] text-white/25 leading-tight truncate">
+                  <p className="font-body text-[10px] text-white leading-tight truncate">
                     {o.order_items.map(i => `${i.quantity}× ${i.item_name}`).join(', ')}
                   </p>
                 </div>
@@ -533,12 +533,12 @@ export function POSTerminal({
       {/* Cart items */}
       <div className="flex-1 overflow-y-auto min-h-0">
         {cart.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-white/15 gap-2 py-10">
+          <div className="flex flex-col items-center justify-center h-full text-white gap-2 py-10">
             <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
               <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>
             <span className="font-heading text-xs tracking-widest">CART EMPTY</span>
-            <span className="text-[10px] text-white/10">Tap items to add</span>
+            <span className="text-[10px] text-white">Tap items to add</span>
           </div>
         ) : (
           <div className="divide-y divide-white/5">
@@ -546,24 +546,24 @@ export function POSTerminal({
               <div key={line.key} className="flex items-center gap-2 px-4 py-3">
                 <div className="flex-1 min-w-0">
                   <p className="font-heading text-sm text-white truncate">{line.name}</p>
-                  <p className="font-heading text-xs text-white/30">{formatPKR(line.price)} each</p>
+                  <p className="font-heading text-xs text-white">{formatPKR(line.price)} each</p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => adjustQty(line.key, -1)}
-                    className="w-8 h-8 rounded-sm bg-white/5 text-white/50 active:bg-[#E4002B] active:text-white hover:bg-[#E4002B] hover:text-white font-heading text-base leading-none transition-colors"
+                    className="w-8 h-8 rounded-sm bg-white/5 text-white active:bg-[#E4002B] active:text-white hover:bg-[#E4002B] hover:text-white font-heading text-base leading-none transition-colors"
                   >
                     −
                   </button>
                   <span className="font-heading text-sm text-white w-6 text-center">{line.quantity}</span>
                   <button
                     onClick={() => adjustQty(line.key, +1)}
-                    className="w-8 h-8 rounded-sm bg-white/5 text-white/50 active:bg-green-600 active:text-white hover:bg-green-600 hover:text-white font-heading text-base leading-none transition-colors"
+                    className="w-8 h-8 rounded-sm bg-white/5 text-white active:bg-green-600 active:text-white hover:bg-green-600 hover:text-white font-heading text-base leading-none transition-colors"
                   >
                     +
                   </button>
                 </div>
-                <span className="font-heading text-xs text-white/60 w-16 text-right flex-shrink-0">
+                <span className="font-heading text-xs text-white w-16 text-right flex-shrink-0">
                   {formatPKR(line.price * line.quantity)}
                 </span>
               </div>
@@ -579,7 +579,7 @@ export function POSTerminal({
           onChange={e => setNotes(e.target.value)}
           placeholder="Special notes…"
           rows={2}
-          className="w-full bg-[#1a1a1a] border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/40 rounded-sm font-body resize-none"
+          className="w-full bg-[#1a1a1a] border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/40 rounded-sm font-body resize-none"
         />
       </div>
 
@@ -593,7 +593,7 @@ export function POSTerminal({
               className={`flex-1 font-heading text-xs tracking-widest py-3 rounded-sm border transition-colors duration-100 ${
                 payment === p
                   ? 'bg-white/10 border-white/20 text-white'
-                  : 'border-white/5 text-white/20 hover:text-white hover:border-white/10'
+                  : 'border-white/5 text-white hover:text-white hover:border-white/10'
               }`}
             >
               {p === 'cash' ? '💵 CASH' : '💳 CARD'}
@@ -605,14 +605,14 @@ export function POSTerminal({
       {/* Total + place order */}
       <div className="px-4 pb-4 space-y-2 border-t border-white/5 pt-3 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <span className="font-heading text-xs tracking-widest text-white/40">TOTAL</span>
+          <span className="font-heading text-xs tracking-widest text-white">TOTAL</span>
           <span className="font-heading text-2xl text-white">{formatPKR(total)}</span>
         </div>
         <div className="flex gap-2">
           {cart.length > 0 && (
             <button
               onClick={clearCart}
-              className="font-heading text-xs tracking-widest px-4 py-3.5 border border-white/10 text-white/30 hover:text-white hover:border-white/30 rounded-sm transition-colors"
+              className="font-heading text-xs tracking-widest px-4 py-3.5 border border-white/10 text-white hover:text-white hover:border-white/30 rounded-sm transition-colors"
             >
               CLEAR
             </button>
@@ -631,7 +631,7 @@ export function POSTerminal({
       {lastOrder && (
         <div className="mx-4 mb-4 border border-green-500/30 bg-green-500/5 rounded-sm px-4 py-3 flex-shrink-0">
           <p className="font-heading text-xs tracking-widest text-green-400 mb-0.5">ORDER PLACED ✓</p>
-          <p className="font-heading text-xs text-white/50">#{lastOrder.id.slice(-6).toUpperCase()} — {formatPKR(lastOrder.total)}</p>
+          <p className="font-heading text-xs text-white">#{lastOrder.id.slice(-6).toUpperCase()} — {formatPKR(lastOrder.total)}</p>
           <div className="flex items-center gap-4 mt-2">
             <a
               href={`/admin/orders/${lastOrder.id}`}
@@ -641,7 +641,7 @@ export function POSTerminal({
             </a>
             <button
               onClick={() => printReceipt()}
-              className="font-heading text-[10px] tracking-widest text-white/40 hover:text-white border border-white/10 hover:border-white/30 px-2 py-1 rounded-sm transition-colors"
+              className="font-heading text-[10px] tracking-widest text-white hover:text-white border border-white/10 hover:border-white/30 px-2 py-1 rounded-sm transition-colors"
             >
               🖨 PRINT
             </button>
@@ -667,18 +667,18 @@ export function POSTerminal({
         {/* Header */}
         <div className="flex items-center gap-2 px-4 py-3 bg-[#111] border-b border-white/5 flex-shrink-0">
           <div className="bg-[#E4002B] text-white font-heading text-xs px-2.5 py-1 tracking-wider">TNB</div>
-          <span className="font-heading text-white/40 text-xs tracking-[0.3em] hidden sm:inline">POS TERMINAL</span>
+          <span className="font-heading text-white text-xs tracking-[0.3em] hidden sm:inline">POS TERMINAL</span>
           <div className="ml-auto flex items-center gap-3">
-            <span className="font-heading text-[10px] tracking-widest text-white/20 hidden sm:inline">
+            <span className="font-heading text-[10px] tracking-widest text-white hidden sm:inline">
               {new Date().toLocaleDateString('en-PK', { weekday: 'short', day: 'numeric', month: 'short' })}
             </span>
             <div className="flex items-center gap-1.5">
-              <span className="font-heading text-[10px] tracking-widest text-white/40 uppercase">{staffName}</span>
-              <span className="font-heading text-[9px] px-1.5 py-0.5 border border-white/10 text-white/20 rounded-sm uppercase hidden sm:inline">{staffRole}</span>
+              <span className="font-heading text-[10px] tracking-widest text-white uppercase">{staffName}</span>
+              <span className="font-heading text-[9px] px-1.5 py-0.5 border border-white/10 text-white rounded-sm uppercase hidden sm:inline">{staffRole}</span>
             </div>
             <button
               onClick={() => setSessionOpen(true)}
-              className="relative font-heading text-[10px] tracking-widest text-white/40 hover:text-white transition-colors border border-white/10 hover:border-white/30 px-2.5 py-1 rounded-sm"
+              className="relative font-heading text-[10px] tracking-widest text-white hover:text-white transition-colors border border-white/10 hover:border-white/30 px-2.5 py-1 rounded-sm"
             >
               SESSION
               {sessionOrders.length > 0 && (
@@ -693,7 +693,7 @@ export function POSTerminal({
                 await createClient().auth.signOut();
                 window.location.href = '/pos/login';
               }}
-              className="font-heading text-[10px] tracking-widest text-white/20 hover:text-white transition-colors"
+              className="font-heading text-[10px] tracking-widest text-white hover:text-white transition-colors"
             >
               SIGN OUT
             </button>
@@ -719,7 +719,7 @@ export function POSTerminal({
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search items…"
-            className="w-full bg-[#1a1a1a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/40 rounded-sm font-body"
+            className="w-full bg-[#1a1a1a] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/40 rounded-sm font-body"
           />
           <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
             {(['All', ...CATEGORIES] as const).map(cat => (
@@ -729,7 +729,7 @@ export function POSTerminal({
                 className={`flex-shrink-0 font-heading text-[10px] tracking-widest px-3 py-2 rounded-sm border transition-colors duration-100 ${
                   category === cat
                     ? 'bg-[#E4002B] border-[#E4002B] text-white'
-                    : 'border-white/10 text-white/30 hover:text-white hover:border-white/30'
+                    : 'border-white/10 text-white hover:text-white hover:border-white/30'
                 }`}
               >
                 {cat === 'Pizza Regular v1' ? 'PIZZA REG' : cat.toUpperCase()}
@@ -741,7 +741,7 @@ export function POSTerminal({
         {/* Item grid */}
         <div className="flex-1 overflow-y-auto p-3 pb-24 md:pb-3">
           {filtered.length === 0 ? (
-            <div className="flex items-center justify-center h-40 text-white/20 font-heading text-xs tracking-widest">
+            <div className="flex items-center justify-center h-40 text-white font-heading text-xs tracking-widest">
               NO ITEMS FOUND
             </div>
           ) : (
@@ -756,7 +756,7 @@ export function POSTerminal({
         {/* Mobile sticky cart bar */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#111] border-t border-white/10 px-4 py-3 flex items-center gap-3">
           <div className="flex-1">
-            <p className="font-heading text-xs text-white/40 tracking-widest">
+            <p className="font-heading text-xs text-white tracking-widest">
               {cart.length === 0 ? 'CART EMPTY' : `${cart.reduce((s, l) => s + l.quantity, 0)} ITEM${cart.reduce((s, l) => s + l.quantity, 0) !== 1 ? 'S' : ''}`}
             </p>
             {cart.length > 0 && <p className="font-heading text-lg text-white">{formatPKR(total)}</p>}
@@ -766,7 +766,7 @@ export function POSTerminal({
             className={`font-heading text-sm tracking-widest px-6 py-3 rounded-sm transition-colors ${
               cart.length > 0
                 ? 'bg-[#E4002B] text-white hover:bg-red-700'
-                : 'bg-white/5 text-white/20 cursor-default'
+                : 'bg-white/5 text-white cursor-default'
             }`}
             disabled={cart.length === 0}
           >
@@ -803,7 +803,7 @@ export function POSTerminal({
               </div>
               <button
                 onClick={() => setCartOpen(false)}
-                className="font-heading text-xs text-white/30 hover:text-white px-3 py-1.5 border border-white/10 rounded-sm transition-colors"
+                className="font-heading text-xs text-white hover:text-white px-3 py-1.5 border border-white/10 rounded-sm transition-colors"
               >
                 CLOSE ✕
               </button>
@@ -831,7 +831,7 @@ export function POSTerminal({
               </div>
               <button
                 onClick={() => setSessionOpen(false)}
-                className="font-heading text-xs text-white/30 hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-sm transition-colors"
+                className="font-heading text-xs text-white hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-sm transition-colors"
               >
                 CLOSE ✕
               </button>
@@ -841,14 +841,14 @@ export function POSTerminal({
             {sessionOrders.length > 0 && (
               <div className="px-5 py-3 border-b border-white/5 flex-shrink-0 flex items-center justify-between bg-white/[0.02]">
                 <div>
-                  <p className="font-heading text-[10px] tracking-widest text-white/30">{sessionOrders.length} ORDER{sessionOrders.length !== 1 ? 'S' : ''} THIS SESSION</p>
+                  <p className="font-heading text-[10px] tracking-widest text-white">{sessionOrders.length} ORDER{sessionOrders.length !== 1 ? 'S' : ''} THIS SESSION</p>
                   <p className="font-heading text-xl text-white mt-0.5">
                     {formatPKR(sessionOrders.reduce((s, o) => s + o.total, 0))}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-heading text-[10px] tracking-widest text-white/30">{staffName}</p>
-                  <p className="font-heading text-xs text-white/40 mt-0.5">{staffRole.toUpperCase()}</p>
+                  <p className="font-heading text-[10px] tracking-widest text-white">{staffName}</p>
+                  <p className="font-heading text-xs text-white mt-0.5">{staffRole.toUpperCase()}</p>
                 </div>
               </div>
             )}
@@ -856,7 +856,7 @@ export function POSTerminal({
             {/* Order list */}
             <div className="flex-1 overflow-y-auto min-h-0">
               {sessionOrders.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-white/20 gap-2">
+                <div className="flex flex-col items-center justify-center h-full text-white gap-2">
                   <span className="font-heading text-3xl">◎</span>
                   <span className="font-heading text-xs tracking-widest">NO ORDERS YET THIS SESSION</span>
                 </div>
@@ -868,34 +868,34 @@ export function POSTerminal({
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-heading text-sm text-white">#{o.id.slice(-6).toUpperCase()}</span>
-                            <span className="font-heading text-[10px] px-1.5 py-0.5 border border-white/10 text-white/30 rounded-sm">
+                            <span className="font-heading text-[10px] px-1.5 py-0.5 border border-white/10 text-white rounded-sm">
                               {o.orderType === 'dine-in' ? (o.table ? `TABLE ${o.table}` : 'DINE-IN') : o.orderType === 'delivery' ? 'DELIVERY' : 'TAKEAWAY'}
                             </span>
                             {idx === 0 && (
                               <span className="font-heading text-[9px] px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 text-green-400 rounded-sm">LATEST</span>
                             )}
                           </div>
-                          <p className="font-heading text-xs text-white/30 tracking-wider">
+                          <p className="font-heading text-xs text-white tracking-wider">
                             {o.customerName} · {o.placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="font-heading text-sm text-white">{formatPKR(o.total)}</p>
-                          <p className="font-heading text-[10px] text-white/30">{o.payment.toUpperCase()}</p>
+                          <p className="font-heading text-[10px] text-white">{o.payment.toUpperCase()}</p>
                         </div>
                       </div>
                       {/* Items */}
                       <div className="mb-3 space-y-0.5">
                         {o.items.map((item, i) => (
-                          <p key={i} className="font-body text-xs text-white/30">
-                            {item.quantity}× {item.name} <span className="text-white/15">— {formatPKR(item.price * item.quantity)}</span>
+                          <p key={i} className="font-body text-xs text-white">
+                            {item.quantity}× {item.name} <span className="text-white">— {formatPKR(item.price * item.quantity)}</span>
                           </p>
                         ))}
                       </div>
                       {/* Reprint */}
                       <button
                         onClick={() => printReceipt(o)}
-                        className="font-heading text-[10px] tracking-widest text-white/40 hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-sm transition-colors"
+                        className="font-heading text-[10px] tracking-widest text-white hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-sm transition-colors"
                       >
                         🖨 REPRINT RECEIPT
                       </button>
@@ -973,7 +973,7 @@ function POSCard({ card, onAdd }: {
                 className={`font-heading text-[9px] tracking-wider px-2 py-1 rounded-sm border transition-colors ${
                   i === sizeIdx
                     ? 'bg-[#E4002B] border-[#E4002B] text-white'
-                    : 'border-white/10 text-white/30 hover:border-white/30 hover:text-white'
+                    : 'border-white/10 text-white hover:border-white/30 hover:text-white'
                 }`}
               >
                 {s.size}
@@ -992,7 +992,7 @@ function POSCard({ card, onAdd }: {
                 className={`font-heading text-[9px] tracking-wider px-2 py-1 rounded-sm border transition-colors ${
                   i === variantIdx
                     ? 'bg-[#E4002B] border-[#E4002B] text-white'
-                    : 'border-white/10 text-white/30 hover:border-white/30 hover:text-white'
+                    : 'border-white/10 text-white hover:border-white/30 hover:text-white'
                 }`}
               >
                 {v.label}
@@ -1002,7 +1002,7 @@ function POSCard({ card, onAdd }: {
         )}
 
         <div className="mt-auto flex items-center justify-between gap-1">
-          <span className="font-heading text-xs text-white/60">{formatPKR(currentPrice)}</span>
+          <span className="font-heading text-xs text-white">{formatPKR(currentPrice)}</span>
           <button
             onClick={() => onAdd(getLine())}
             className="bg-[#E4002B] text-white font-heading text-[10px] tracking-widest px-3 py-1.5 rounded-sm active:bg-red-700 hover:bg-red-700 transition-colors"

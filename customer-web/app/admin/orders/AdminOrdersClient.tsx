@@ -22,7 +22,7 @@ const STATUS_STYLES: Record<string, string> = {
   pending:   'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
   preparing: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
   ready:     'border-green-500/30 bg-green-500/10 text-green-400',
-  completed: 'border-white/10 bg-white/5 text-white/30',
+  completed: 'border-white/10 bg-white/5 text-white',
 };
 
 export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] }) {
@@ -93,7 +93,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
         </div>
         <button
           onClick={() => fetchOrders(false)}
-          className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:border-white/30 hover:text-white rounded-sm transition-colors"
+          className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white hover:border-white/30 hover:text-white rounded-sm transition-colors"
         >
           ↻ REFRESH
         </button>
@@ -108,7 +108,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
             className={`flex-shrink-0 font-heading text-xs tracking-widest px-4 py-2 rounded-sm border transition-colors duration-150 ${
               filter === tab
                 ? 'bg-[#E4002B] border-[#E4002B] text-white'
-                : 'border-white/10 text-white/30 hover:text-white hover:border-white/30'
+                : 'border-white/10 text-white hover:text-white hover:border-white/30'
             }`}
           >
             {tab.toUpperCase()}
@@ -123,7 +123,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
 
       {/* Orders */}
       {filtered.length === 0 ? (
-        <div className="py-16 text-center text-white/20 font-heading text-sm tracking-wider">
+        <div className="py-16 text-center text-white font-heading text-sm tracking-wider">
           NO ORDERS
         </div>
       ) : (
@@ -146,7 +146,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
                         {order.status.toUpperCase()}
                       </span>
                       {order.table_number && (
-                        <span className="font-heading text-xs text-white/30 border border-white/10 px-2 py-0.5 rounded-sm">
+                        <span className="font-heading text-xs text-white border border-white/10 px-2 py-0.5 rounded-sm">
                           TABLE {order.table_number}
                         </span>
                       )}
@@ -158,7 +158,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
                     </div>
                     <span className="font-heading text-white text-base flex-shrink-0">{formatPKR(order.total)}</span>
                   </div>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-white/30 font-heading tracking-wider flex-wrap">
+                  <div className="mt-2 flex items-center gap-3 text-xs text-white font-heading tracking-wider flex-wrap">
                     <span>{order.customer_name}</span>
                     <span>•</span>
                     <span>{date}</span>
@@ -175,8 +175,8 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
                   </div>
                   <ul className="mt-3 space-y-0.5">
                     {order.order_items?.map((item, i) => (
-                      <li key={i} className="text-xs text-white/30">
-                        <span className="text-white/50">{item.quantity}×</span> {item.item_name}
+                      <li key={i} className="text-xs text-white">
+                        <span className="text-white">{item.quantity}×</span> {item.item_name}
                       </li>
                     ))}
                   </ul>
@@ -184,7 +184,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
                 <div className="px-4 sm:px-5 pb-3 flex justify-end">
                   <button
                     onClick={() => printOrderReceipt(order)}
-                    className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white/30 hover:border-white/30 hover:text-white rounded-sm transition-colors"
+                    className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white hover:border-white/30 hover:text-white rounded-sm transition-colors"
                   >
                     🖨 PRINT BILL
                   </button>

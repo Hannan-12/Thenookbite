@@ -20,7 +20,7 @@ const STATUS_STYLES: Record<string, string> = {
   pending:   'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
   preparing: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
   ready:     'border-green-500/30 bg-green-500/10 text-green-400',
-  completed: 'border-white/10 bg-white/5 text-white/30',
+  completed: 'border-white/10 bg-white/5 text-white',
 };
 
 function fmtDate(iso: string | null) {
@@ -56,7 +56,7 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
     <div className="px-4 sm:px-8 py-8 space-y-6">
 
       {/* Back */}
-      <Link href="/admin/users" className="inline-flex items-center gap-2 font-heading text-xs tracking-widest text-white/30 hover:text-white transition-colors">
+      <Link href="/admin/users" className="inline-flex items-center gap-2 font-heading text-xs tracking-widest text-white hover:text-white transition-colors">
         ← CUSTOMERS
       </Link>
 
@@ -66,7 +66,7 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
           <div>
             <div className="flex items-center gap-3 flex-wrap mb-1">
               <h1 className="font-heading text-2xl text-white">
-                {customer.full_name ?? <span className="text-white/30 italic">No name</span>}
+                {customer.full_name ?? <span className="text-white italic">No name</span>}
               </h1>
               {customer.is_banned && (
                 <span className="font-heading text-[10px] tracking-widest px-2 py-0.5 bg-red-500/20 border border-red-500/40 text-red-400 rounded-sm">
@@ -74,7 +74,7 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
                 </span>
               )}
             </div>
-            <p className="text-white/40 text-sm">{customer.email}</p>
+            <p className="text-white text-sm">{customer.email}</p>
           </div>
           <button
             onClick={toggleBan}
@@ -98,7 +98,7 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
             { label: 'ACCOUNT ID',  value: customer.id.slice(0, 8).toUpperCase() + '…' },
           ].map(item => (
             <div key={item.label} className="px-5 py-4">
-              <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1">{item.label}</p>
+              <p className="font-heading text-[10px] tracking-widest text-white mb-1">{item.label}</p>
               <p className="font-heading text-sm text-white">{item.value}</p>
             </div>
           ))}
@@ -107,15 +107,15 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
         {/* Stats row */}
         <div className="border-t border-white/5 grid grid-cols-3 divide-x divide-white/5">
           <div className="px-5 py-4">
-            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1">TOTAL ORDERS</p>
+            <p className="font-heading text-[10px] tracking-widest text-white mb-1">TOTAL ORDERS</p>
             <p className="font-heading text-2xl text-white">{customer.order_count}</p>
           </div>
           <div className="px-5 py-4">
-            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1">TOTAL SPENT</p>
+            <p className="font-heading text-[10px] tracking-widest text-white mb-1">TOTAL SPENT</p>
             <p className="font-heading text-2xl text-white">{formatPKR(customer.total_spent)}</p>
           </div>
           <div className="px-5 py-4">
-            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1">AVG ORDER</p>
+            <p className="font-heading text-[10px] tracking-widest text-white mb-1">AVG ORDER</p>
             <p className="font-heading text-2xl text-white">
               {customer.order_count > 0 ? formatPKR(Math.round(customer.total_spent / customer.order_count)) : '—'}
             </p>
@@ -126,14 +126,14 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
       {/* Orders */}
       <div>
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h2 className="font-heading text-sm tracking-widest text-white/60">ORDER HISTORY</h2>
+          <h2 className="font-heading text-sm tracking-widest text-white">ORDER HISTORY</h2>
           <div className="flex gap-1 overflow-x-auto pb-1">
             {statuses.map(s => (
               <button
                 key={s}
                 onClick={() => setFilter(s)}
                 className={`flex-shrink-0 font-heading text-[10px] tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
-                  filter === s ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+                  filter === s ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white hover:text-white'
                 }`}
               >
                 {s.toUpperCase()}
@@ -146,7 +146,7 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
         </div>
 
         {filtered.length === 0 ? (
-          <div className="border border-white/5 rounded-sm px-5 py-12 text-center text-white/20 font-heading text-sm tracking-wider">
+          <div className="border border-white/5 rounded-sm px-5 py-12 text-center text-white font-heading text-sm tracking-wider">
             NO ORDERS
           </div>
         ) : (
@@ -159,7 +159,7 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
                     onClick={() => setExpandedId(isExpanded ? null : order.id)}
                     className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-white/[0.02] transition-colors"
                   >
-                    <span className="font-heading text-[10px] text-white/20 w-3">{isExpanded ? '▲' : '▼'}</span>
+                    <span className="font-heading text-[10px] text-white w-3">{isExpanded ? '▲' : '▼'}</span>
                     <span className="font-heading text-sm text-white w-24 flex-shrink-0">
                       #{order.id.slice(-6).toUpperCase()}
                     </span>
@@ -167,14 +167,14 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
                       {order.status.toUpperCase()}
                     </span>
                     {order.table_number && (
-                      <span className="font-heading text-[10px] text-white/20 border border-white/10 px-2 py-0.5 rounded-sm flex-shrink-0">
+                      <span className="font-heading text-[10px] text-white border border-white/10 px-2 py-0.5 rounded-sm flex-shrink-0">
                         T{order.table_number}
                       </span>
                     )}
-                    <span className="font-heading text-xs text-white/30 flex-1 hidden sm:block truncate">
+                    <span className="font-heading text-xs text-white flex-1 hidden sm:block truncate">
                       {fmtDateTime(order.created_at)}
                     </span>
-                    <span className="font-heading text-[10px] text-white/20 flex-shrink-0 hidden md:block">
+                    <span className="font-heading text-[10px] text-white flex-shrink-0 hidden md:block">
                       {order.payment_method.toUpperCase()}
                     </span>
                     <span className="font-heading text-sm text-white flex-shrink-0 ml-auto">
@@ -186,13 +186,13 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
                     <div className="border-t border-white/5 px-5 py-4 bg-white/[0.01] space-y-3">
                       <div className="space-y-1.5">
                         {order.order_items.length === 0 ? (
-                          <p className="text-white/20 text-xs font-heading tracking-wider">NO ITEM DATA</p>
+                          <p className="text-white text-xs font-heading tracking-wider">NO ITEM DATA</p>
                         ) : order.order_items.map((item, i) => (
                           <div key={i} className="flex items-center justify-between text-xs">
-                            <span className="text-white/50">
-                              <span className="text-white/70">{item.quantity}×</span> {item.item_name}
+                            <span className="text-white">
+                              <span className="text-white">{item.quantity}×</span> {item.item_name}
                             </span>
-                            <span className="text-white/30 font-heading">{formatPKR(item.item_price * item.quantity)}</span>
+                            <span className="text-white font-heading">{formatPKR(item.item_price * item.quantity)}</span>
                           </div>
                         ))}
                       </div>
@@ -201,7 +201,7 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
                           ⚠ {order.special_notes}
                         </p>
                       )}
-                      <div className="pt-2 border-t border-white/5 flex justify-between text-xs font-heading text-white/30">
+                      <div className="pt-2 border-t border-white/5 flex justify-between text-xs font-heading text-white">
                         <span>{fmtDateTime(order.created_at)} · {order.payment_method.toUpperCase()}</span>
                         <span className="text-white">{formatPKR(order.total)}</span>
                       </div>

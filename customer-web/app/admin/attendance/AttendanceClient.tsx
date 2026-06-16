@@ -17,7 +17,7 @@ const STATUS_STYLES: Record<string, string> = {
   present:    'border-green-500/30 bg-green-500/5 text-green-400',
   late:       'border-yellow-500/30 bg-yellow-500/5 text-yellow-400',
   absent:     'border-red-500/30 bg-red-500/5 text-red-400',
-  no_records: 'border-white/5 bg-white/3 text-white/20',
+  no_records: 'border-white/5 bg-white/3 text-white',
 };
 
 function fmt(iso: string | null) {
@@ -111,7 +111,7 @@ export function AttendanceClient() {
           {(['daily', 'monthly'] as const).map(v => (
             <button key={v} onClick={() => setView(v)}
               className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
-                view === v ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+                view === v ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white hover:text-white'
               }`}>
               {v.toUpperCase()}
             </button>
@@ -163,13 +163,13 @@ export function AttendanceClient() {
       )}
 
       {loading ? (
-        <div className="py-20 text-center text-white/20 font-heading text-xs tracking-widest">LOADING…</div>
+        <div className="py-20 text-center text-white font-heading text-xs tracking-widest">LOADING…</div>
       ) : view === 'daily' ? (
         /* ── Daily view ── */
         <div className="border border-white/5 rounded-sm overflow-hidden">
           <div className="divide-y divide-white/5">
             {records.length === 0 ? (
-              <div className="px-5 py-12 text-center text-white/20 font-heading text-xs tracking-widest">
+              <div className="px-5 py-12 text-center text-white font-heading text-xs tracking-widest">
                 NO STAFF FOUND
               </div>
             ) : records.map((r, i) => (
@@ -180,16 +180,16 @@ export function AttendanceClient() {
                   </span>
                   <div>
                     <p className="font-heading text-sm text-white">{r.staff?.full_name}</p>
-                    <p className="font-heading text-[10px] text-white/30 mt-0.5 uppercase">{r.staff?.role} · {r.staff?.staff_type}</p>
+                    <p className="font-heading text-[10px] text-white mt-0.5 uppercase">{r.staff?.role} · {r.staff?.staff_type}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="font-heading text-xs text-white/40">
+                    <p className="font-heading text-xs text-white">
                       IN {fmt(r.check_in)} · OUT {fmt(r.check_out)}
                     </p>
                     {hours(r.check_in, r.check_out) && (
-                      <p className="font-heading text-[10px] text-white/20">{hours(r.check_in, r.check_out)} worked</p>
+                      <p className="font-heading text-[10px] text-white">{hours(r.check_in, r.check_out)} worked</p>
                     )}
                   </div>
                   {/* Admin override */}
@@ -201,7 +201,7 @@ export function AttendanceClient() {
                         className={`font-heading text-[9px] tracking-widest px-2 py-1 rounded-sm border transition-colors ${
                           r.status === s
                             ? STATUS_STYLES[s]
-                            : 'border-white/5 text-white/20 hover:text-white hover:border-white/20'
+                            : 'border-white/5 text-white hover:text-white hover:border-white/20'
                         }`}
                       >
                         {s.toUpperCase()}
@@ -220,23 +220,23 @@ export function AttendanceClient() {
             <table className="w-full text-xs font-heading">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="text-left px-5 py-3 tracking-widest text-white/30">STAFF</th>
-                  <th className="text-left px-5 py-3 tracking-widest text-white/30">ROLE</th>
+                  <th className="text-left px-5 py-3 tracking-widest text-white">STAFF</th>
+                  <th className="text-left px-5 py-3 tracking-widest text-white">ROLE</th>
                   <th className="text-center px-4 py-3 tracking-widest text-green-400/60">PRESENT</th>
                   <th className="text-center px-4 py-3 tracking-widest text-yellow-400/60">LATE</th>
-                  <th className="text-center px-4 py-3 tracking-widest text-white/30">ABSENT</th>
-                  <th className="text-center px-4 py-3 tracking-widest text-white/30">TOTAL DAYS</th>
+                  <th className="text-center px-4 py-3 tracking-widest text-white">ABSENT</th>
+                  <th className="text-center px-4 py-3 tracking-widest text-white">TOTAL DAYS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {Object.entries(staffSummary).map(([id, s]) => (
                   <tr key={id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="px-5 py-3 text-white">{s.name}</td>
-                    <td className="px-5 py-3 text-white/40 uppercase">{s.role}</td>
+                    <td className="px-5 py-3 text-white uppercase">{s.role}</td>
                     <td className="px-4 py-3 text-center text-green-400">{s.present}</td>
                     <td className="px-4 py-3 text-center text-yellow-400">{s.late}</td>
-                    <td className="px-4 py-3 text-center text-white/30">{s.absent}</td>
-                    <td className="px-4 py-3 text-center text-white/50">{s.present + s.late + s.absent}</td>
+                    <td className="px-4 py-3 text-center text-white">{s.absent}</td>
+                    <td className="px-4 py-3 text-center text-white">{s.present + s.late + s.absent}</td>
                   </tr>
                 ))}
               </tbody>

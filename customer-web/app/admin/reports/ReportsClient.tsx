@@ -49,7 +49,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   if (!active || !payload?.length) return null;
   return (
     <div style={TOOLTIP_STYLE} className="px-3 py-2 space-y-1">
-      <p className="text-white/40 text-[10px] tracking-widest mb-1">{label}</p>
+      <p className="text-white text-[10px] tracking-widest mb-1">{label}</p>
       {payload.map(p => (
         <p key={p.dataKey} style={{ color: p.color }} className="text-xs font-heading tracking-wider">
           {p.dataKey === 'revenue' ? formatPKR(p.value) : `${p.value} orders`}
@@ -276,13 +276,13 @@ export function ReportsClient() {
           <button
             onClick={handleExportPDF}
             disabled={!summary}
-            className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:text-white hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm transition-colors"
+            className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white hover:text-white hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm transition-colors"
           >
             ↓ PDF
           </button>
           <button
             onClick={handleExportCSV}
-            className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:text-white hover:border-white/30 rounded-sm transition-colors"
+            className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white hover:text-white hover:border-white/30 rounded-sm transition-colors"
           >
             ↓ CSV
           </button>
@@ -296,7 +296,7 @@ export function ReportsClient() {
             key={p.key}
             onClick={() => setPreset(p.key)}
             className={`font-heading text-xs tracking-widest px-4 py-2 rounded-sm border transition-colors ${
-              preset === p.key ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+              preset === p.key ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white hover:text-white'
             }`}
           >
             {p.label}
@@ -310,7 +310,7 @@ export function ReportsClient() {
               onChange={e => setCustomFrom(e.target.value)}
               className="bg-[#1a1a1a] border border-white/10 px-3 py-1.5 text-xs text-white rounded-sm focus:outline-none focus:border-[#E4002B]/40 font-body"
             />
-            <span className="text-white/20 font-heading text-xs">TO</span>
+            <span className="text-white font-heading text-xs">TO</span>
             <input
               type="date"
               value={customTo}
@@ -319,7 +319,7 @@ export function ReportsClient() {
             />
           </div>
         )}
-        {loading && <span className="font-heading text-[10px] tracking-widest text-white/20 ml-2">LOADING…</span>}
+        {loading && <span className="font-heading text-[10px] tracking-widest text-white ml-2">LOADING…</span>}
       </div>
 
       {/* Error banner */}
@@ -341,8 +341,8 @@ export function ReportsClient() {
           { label: 'AVG ORDER VALUE',  value: summary ? formatPKR(summary.avg_order_value)        : '—' },
         ].map((card, i) => (
           <div key={card.label} className={`border rounded-sm px-5 py-5 ${i === 0 ? 'border-[#E4002B]/20 bg-[#E4002B]/5' : 'border-white/5 bg-[#111]'}`}>
-            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-2">{card.label}</p>
-            <p className={`font-heading text-2xl ${loading ? 'text-white/20' : 'text-white'}`}>{card.value}</p>
+            <p className="font-heading text-[10px] tracking-widest text-white mb-2">{card.label}</p>
+            <p className={`font-heading text-2xl ${loading ? 'text-white' : 'text-white'}`}>{card.value}</p>
           </div>
         ))}
       </div>
@@ -360,7 +360,7 @@ export function ReportsClient() {
               key={t.key}
               onClick={() => setReportType(t.key)}
               className={`font-heading text-xs tracking-widest px-4 py-2.5 border-b-2 -mb-px transition-colors ${
-                reportType === t.key ? 'border-[#E4002B] text-white' : 'border-transparent text-white/30 hover:text-white'
+                reportType === t.key ? 'border-[#E4002B] text-white' : 'border-transparent text-white hover:text-white'
               }`}
             >
               {t.label}
@@ -375,7 +375,7 @@ export function ReportsClient() {
                 key={s}
                 onClick={() => setSortBy(s)}
                 className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
-                  sortBy === s ? 'bg-white/10 border-white/20 text-white' : 'border-white/5 text-white/20 hover:text-white'
+                  sortBy === s ? 'bg-white/10 border-white/20 text-white' : 'border-white/5 text-white hover:text-white'
                 }`}
               >
                 BY {s.toUpperCase()}
@@ -391,7 +391,7 @@ export function ReportsClient() {
                 key={m}
                 onClick={() => setMetric(m)}
                 className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
-                  metric === m ? 'bg-white/10 border-white/20 text-white' : 'border-white/5 text-white/20 hover:text-white'
+                  metric === m ? 'bg-white/10 border-white/20 text-white' : 'border-white/5 text-white hover:text-white'
                 }`}
               >
                 {m.toUpperCase()}
@@ -405,13 +405,13 @@ export function ReportsClient() {
       {reportType === 'daily' && (
         <div className="bg-[#111] border border-white/5 rounded-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-white/5">
-            <p className="font-heading text-xs tracking-widest text-white/40">
+            <p className="font-heading text-xs tracking-widest text-white">
               REVENUE OVER TIME · {dates.from} → {dates.to}
             </p>
           </div>
           <div className="p-4 sm:p-6">
             {dailyRows.length === 0 ? (
-              <div className="h-[260px] flex items-center justify-center text-white/20 font-heading text-xs tracking-widest">
+              <div className="h-[260px] flex items-center justify-center text-white font-heading text-xs tracking-widest">
                 {loading ? 'LOADING…' : 'NO COMPLETED ORDERS IN THIS PERIOD'}
               </div>
             ) : (
@@ -449,19 +449,19 @@ export function ReportsClient() {
               <table className="w-full text-xs font-heading">
                 <thead>
                   <tr className="border-b border-white/5">
-                    <th className="text-left px-5 py-3 tracking-widest text-white/30">DATE</th>
-                    <th className="text-right px-5 py-3 tracking-widest text-white/30">ORDERS</th>
-                    <th className="text-right px-5 py-3 tracking-widest text-white/30">REVENUE</th>
-                    <th className="text-right px-5 py-3 tracking-widest text-white/30">AVG ORDER</th>
+                    <th className="text-left px-5 py-3 tracking-widest text-white">DATE</th>
+                    <th className="text-right px-5 py-3 tracking-widest text-white">ORDERS</th>
+                    <th className="text-right px-5 py-3 tracking-widest text-white">REVENUE</th>
+                    <th className="text-right px-5 py-3 tracking-widest text-white">AVG ORDER</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {[...dailyRows].reverse().filter(r => r.orders > 0).map(row => (
                     <tr key={row.label} className="hover:bg-white/[0.02]">
                       <td className="px-5 py-2.5 text-white">{row.label}</td>
-                      <td className="px-5 py-2.5 text-right text-white/60">{row.orders}</td>
+                      <td className="px-5 py-2.5 text-right text-white">{row.orders}</td>
                       <td className="px-5 py-2.5 text-right text-white">{formatPKR(row.revenue)}</td>
-                      <td className="px-5 py-2.5 text-right text-white/40">{formatPKR(Math.round(row.revenue / row.orders))}</td>
+                      <td className="px-5 py-2.5 text-right text-white">{formatPKR(Math.round(row.revenue / row.orders))}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -475,17 +475,17 @@ export function ReportsClient() {
       {reportType === 'top_items' && (
         <div className="bg-[#111] border border-white/5 rounded-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-white/5">
-            <p className="font-heading text-xs tracking-widest text-white/40">TOP ITEMS · {dates.from} → {dates.to}</p>
+            <p className="font-heading text-xs tracking-widest text-white">TOP ITEMS · {dates.from} → {dates.to}</p>
           </div>
           {topItems.length === 0 ? (
-            <div className="px-5 py-12 text-center text-white/20 font-heading text-xs tracking-widest">
+            <div className="px-5 py-12 text-center text-white font-heading text-xs tracking-widest">
               {loading ? 'LOADING…' : 'NO DATA FOR THIS PERIOD'}
             </div>
           ) : (
             <div className="divide-y divide-white/5">
               {topItems.map((item, i) => (
                 <div key={item.item_name} className="flex items-center gap-4 px-5 py-3">
-                  <span className="font-heading text-xs text-white/20 w-5 flex-shrink-0">{i + 1}</span>
+                  <span className="font-heading text-xs text-white w-5 flex-shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-heading text-sm text-white truncate">{item.item_name}</p>
                     <div className="mt-1.5 h-1 bg-white/5 rounded-full overflow-hidden">
@@ -497,7 +497,7 @@ export function ReportsClient() {
                   </div>
                   <div className="flex-shrink-0 text-right">
                     <p className="font-heading text-sm text-white">{sortBy === 'qty' ? `${item.qty} sold` : formatPKR(item.revenue)}</p>
-                    <p className="font-heading text-xs text-white/30">{sortBy === 'qty' ? formatPKR(item.revenue) : `${item.qty} sold`}</p>
+                    <p className="font-heading text-xs text-white">{sortBy === 'qty' ? formatPKR(item.revenue) : `${item.qty} sold`}</p>
                   </div>
                 </div>
               ))}
@@ -510,10 +510,10 @@ export function ReportsClient() {
       {reportType === 'top_categories' && (
         <div className="bg-[#111] border border-white/5 rounded-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-white/5">
-            <p className="font-heading text-xs tracking-widest text-white/40">BY CATEGORY · {dates.from} → {dates.to}</p>
+            <p className="font-heading text-xs tracking-widest text-white">BY CATEGORY · {dates.from} → {dates.to}</p>
           </div>
           {topCats.length === 0 ? (
-            <div className="px-5 py-12 text-center text-white/20 font-heading text-xs tracking-widest">
+            <div className="px-5 py-12 text-center text-white font-heading text-xs tracking-widest">
               {loading ? 'LOADING…' : 'NO DATA FOR THIS PERIOD'}
             </div>
           ) : (
@@ -521,7 +521,7 @@ export function ReportsClient() {
               <div className="divide-y divide-white/5">
                 {topCats.map((cat, i) => (
                   <div key={cat.category} className="flex items-center gap-4 px-5 py-3">
-                    <span className="font-heading text-xs text-white/20 w-5 flex-shrink-0">{i + 1}</span>
+                    <span className="font-heading text-xs text-white w-5 flex-shrink-0">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="font-heading text-sm text-white">{cat.category}</p>
                       <div className="mt-1.5 h-1 bg-white/5 rounded-full overflow-hidden">
@@ -533,7 +533,7 @@ export function ReportsClient() {
                     </div>
                     <div className="flex-shrink-0 text-right">
                       <p className="font-heading text-sm text-white">{formatPKR(cat.revenue)}</p>
-                      <p className="font-heading text-xs text-white/30">{cat.qty} items · {cat.orders} orders</p>
+                      <p className="font-heading text-xs text-white">{cat.qty} items · {cat.orders} orders</p>
                     </div>
                   </div>
                 ))}
@@ -542,18 +542,18 @@ export function ReportsClient() {
                 <table className="w-full text-xs font-heading">
                   <thead>
                     <tr className="border-b border-white/5">
-                      <th className="text-left px-5 py-3 tracking-widest text-white/30">CATEGORY</th>
-                      <th className="text-right px-5 py-3 tracking-widest text-white/30">ORDERS</th>
-                      <th className="text-right px-5 py-3 tracking-widest text-white/30">QTY SOLD</th>
-                      <th className="text-right px-5 py-3 tracking-widest text-white/30">REVENUE</th>
+                      <th className="text-left px-5 py-3 tracking-widest text-white">CATEGORY</th>
+                      <th className="text-right px-5 py-3 tracking-widest text-white">ORDERS</th>
+                      <th className="text-right px-5 py-3 tracking-widest text-white">QTY SOLD</th>
+                      <th className="text-right px-5 py-3 tracking-widest text-white">REVENUE</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {topCats.map(cat => (
                       <tr key={cat.category} className="hover:bg-white/[0.02]">
                         <td className="px-5 py-2.5 text-white">{cat.category}</td>
-                        <td className="px-5 py-2.5 text-right text-white/60">{cat.orders}</td>
-                        <td className="px-5 py-2.5 text-right text-white/40">{cat.qty}</td>
+                        <td className="px-5 py-2.5 text-right text-white">{cat.orders}</td>
+                        <td className="px-5 py-2.5 text-right text-white">{cat.qty}</td>
                         <td className="px-5 py-2.5 text-right text-white">{formatPKR(cat.revenue)}</td>
                       </tr>
                     ))}
@@ -569,14 +569,14 @@ export function ReportsClient() {
       {reportType === 'orders_list' && (
         <div className="bg-[#111] border border-white/5 rounded-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-            <p className="font-heading text-xs tracking-widest text-white/40">
+            <p className="font-heading text-xs tracking-widest text-white">
               ALL COMPLETED ORDERS · {dates.from} → {dates.to}
             </p>
-            <span className="font-heading text-xs text-white/20">{ordersList.length} orders</span>
+            <span className="font-heading text-xs text-white">{ordersList.length} orders</span>
           </div>
 
           {ordersList.length === 0 ? (
-            <div className="px-5 py-12 text-center text-white/20 font-heading text-xs tracking-widest">
+            <div className="px-5 py-12 text-center text-white font-heading text-xs tracking-widest">
               {loading ? 'LOADING…' : 'NO COMPLETED ORDERS IN THIS PERIOD'}
             </div>
           ) : (
@@ -593,20 +593,20 @@ export function ReportsClient() {
                       onClick={() => setExpandedId(isExpanded ? null : order.id)}
                       className="w-full px-5 py-3 flex items-center gap-4 text-left"
                     >
-                      <span className="font-heading text-[10px] text-white/20 w-4 flex-shrink-0">
+                      <span className="font-heading text-[10px] text-white w-4 flex-shrink-0">
                         {isExpanded ? '▲' : '▼'}
                       </span>
-                      <span className="font-heading text-sm text-white/60 w-[5.5rem] flex-shrink-0 tracking-wider">
+                      <span className="font-heading text-sm text-white w-[5.5rem] flex-shrink-0 tracking-wider">
                         #{order.id.slice(-6).toUpperCase()}
                       </span>
-                      <span className="font-heading text-xs text-white/30 flex-1 min-w-0 truncate">
+                      <span className="font-heading text-xs text-white flex-1 min-w-0 truncate">
                         {order.customer_name}
                         {order.table_number ? ` · T${order.table_number}` : ''}
                       </span>
-                      <span className="font-heading text-[10px] text-white/20 hidden sm:block flex-shrink-0 tracking-wider">
+                      <span className="font-heading text-[10px] text-white hidden sm:block flex-shrink-0 tracking-wider">
                         {order.payment_method.toUpperCase()}
                       </span>
-                      <span className="font-heading text-xs text-white/40 flex-shrink-0 hidden md:block">
+                      <span className="font-heading text-xs text-white flex-shrink-0 hidden md:block">
                         {date}
                       </span>
                       <span className="font-heading text-sm text-white flex-shrink-0 ml-auto">
@@ -616,23 +616,23 @@ export function ReportsClient() {
 
                     {isExpanded && (
                       <div className="px-5 pb-4 pt-1 bg-white/[0.015]">
-                        <p className="font-heading text-[10px] tracking-widest text-white/20 mb-2">ITEMS</p>
+                        <p className="font-heading text-[10px] tracking-widest text-white mb-2">ITEMS</p>
                         <div className="space-y-1">
                           {order.order_items.length === 0 ? (
-                            <p className="text-white/20 text-xs font-heading tracking-wider">NO ITEM DATA</p>
+                            <p className="text-white text-xs font-heading tracking-wider">NO ITEM DATA</p>
                           ) : order.order_items.map((item, i) => (
                             <div key={i} className="flex items-center justify-between text-xs">
-                              <span className="text-white/50">
-                                <span className="text-white/70">{item.quantity}×</span> {item.item_name}
+                              <span className="text-white">
+                                <span className="text-white">{item.quantity}×</span> {item.item_name}
                               </span>
-                              <span className="text-white/30 font-heading">
+                              <span className="text-white font-heading">
                                 {formatPKR(item.item_price * item.quantity)}
                               </span>
                             </div>
                           ))}
                         </div>
                         <div className="mt-3 pt-2 border-t border-white/5 flex justify-between text-xs font-heading">
-                          <span className="text-white/30 tracking-widest">
+                          <span className="text-white tracking-widest">
                             {date} · {order.payment_method.toUpperCase()}
                           </span>
                           <span className="text-white">{formatPKR(order.total)}</span>

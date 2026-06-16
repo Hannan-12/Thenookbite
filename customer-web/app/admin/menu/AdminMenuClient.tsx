@@ -58,7 +58,7 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
       <div className="mb-6">
         <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">MANAGE</p>
         <h1 className="font-heading text-3xl text-white">MENU</h1>
-        <p className="text-white/30 text-xs mt-1">{items.length} items total</p>
+        <p className="text-white text-xs mt-1">{items.length} items total</p>
       </div>
 
       {/* Search */}
@@ -66,7 +66,7 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
         value={search}
         onChange={e => setSearch(e.target.value)}
         placeholder="Search items…"
-        className="w-full mb-4 bg-[#1a1a1a] border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/40 rounded-sm"
+        className="w-full mb-4 bg-[#1a1a1a] border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/40 rounded-sm"
       />
 
       {/* Category tabs */}
@@ -78,7 +78,7 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
             className={`flex-shrink-0 font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors duration-150 ${
               filter === cat
                 ? 'bg-[#E4002B] border-[#E4002B] text-white'
-                : 'border-white/10 text-white/30 hover:text-white hover:border-white/30'
+                : 'border-white/10 text-white hover:text-white hover:border-white/30'
             }`}
           >
             {cat.toUpperCase()}
@@ -89,7 +89,7 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
       {/* Items grouped by category */}
       <div className="space-y-6">
         {Object.keys(byCategory).length === 0 && (
-          <div className="py-16 text-center text-white/20 font-heading text-sm tracking-wider">
+          <div className="py-16 text-center text-white font-heading text-sm tracking-wider">
             NO ITEMS MATCH YOUR SEARCH
           </div>
         )}
@@ -100,15 +100,15 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
               {catItems.map(item => (
                 <div key={item.id} className="flex items-center justify-between px-4 sm:px-5 py-3 gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className={`font-heading text-sm truncate ${item.available ? 'text-white' : 'text-white/30 line-through'}`}>
+                    <p className={`font-heading text-sm truncate ${item.available ? 'text-white' : 'text-white line-through'}`}>
                       {item.name}
                     </p>
-                    <p className="font-heading text-xs text-white/20 mt-0.5">{formatPKR(item.price)}</p>
+                    <p className="font-heading text-xs text-white mt-0.5">{formatPKR(item.price)}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Link
                       href={`/admin/menu/${item.id}`}
-                      className="font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border border-white/10 text-white/30 hover:text-white hover:border-white/30 transition-colors duration-150"
+                      className="font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border border-white/10 text-white hover:text-white hover:border-white/30 transition-colors duration-150"
                     >
                       EDIT
                     </Link>
@@ -118,7 +118,7 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
                       className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors duration-150 disabled:opacity-40 ${
                         item.available
                           ? 'border-green-500/30 bg-green-500/10 text-green-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
-                          : 'border-white/10 text-white/30 hover:bg-green-500/10 hover:border-green-500/30 hover:text-green-400'
+                          : 'border-white/10 text-white hover:bg-green-500/10 hover:border-green-500/30 hover:text-green-400'
                       }`}
                     >
                       {loading === item.id ? '…' : item.available ? 'AVAILABLE' : 'SOLD OUT'}

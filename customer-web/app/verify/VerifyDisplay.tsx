@@ -105,21 +105,21 @@ export default function VerifyDisplay() {
         <div className="flex items-center gap-4">
           <div className="bg-[#E4002B] text-white font-heading text-xl px-4 py-2 tracking-widest">TNB</div>
           <div>
-            <p className="text-white/30 text-xs tracking-[0.3em]">ORDER VERIFICATION</p>
-            <p className="text-white/15 text-[10px] tracking-widest mt-0.5">APPROVE ONLINE ORDERS BEFORE THEY REACH KITCHEN</p>
+            <p className="text-white text-xs tracking-[0.3em]">ORDER VERIFICATION</p>
+            <p className="text-white text-[10px] tracking-widest mt-0.5">APPROVE ONLINE ORDERS BEFORE THEY REACH KITCHEN</p>
           </div>
         </div>
         <div className="flex items-center gap-6">
           {reconnect && <span className="text-yellow-400 text-xs tracking-widest animate-pulse">SYNCING…</span>}
           <div className="text-right">
-            <p className="text-white/30 text-sm tabular-nums">{time}</p>
-            <p className="text-white/15 text-[10px] tracking-widest mt-0.5">
+            <p className="text-white text-sm tabular-nums">{time}</p>
+            <p className="text-white text-[10px] tracking-widest mt-0.5">
               {orders.length} PENDING VERIFICATION
             </p>
           </div>
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-white/30 text-xs tracking-widest">LIVE</span>
+            <span className="text-white text-xs tracking-widest">LIVE</span>
           </span>
         </div>
       </div>
@@ -128,14 +128,14 @@ export default function VerifyDisplay() {
       <div className="flex-1 p-8">
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-white/20 text-xl tracking-widest animate-pulse">LOADING…</p>
+            <p className="text-white text-xl tracking-widest animate-pulse">LOADING…</p>
           </div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 gap-4">
             <div className="w-16 h-16 rounded-full border-2 border-green-500/30 flex items-center justify-center">
               <span className="text-green-400 text-2xl">✓</span>
             </div>
-            <p className="text-white/20 text-lg tracking-widest">ALL CLEAR — NO ORDERS WAITING</p>
+            <p className="text-white text-lg tracking-widest">ALL CLEAR — NO ORDERS WAITING</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-min">
@@ -158,10 +158,10 @@ export default function VerifyDisplay() {
                         </span>
                       )}
                     </div>
-                    <p className="text-white/60 text-sm">{order.customer_name}</p>
-                    <p className="text-white/30 text-xs mt-0.5">{order.customer_phone}</p>
+                    <p className="text-white text-sm">{order.customer_name}</p>
+                    <p className="text-white text-xs mt-0.5">{order.customer_phone}</p>
                     {order.table_number && (
-                      <p className="text-white/20 text-xs mt-0.5 tracking-wider">TABLE {order.table_number}</p>
+                      <p className="text-white text-xs mt-0.5 tracking-wider">TABLE {order.table_number}</p>
                     )}
                     {order.delivery_address && (
                       <p className="text-blue-300/60 text-xs mt-1">📍 {order.delivery_address}</p>
@@ -171,11 +171,11 @@ export default function VerifyDisplay() {
                     <p className={`text-sm font-bold tabular-nums ${elapsedColor(order.created_at)}`}>
                       ⏱ {elapsed(order.created_at)}
                     </p>
-                    <p className="text-white/30 text-xs">{order.payment_method.toUpperCase()}</p>
+                    <p className="text-white text-xs">{order.payment_method.toUpperCase()}</p>
                     <p className="font-heading text-white text-base">{formatPKR(order.total)}</p>
                     <button
                       onClick={() => printOrderReceipt(order)}
-                      className="font-heading text-[9px] tracking-widest px-2 py-1 border border-white/10 text-white/30 hover:border-white/30 hover:text-white rounded-sm transition-colors mt-1"
+                      className="font-heading text-[9px] tracking-widest px-2 py-1 border border-white/10 text-white hover:border-white/30 hover:text-white rounded-sm transition-colors mt-1"
                     >
                       🖨 PRINT
                     </button>
@@ -189,8 +189,8 @@ export default function VerifyDisplay() {
                       <span className="text-white font-bold text-lg leading-none min-w-[2rem] tabular-nums">
                         {item.quantity}×
                       </span>
-                      <span className="text-white/80 text-sm leading-snug">{item.item_name}</span>
-                      <span className="ml-auto text-white/30 text-xs font-heading flex-shrink-0">
+                      <span className="text-white text-sm leading-snug">{item.item_name}</span>
+                      <span className="ml-auto text-white text-xs font-heading flex-shrink-0">
                         {formatPKR(item.item_price * item.quantity)}
                       </span>
                     </div>
@@ -214,7 +214,7 @@ export default function VerifyDisplay() {
                       value={rejectReason}
                       onChange={e => setRejectReason(e.target.value)}
                       placeholder="Reason (optional)…"
-                      className="w-full bg-black/40 border border-red-500/30 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-red-500/60 rounded-sm"
+                      className="w-full bg-black/40 border border-red-500/30 px-3 py-2 text-sm text-white placeholder:text-white focus:outline-none focus:border-red-500/60 rounded-sm"
                       onKeyDown={e => { if (e.key === 'Enter') reject(order.id); if (e.key === 'Escape') { setRejectId(null); setRejectReason(''); } }}
                     />
                   </div>
@@ -229,7 +229,7 @@ export default function VerifyDisplay() {
                       value={riderName}
                       onChange={e => setRiderName(e.target.value)}
                       placeholder="Rider name…"
-                      className="w-full bg-black/40 border border-blue-500/40 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-blue-400 rounded-sm"
+                      className="w-full bg-black/40 border border-blue-500/40 px-3 py-2 text-sm text-white placeholder:text-white focus:outline-none focus:border-blue-400 rounded-sm"
                       onKeyDown={e => { if (e.key === 'Enter') approve(order.id, riderName); if (e.key === 'Escape') { setRiderInputId(null); setRiderName(''); } }}
                     />
                   </div>
@@ -248,7 +248,7 @@ export default function VerifyDisplay() {
                       </button>
                       <button
                         onClick={() => { setRejectId(null); setRejectReason(''); }}
-                        className="px-4 py-3 border border-white/10 text-white/30 hover:text-white font-heading text-xs tracking-widest transition-colors rounded-sm"
+                        className="px-4 py-3 border border-white/10 text-white hover:text-white font-heading text-xs tracking-widest transition-colors rounded-sm"
                       >
                         CANCEL
                       </button>
@@ -264,7 +264,7 @@ export default function VerifyDisplay() {
                       </button>
                       <button
                         onClick={() => { setRiderInputId(null); setRiderName(''); }}
-                        className="px-4 py-3 border border-white/10 text-white/30 hover:text-white font-heading text-xs tracking-widest transition-colors rounded-sm"
+                        className="px-4 py-3 border border-white/10 text-white hover:text-white font-heading text-xs tracking-widest transition-colors rounded-sm"
                       >
                         CANCEL
                       </button>

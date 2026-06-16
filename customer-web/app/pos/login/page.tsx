@@ -61,11 +61,11 @@ export default function POSLoginPage() {
           <div className="bg-[#E4002B] text-white font-heading text-base px-3 py-1.5 leading-none tracking-wider">
             TNB
           </div>
-          <span className="font-heading text-white/40 tracking-[0.3em] text-sm">POS TERMINAL</span>
+          <span className="font-heading text-white tracking-[0.3em] text-sm">POS TERMINAL</span>
         </div>
 
         <h1 className="font-heading text-3xl text-white mb-1">STAFF SIGN IN</h1>
-        <p className="text-white/30 text-sm mb-8">Use credentials sent to your email.</p>
+        <p className="text-white text-sm mb-8">Use credentials sent to your email.</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -74,7 +74,7 @@ export default function POSLoginPage() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
-            className="w-full bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/60 transition-colors rounded-sm"
+            className="w-full bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/60 transition-colors rounded-sm"
           />
 
           <div className="relative">
@@ -84,12 +84,12 @@ export default function POSLoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/60 transition-colors rounded-sm"
+              className="w-full bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/60 transition-colors rounded-sm"
             />
             <button
               type="button"
               onClick={() => setShowPass(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors text-xs font-heading tracking-wider"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-white transition-colors text-xs font-heading tracking-wider"
             >
               {showPass ? 'HIDE' : 'SHOW'}
             </button>

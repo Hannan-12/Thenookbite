@@ -129,7 +129,7 @@ export default function KitchenDisplay() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white/40 text-2xl font-mono tracking-widest animate-pulse">LOADING ORDERS…</p>
+        <p className="text-white text-2xl font-mono tracking-widest animate-pulse">LOADING ORDERS…</p>
       </div>
     );
   }
@@ -144,15 +144,15 @@ export default function KitchenDisplay() {
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black">
         <div className="flex items-center gap-4">
           <span className="text-2xl font-bold tracking-widest text-[#E4002B]">TNB</span>
-          <span className="text-white/40 text-sm tracking-widest">KITCHEN DISPLAY</span>
+          <span className="text-white text-sm tracking-widest">KITCHEN DISPLAY</span>
         </div>
         <div className="flex items-center gap-6 text-sm">
-          <span className="text-white/40 tabular-nums">
+          <span className="text-white tabular-nums">
             {now.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-white/40 text-xs tracking-widest">LIVE</span>
+            <span className="text-white text-xs tracking-widest">LIVE</span>
           </span>
         </div>
       </div>
@@ -185,7 +185,7 @@ export default function KitchenDisplay() {
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {pending.length === 0 && (
-              <div className="text-white/20 text-center text-sm tracking-widest py-16">NO PENDING ORDERS</div>
+              <div className="text-white text-center text-sm tracking-widest py-16">NO PENDING ORDERS</div>
             )}
             {pending.map(order => (
               <OrderCard
@@ -210,7 +210,7 @@ export default function KitchenDisplay() {
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {preparing.length === 0 && (
-              <div className="text-white/20 text-center text-sm tracking-widest py-16">NOTHING IN PROGRESS</div>
+              <div className="text-white text-center text-sm tracking-widest py-16">NOTHING IN PROGRESS</div>
             )}
             {preparing.map(order => (
               <OrderCard
@@ -253,14 +253,14 @@ function OrderCard({
             #{order.id.slice(-6).toUpperCase()}
           </span>
           {order.table_number && (
-            <span className="bg-white/10 text-white/60 text-xs px-2 py-0.5 tracking-widest rounded-sm">
+            <span className="bg-white/10 text-white text-xs px-2 py-0.5 tracking-widest rounded-sm">
               TABLE {order.table_number}
             </span>
           )}
         </div>
         <div className="text-right">
           <p className={`text-xs tracking-widest font-bold tabular-nums ${elapsedColor(order.created_at)}`}>⏱ {elapsed(order.created_at)}</p>
-          <p className="text-white/60 text-xs mt-0.5">{order.customer_name}</p>
+          <p className="text-white text-xs mt-0.5">{order.customer_name}</p>
         </div>
       </div>
 

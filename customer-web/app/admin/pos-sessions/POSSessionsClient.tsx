@@ -32,7 +32,7 @@ const STATUS_STYLES: Record<string, string> = {
   pending:   'text-yellow-400 border-yellow-500/30 bg-yellow-500/5',
   preparing: 'text-blue-400 border-blue-500/30 bg-blue-500/5',
   ready:     'text-green-400 border-green-500/30 bg-green-500/5',
-  completed: 'text-white/30 border-white/10 bg-white/5',
+  completed: 'text-white border-white/10 bg-white/5',
 };
 
 type ViewMode = 'day' | 'month';
@@ -266,7 +266,7 @@ export function POSSessionsClient() {
                 key={m}
                 onClick={() => setMode(m)}
                 className={`font-heading text-xs tracking-widest px-4 py-2 transition-colors ${
-                  mode === m ? 'bg-[#E4002B] text-white' : 'text-white/30 hover:text-white'
+                  mode === m ? 'bg-[#E4002B] text-white' : 'text-white hover:text-white'
                 }`}
               >
                 {m.toUpperCase()}
@@ -294,7 +294,7 @@ export function POSSessionsClient() {
 
           <button
             onClick={fetchSessions}
-            className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:border-white/30 hover:text-white rounded-sm transition-colors"
+            className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white hover:border-white/30 hover:text-white rounded-sm transition-colors"
           >
             ↻ REFRESH
           </button>
@@ -305,26 +305,26 @@ export function POSSessionsClient() {
       {!loading && sessions.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
           <div className="border border-white/5 bg-[#111] rounded-sm px-4 py-3">
-            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1">SESSIONS</p>
+            <p className="font-heading text-[10px] tracking-widest text-white mb-1">SESSIONS</p>
             <p className="font-heading text-2xl text-white">{sessions.length}</p>
           </div>
           <div className="border border-white/5 bg-[#111] rounded-sm px-4 py-3">
-            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1">TOTAL ORDERS</p>
+            <p className="font-heading text-[10px] tracking-widest text-white mb-1">TOTAL ORDERS</p>
             <p className="font-heading text-2xl text-white">{totalOrders}</p>
           </div>
           <div className="border border-white/5 bg-[#111] rounded-sm px-4 py-3 col-span-2 sm:col-span-1">
-            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1">TOTAL REVENUE</p>
+            <p className="font-heading text-[10px] tracking-widest text-white mb-1">TOTAL REVENUE</p>
             <p className="font-heading text-2xl text-white">{formatPKR(totalRevenue)}</p>
           </div>
         </div>
       )}
 
       {loading ? (
-        <div className="py-16 text-center text-white/20 font-heading text-sm tracking-widest animate-pulse">
+        <div className="py-16 text-center text-white font-heading text-sm tracking-widest animate-pulse">
           LOADING…
         </div>
       ) : sessions.length === 0 ? (
-        <div className="py-16 text-center text-white/20 font-heading text-sm tracking-widest">
+        <div className="py-16 text-center text-white font-heading text-sm tracking-widest">
           NO POS SESSIONS FOUND
         </div>
       ) : (
@@ -347,15 +347,15 @@ export function POSSessionsClient() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-heading text-sm text-white">{session.staff_name}</p>
                         <span className={`font-heading text-[10px] px-1.5 py-0.5 border rounded-sm ${
-                          isOpen ? 'border-green-500/30 text-green-400 bg-green-500/5' : 'border-white/10 text-white/20'
+                          isOpen ? 'border-green-500/30 text-green-400 bg-green-500/5' : 'border-white/10 text-white'
                         }`}>
                           {isOpen ? 'ACTIVE' : 'CLOSED'}
                         </span>
-                        <span className="font-heading text-[10px] text-white/20 border border-white/10 px-1.5 py-0.5 rounded-sm">
+                        <span className="font-heading text-[10px] text-white border border-white/10 px-1.5 py-0.5 rounded-sm">
                           {session.staff_role.toUpperCase()}
                         </span>
                       </div>
-                      <p className="font-heading text-xs text-white/30 mt-0.5">
+                      <p className="font-heading text-xs text-white mt-0.5">
                         {startDate} · {startTime} · {duration}
                         {' · '}{session.total_orders} ORDER{session.total_orders !== 1 ? 'S' : ''}
                       </p>
@@ -365,7 +365,7 @@ export function POSSessionsClient() {
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <div className="text-right">
                       <p className="font-heading text-lg text-white">{formatPKR(session.total_revenue)}</p>
-                      <p className="font-heading text-[10px] text-white/30">
+                      <p className="font-heading text-[10px] text-white">
                         CASH {formatPKR(session.orders.filter(o => o.payment_method === 'cash').reduce((s, o) => s + o.total, 0))}
                         {' · '}
                         CARD {formatPKR(session.orders.filter(o => o.payment_method === 'card').reduce((s, o) => s + o.total, 0))}
@@ -373,11 +373,11 @@ export function POSSessionsClient() {
                     </div>
                     <button
                       onClick={e => { e.stopPropagation(); printSessionSummary(session); }}
-                      className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white/40 hover:text-white hover:border-white/30 rounded-sm transition-colors"
+                      className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white hover:text-white hover:border-white/30 rounded-sm transition-colors"
                     >
                       🖨 SUMMARY
                     </button>
-                    <span className="font-heading text-white/20 text-sm">{expanded[session.session_id] ? '▲' : '▼'}</span>
+                    <span className="font-heading text-white text-sm">{expanded[session.session_id] ? '▲' : '▼'}</span>
                   </div>
                 </div>
 
@@ -385,7 +385,7 @@ export function POSSessionsClient() {
                 {expanded[session.session_id] && (
                   <div className="border-t border-white/5 divide-y divide-white/5">
                     {session.orders.length === 0 ? (
-                      <div className="px-5 py-6 text-center text-white/20 font-heading text-xs tracking-wider">
+                      <div className="px-5 py-6 text-center text-white font-heading text-xs tracking-wider">
                         NO ORDERS IN THIS SESSION
                       </div>
                     ) : session.orders.map(order => {
@@ -395,22 +395,22 @@ export function POSSessionsClient() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
                               <span className="font-heading text-sm text-white">#{order.id.slice(-6).toUpperCase()}</span>
-                              <span className={`font-heading text-[10px] px-1.5 py-0.5 border rounded-sm ${STATUS_STYLES[order.status] ?? 'text-white/30 border-white/10 bg-white/5'}`}>
+                              <span className={`font-heading text-[10px] px-1.5 py-0.5 border rounded-sm ${STATUS_STYLES[order.status] ?? 'text-white border-white/10 bg-white/5'}`}>
                                 {order.status.toUpperCase()}
                               </span>
-                              <span className="font-heading text-[10px] text-white/30">{time}</span>
+                              <span className="font-heading text-[10px] text-white">{time}</span>
                               {order.table_number && (
-                                <span className="font-heading text-[10px] text-white/30 border border-white/10 px-1.5 py-0.5 rounded-sm">
+                                <span className="font-heading text-[10px] text-white border border-white/10 px-1.5 py-0.5 rounded-sm">
                                   TABLE {order.table_number}
                                 </span>
                               )}
                             </div>
-                            <p className="font-heading text-xs text-white/30 mb-1.5">
+                            <p className="font-heading text-xs text-white mb-1.5">
                               {order.customer_name}
                               {order.customer_phone ? ` · ${order.customer_phone}` : ''}
                               {' · '}{order.payment_method.toUpperCase()}
                             </p>
-                            <p className="font-body text-xs text-white/20 leading-tight">
+                            <p className="font-body text-xs text-white leading-tight">
                               {order.order_items.map(i => `${i.quantity}× ${i.item_name}`).join(', ')}
                             </p>
                           </div>
@@ -418,7 +418,7 @@ export function POSSessionsClient() {
                             <span className="font-heading text-sm text-white">{formatPKR(order.total)}</span>
                             <button
                               onClick={() => printOrderReceipt(order, session.staff_name)}
-                              className="font-heading text-[10px] tracking-widest px-2.5 py-1.5 border border-white/10 text-white/40 hover:text-white hover:border-white/30 rounded-sm transition-colors"
+                              className="font-heading text-[10px] tracking-widest px-2.5 py-1.5 border border-white/10 text-white hover:text-white hover:border-white/30 rounded-sm transition-colors"
                             >
                               🖨
                             </button>

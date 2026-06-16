@@ -77,7 +77,7 @@ function StockTab({ initialIngredients }: { initialIngredients: IngredientStock[
               key={f}
               onClick={() => setFilter(f)}
               className={`font-heading text-xs tracking-widest px-4 py-2 rounded-sm border transition-colors ${
-                filter === f ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+                filter === f ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white hover:text-white'
               }`}
             >
               {f === 'all' ? `ALL (${ingredients.length})` : `LOW STOCK (${lowCount})`}
@@ -97,19 +97,19 @@ function StockTab({ initialIngredients }: { initialIngredients: IngredientStock[
           <table className="w-full text-xs font-heading">
             <thead>
               <tr className="border-b border-white/5">
-                <th className="text-left px-5 py-3 tracking-widest text-white/30">INGREDIENT</th>
-                <th className="text-left px-4 py-3 tracking-widest text-white/30">UNIT</th>
-                <th className="text-right px-4 py-3 tracking-widest text-white/30">STOCK QTY</th>
-                <th className="text-right px-4 py-3 tracking-widest text-white/30">LOW THRESHOLD</th>
-                <th className="text-center px-4 py-3 tracking-widest text-white/30">STATUS</th>
-                <th className="text-right px-4 py-3 tracking-widest text-white/30">LAST UPDATED</th>
+                <th className="text-left px-5 py-3 tracking-widest text-white">INGREDIENT</th>
+                <th className="text-left px-4 py-3 tracking-widest text-white">UNIT</th>
+                <th className="text-right px-4 py-3 tracking-widest text-white">STOCK QTY</th>
+                <th className="text-right px-4 py-3 tracking-widest text-white">LOW THRESHOLD</th>
+                <th className="text-center px-4 py-3 tracking-widest text-white">STATUS</th>
+                <th className="text-right px-4 py-3 tracking-widest text-white">LAST UPDATED</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {displayed.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-white/20 tracking-widest">
+                  <td colSpan={7} className="px-5 py-12 text-center text-white tracking-widest">
                     {filter === 'low' ? 'NO LOW STOCK ITEMS' : 'NO INGREDIENTS YET — ADD THEM IN THE INGREDIENTS TAB'}
                   </td>
                 </tr>
@@ -117,11 +117,11 @@ function StockTab({ initialIngredients }: { initialIngredients: IngredientStock[
                 <>
                   <tr key={ing.id} className={`hover:bg-white/[0.02] transition-colors ${ing.low_stock ? 'bg-yellow-500/[0.03]' : ''}`}>
                     <td className="px-5 py-3 text-white font-heading">{ing.name}</td>
-                    <td className="px-4 py-3 text-white/40 uppercase">{ing.unit}</td>
+                    <td className="px-4 py-3 text-white uppercase">{ing.unit}</td>
                     <td className={`px-4 py-3 text-right font-heading ${ing.low_stock ? 'text-yellow-400' : 'text-white'}`}>
                       {ing.stock_qty}
                     </td>
-                    <td className="px-4 py-3 text-right text-white/40">{ing.low_stock_threshold}</td>
+                    <td className="px-4 py-3 text-right text-white">{ing.low_stock_threshold}</td>
                     <td className="px-4 py-3 text-center">
                       {ing.low_stock ? (
                         <span className="font-heading text-[9px] tracking-widest px-2 py-1 border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 rounded-sm">LOW</span>
@@ -129,13 +129,13 @@ function StockTab({ initialIngredients }: { initialIngredients: IngredientStock[
                         <span className="font-heading text-[9px] tracking-widest px-2 py-1 border border-green-500/20 bg-green-500/5 text-green-400/60 rounded-sm">OK</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-white/20 text-[10px]">
+                    <td className="px-4 py-3 text-right text-white text-[10px]">
                       {new Date(ing.updated_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => editing === ing.id ? setEditing(null) : startEdit(ing)}
-                        className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white/30 hover:text-white hover:border-white/30 rounded-sm transition-colors"
+                        className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white hover:text-white hover:border-white/30 rounded-sm transition-colors"
                       >
                         {editing === ing.id ? 'CANCEL' : 'UPDATE'}
                       </button>
@@ -147,15 +147,15 @@ function StockTab({ initialIngredients }: { initialIngredients: IngredientStock[
                       <td colSpan={7} className="px-5 py-4">
                         <div className="flex flex-wrap gap-3 items-end">
                           <div>
-                            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1.5">NEW STOCK QTY ({ing.unit})</p>
+                            <p className="font-heading text-[10px] tracking-widest text-white mb-1.5">NEW STOCK QTY ({ing.unit})</p>
                             <input type="number" step="0.01" min="0" value={newQty} onChange={e => setNewQty(e.target.value)} className={inputClass + ' w-32'} />
                           </div>
                           <div>
-                            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1.5">LOW STOCK THRESHOLD</p>
+                            <p className="font-heading text-[10px] tracking-widest text-white mb-1.5">LOW STOCK THRESHOLD</p>
                             <input type="number" step="0.01" min="0" value={newThreshold} onChange={e => setNewThreshold(e.target.value)} className={inputClass + ' w-32'} />
                           </div>
                           <div className="flex-1 min-w-40">
-                            <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1.5">NOTE (OPTIONAL)</p>
+                            <p className="font-heading text-[10px] tracking-widest text-white mb-1.5">NOTE (OPTIONAL)</p>
                             <input value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Restocked from supplier" className={inputClass} />
                           </div>
                           <button
@@ -286,7 +286,7 @@ function IngredientsTab() {
       {/* Add ingredient form */}
       <form onSubmit={handleAdd} className="flex flex-wrap gap-3 items-end mb-6 border border-white/5 bg-[#111] rounded-sm px-5 py-4">
         <div className="flex-1 min-w-48">
-          <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1.5">INGREDIENT NAME</p>
+          <p className="font-heading text-[10px] tracking-widest text-white mb-1.5">INGREDIENT NAME</p>
           <input
             value={addName}
             onChange={e => setAddName(e.target.value)}
@@ -296,7 +296,7 @@ function IngredientsTab() {
           />
         </div>
         <div>
-          <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1.5">UNIT</p>
+          <p className="font-heading text-[10px] tracking-widest text-white mb-1.5">UNIT</p>
           <select
             value={addUnit}
             onChange={e => setAddUnit(e.target.value)}
@@ -319,26 +319,26 @@ function IngredientsTab() {
         <table className="w-full text-xs font-heading">
           <thead>
             <tr className="border-b border-white/5">
-              <th className="text-left px-5 py-3 tracking-widest text-white/30">NAME</th>
-              <th className="text-left px-4 py-3 tracking-widest text-white/30">UNIT</th>
+              <th className="text-left px-5 py-3 tracking-widest text-white">NAME</th>
+              <th className="text-left px-4 py-3 tracking-widest text-white">UNIT</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {loading ? (
-              <tr><td colSpan={3} className="px-5 py-10 text-center text-white/20 tracking-widest">LOADING…</td></tr>
+              <tr><td colSpan={3} className="px-5 py-10 text-center text-white tracking-widest">LOADING…</td></tr>
             ) : ingredients.length === 0 ? (
-              <tr><td colSpan={3} className="px-5 py-10 text-center text-white/20 tracking-widest">NO INGREDIENTS YET</td></tr>
+              <tr><td colSpan={3} className="px-5 py-10 text-center text-white tracking-widest">NO INGREDIENTS YET</td></tr>
             ) : ingredients.map(ing => (
               <>
                 <tr key={ing.id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="px-5 py-3 text-white">{ing.name}</td>
-                  <td className="px-4 py-3 text-white/40 uppercase">{ing.unit}</td>
+                  <td className="px-4 py-3 text-white uppercase">{ing.unit}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => editId === ing.id ? setEditId(null) : startEdit(ing)}
-                        className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white/30 hover:text-white hover:border-white/30 rounded-sm transition-colors"
+                        className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white hover:text-white hover:border-white/30 rounded-sm transition-colors"
                       >
                         {editId === ing.id ? 'CANCEL' : 'EDIT'}
                       </button>
@@ -358,11 +358,11 @@ function IngredientsTab() {
                     <td colSpan={3} className="px-5 py-4">
                       <div className="flex flex-wrap gap-3 items-end">
                         <div className="flex-1 min-w-48">
-                          <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1.5">NAME</p>
+                          <p className="font-heading text-[10px] tracking-widest text-white mb-1.5">NAME</p>
                           <input value={editName} onChange={e => setEditName(e.target.value)} className={inputClass} />
                         </div>
                         <div>
-                          <p className="font-heading text-[10px] tracking-widest text-white/30 mb-1.5">UNIT</p>
+                          <p className="font-heading text-[10px] tracking-widest text-white mb-1.5">UNIT</p>
                           <select value={editUnit} onChange={e => setEditUnit(e.target.value)} className={inputClass + ' w-28'}>
                             {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                           </select>
@@ -394,7 +394,7 @@ function IngredientsTab() {
                         </button>
                         <button
                           onClick={() => setDeleteId(null)}
-                          className="font-heading text-[10px] tracking-widest text-white/30 hover:text-white"
+                          className="font-heading text-[10px] tracking-widest text-white hover:text-white"
                         >
                           CANCEL
                         </button>
@@ -433,7 +433,7 @@ export function InventoryClient({ initialIngredients }: { initialIngredients: In
             className={`font-heading text-xs tracking-widest px-5 py-3 border-b-2 transition-colors -mb-px ${
               tab === t
                 ? 'border-[#E4002B] text-white'
-                : 'border-transparent text-white/30 hover:text-white'
+                : 'border-transparent text-white hover:text-white'
             }`}
           >
             {t === 'stock' ? 'STOCK LEVELS' : 'INGREDIENTS'}

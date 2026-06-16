@@ -38,7 +38,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending:   'border-yellow-500/30 bg-yellow-500/5 text-yellow-400',
   preparing: 'border-blue-500/30 bg-blue-500/5 text-blue-400',
   ready:     'border-green-500/30 bg-green-500/5 text-green-400',
-  completed: 'border-white/10 bg-white/3 text-white/30',
+  completed: 'border-white/10 bg-white/3 text-white',
 };
 
 export function DashboardClient({ initial }: { initial: DashboardData }) {
@@ -79,13 +79,13 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
         <div>
           <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">OVERVIEW</p>
           <h1 className="font-heading text-3xl text-white">DASHBOARD</h1>
-          <p className="text-white/30 text-xs mt-1">
+          <p className="text-white text-xs mt-1">
             {new Date().toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
         <div className="text-right">
-          <p className="font-heading text-[10px] tracking-widest text-white/20">LAST SYNC</p>
-          <p className="font-heading text-[10px] text-white/20">
+          <p className="font-heading text-[10px] tracking-widest text-white">LAST SYNC</p>
+          <p className="font-heading text-[10px] text-white">
             {lastSync.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </p>
           <button
@@ -114,11 +114,11 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
           <p className="font-heading text-4xl text-white">{formatPKR(revenue)}</p>
         </div>
         <div className="border border-white/5 rounded-sm px-4 py-5">
-          <p className="font-heading text-xs tracking-widest text-white/20 mb-1">TOTAL ORDERS</p>
+          <p className="font-heading text-xs tracking-widest text-white mb-1">TOTAL ORDERS</p>
           <p className="font-heading text-4xl text-white">{orders.length}</p>
         </div>
         <div className="border border-white/5 rounded-sm px-4 py-5">
-          <p className="font-heading text-xs tracking-widest text-white/20 mb-1">AVG ORDER</p>
+          <p className="font-heading text-xs tracking-widest text-white mb-1">AVG ORDER</p>
           <p className="font-heading text-4xl text-white">{formatPKR(avgOrder)}</p>
         </div>
       </div>
@@ -129,17 +129,17 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
           todayProfit >= 0 ? 'border-green-500/20 bg-green-500/5' : 'border-red-800/30 bg-red-900/5'
         }`}>
           <div>
-            <p className="font-heading text-xs tracking-widest text-white/30 mb-1">TODAY&apos;S NET PROFIT</p>
+            <p className="font-heading text-xs tracking-widest text-white mb-1">TODAY&apos;S NET PROFIT</p>
             <p className={`font-heading text-4xl ${todayProfit >= 0 ? 'text-white' : 'text-red-400'}`}>
               {formatPKR(todayProfit)}
             </p>
-            <p className="font-heading text-[10px] tracking-widest text-white/20 mt-1">
+            <p className="font-heading text-[10px] tracking-widest text-white mt-1">
               REVENUE − PURCHASES − EXPENSES
             </p>
           </div>
           <Link
             href="/admin/ledger"
-            className="font-heading text-[10px] tracking-widest text-white/20 hover:text-white transition-colors"
+            className="font-heading text-[10px] tracking-widest text-white hover:text-white transition-colors"
           >
             LEDGER →
           </Link>
@@ -151,18 +151,18 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
 
         {/* Items sold */}
         <div className="border border-white/5 rounded-sm px-6 py-5">
-          <p className="font-heading text-xs tracking-widest text-white/20 mb-3">ITEMS SOLD TODAY</p>
+          <p className="font-heading text-xs tracking-widest text-white mb-3">ITEMS SOLD TODAY</p>
           <p className="font-heading text-5xl text-white">{itemsSold}</p>
-          <p className="font-heading text-[10px] tracking-widest text-white/20 mt-2">ACROSS ALL ORDERS</p>
+          <p className="font-heading text-[10px] tracking-widest text-white mt-2">ACROSS ALL ORDERS</p>
         </div>
 
         {/* Top staff */}
         <div className="border border-white/5 rounded-sm overflow-hidden">
           <div className="px-5 py-3 border-b border-white/5">
-            <p className="font-heading text-xs tracking-widest text-white/40">TOP STAFF TODAY</p>
+            <p className="font-heading text-xs tracking-widest text-white">TOP STAFF TODAY</p>
           </div>
           {staffStats.length === 0 ? (
-            <div className="px-5 py-8 text-center text-white/20 font-heading text-xs tracking-wider">
+            <div className="px-5 py-8 text-center text-white font-heading text-xs tracking-wider">
               NO STAFF ORDERS YET
             </div>
           ) : (
@@ -170,11 +170,11 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
               {staffStats.slice(0, 3).map((s, i) => (
                 <div key={s.staff_id} className="flex items-center justify-between px-5 py-3">
                   <div className="flex items-center gap-3">
-                    <span className="font-heading text-xs text-white/20 w-4">{i + 1}</span>
+                    <span className="font-heading text-xs text-white w-4">{i + 1}</span>
                     <span className="font-heading text-sm text-white">{s.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-heading text-xs text-white/40">{s.count} orders</span>
+                    <span className="font-heading text-xs text-white">{s.count} orders</span>
                     {i === 0 && <span className="text-[#FFD700] text-xs">★</span>}
                   </div>
                 </div>
@@ -214,13 +214,13 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
       {/* Recent orders */}
       <div className="border border-white/5 rounded-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
-          <h2 className="font-heading text-xs tracking-widest text-white/60">TODAY&apos;S ORDERS</h2>
+          <h2 className="font-heading text-xs tracking-widest text-white">TODAY&apos;S ORDERS</h2>
           <Link href="/admin/orders" className="font-heading text-xs tracking-widest text-[#E4002B] hover:text-white transition-colors">
             VIEW ALL →
           </Link>
         </div>
         {orders.length === 0 ? (
-          <div className="px-5 py-12 text-center text-white/20 font-heading text-sm tracking-wider">
+          <div className="px-5 py-12 text-center text-white font-heading text-sm tracking-wider">
             NO ORDERS TODAY
           </div>
         ) : (
@@ -237,7 +237,7 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
                     {order.status.toUpperCase()}
                   </span>
                 </div>
-                <span className="font-heading text-sm text-white/60">{formatPKR(order.total)}</span>
+                <span className="font-heading text-sm text-white">{formatPKR(order.total)}</span>
               </Link>
             ))}
           </div>

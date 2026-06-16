@@ -12,8 +12,8 @@ type MenuItem = {
   available: boolean; deal_price: number | null; deal_label: string | null;
 };
 
-const inputClass = 'w-full bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/50 transition-colors rounded-sm';
-const labelClass = 'font-heading text-xs tracking-widest text-white/40 block mb-2';
+const inputClass = 'w-full bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/50 transition-colors rounded-sm';
+const labelClass = 'font-heading text-xs tracking-widest text-white block mb-2';
 
 export function MenuItemEditor({ item }: { item: MenuItem }) {
   const router = useRouter();
@@ -85,13 +85,13 @@ export function MenuItemEditor({ item }: { item: MenuItem }) {
       <div className="mb-6">
         <button
           onClick={() => router.push('/admin/menu')}
-          className="font-heading text-xs tracking-widest text-white/30 hover:text-white transition-colors mb-4 block"
+          className="font-heading text-xs tracking-widest text-white hover:text-white transition-colors mb-4 block"
         >
           ← MENU
         </button>
         <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">{item.category.toUpperCase()}</p>
         <h1 className="font-heading text-3xl text-white">{item.name}</h1>
-        <p className="text-white/20 text-xs mt-1 font-heading tracking-wider">SKU: {item.sku}</p>
+        <p className="text-white text-xs mt-1 font-heading tracking-wider">SKU: {item.sku}</p>
       </div>
 
       {/* Image */}
@@ -101,7 +101,7 @@ export function MenuItemEditor({ item }: { item: MenuItem }) {
           {imageUrl ? (
             <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-white/20 font-heading text-xs tracking-wider">
+            <div className="absolute inset-0 flex items-center justify-center text-white font-heading text-xs tracking-wider">
               NO IMAGE
             </div>
           )}
@@ -110,14 +110,14 @@ export function MenuItemEditor({ item }: { item: MenuItem }) {
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="font-heading text-xs tracking-widest px-4 py-2.5 border border-white/10 text-white/40 hover:text-white hover:border-white/30 transition-colors rounded-sm disabled:opacity-40"
+          className="font-heading text-xs tracking-widest px-4 py-2.5 border border-white/10 text-white hover:text-white hover:border-white/30 transition-colors rounded-sm disabled:opacity-40"
         >
           {uploading ? 'UPLOADING…' : 'UPLOAD IMAGE'}
         </button>
         {imageUrl && (
           <button
             onClick={() => setImageUrl('')}
-            className="ml-3 font-heading text-xs tracking-widest text-white/20 hover:text-red-400 transition-colors"
+            className="ml-3 font-heading text-xs tracking-widest text-white hover:text-red-400 transition-colors"
           >
             REMOVE
           </button>
@@ -153,7 +153,7 @@ export function MenuItemEditor({ item }: { item: MenuItem }) {
         <div className="flex items-center justify-between mb-1">
           <div>
             <p className="font-heading text-sm text-white tracking-wider">MARK AS DEAL</p>
-            <p className="text-white/30 text-xs mt-0.5">Show this item with a special deal price on the homepage.</p>
+            <p className="text-white text-xs mt-0.5">Show this item with a special deal price on the homepage.</p>
           </div>
           <button
             onClick={() => setIsDeal(!isDeal)}

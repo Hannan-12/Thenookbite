@@ -44,8 +44,8 @@ interface Vendor {
 
 const EXPENSE_CATEGORIES = ['Rent', 'Utilities', 'Salaries', 'Marketing', 'Maintenance', 'Supplies', 'Other'];
 
-const inputClass = 'bg-[#1a1a1a] border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E4002B]/50 rounded-sm font-body w-full';
-const labelClass = 'font-heading text-[10px] tracking-widest text-white/30 block mb-1.5';
+const inputClass = 'bg-[#1a1a1a] border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/50 rounded-sm font-body w-full';
+const labelClass = 'font-heading text-[10px] tracking-widest text-white block mb-1.5';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -200,7 +200,7 @@ function SummaryTab() {
         {PRESETS.map(p => (
           <button key={p.key} onClick={() => setPreset(p.key)}
             className={`font-heading text-xs tracking-widest px-4 py-2 rounded-sm border transition-colors ${
-              preset === p.key ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+              preset === p.key ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white hover:text-white'
             }`}>
             {p.label}
           </button>
@@ -209,17 +209,17 @@ function SummaryTab() {
           <div className="flex items-center gap-2 ml-1">
             <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
               className="bg-[#1a1a1a] border border-white/10 px-3 py-1.5 text-xs text-white rounded-sm focus:outline-none font-body" />
-            <span className="text-white/20 text-xs font-heading">TO</span>
+            <span className="text-white text-xs font-heading">TO</span>
             <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
               className="bg-[#1a1a1a] border border-white/10 px-3 py-1.5 text-xs text-white rounded-sm focus:outline-none font-body" />
           </div>
         )}
-        {loading && <span className="font-heading text-[10px] tracking-widest text-white/20">LOADING…</span>}
+        {loading && <span className="font-heading text-[10px] tracking-widest text-white">LOADING…</span>}
       </div>
         <button
           onClick={handleExportPDF}
           disabled={!summary}
-          className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white/40 hover:text-white hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm transition-colors flex-shrink-0"
+          className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white hover:text-white hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm transition-colors flex-shrink-0"
         >
           ↓ PDF
         </button>
@@ -242,28 +242,28 @@ function SummaryTab() {
           <p className={`font-heading text-2xl text-white ${loading ? 'opacity-30' : ''}`}>
             {summary ? formatPKR(summary.total_revenue) : '—'}
           </p>
-          <p className="font-heading text-[10px] text-white/20 mt-1">Completed orders</p>
+          <p className="font-heading text-[10px] text-white mt-1">Completed orders</p>
         </div>
         <div className="border border-blue-500/20 bg-blue-500/5 rounded-sm px-5 py-5">
           <p className="font-heading text-[10px] tracking-widest text-blue-400/60 mb-2">PURCHASES</p>
           <p className={`font-heading text-2xl text-white ${loading ? 'opacity-30' : ''}`}>
             {summary ? formatPKR(summary.total_purchases) : '—'}
           </p>
-          <p className="font-heading text-[10px] text-white/20 mt-1">Stock & supplies bought</p>
+          <p className="font-heading text-[10px] text-white mt-1">Stock & supplies bought</p>
         </div>
         <div className="border border-yellow-500/20 bg-yellow-500/5 rounded-sm px-5 py-5">
           <p className="font-heading text-[10px] tracking-widest text-yellow-400/60 mb-2">EXPENSES</p>
           <p className={`font-heading text-2xl text-white ${loading ? 'opacity-30' : ''}`}>
             {summary ? formatPKR(summary.total_expenses) : '—'}
           </p>
-          <p className="font-heading text-[10px] text-white/20 mt-1">Rent, utilities, etc.</p>
+          <p className="font-heading text-[10px] text-white mt-1">Rent, utilities, etc.</p>
         </div>
         <div className={`border rounded-sm px-5 py-5 ${profitPositive ? 'border-[#E4002B]/30 bg-[#E4002B]/5' : 'border-red-800/40 bg-red-900/10'}`}>
-          <p className="font-heading text-[10px] tracking-widest text-white/40 mb-2">NET PROFIT</p>
+          <p className="font-heading text-[10px] tracking-widest text-white mb-2">NET PROFIT</p>
           <p className={`font-heading text-2xl ${loading ? 'opacity-30' : ''} ${profitPositive ? 'text-white' : 'text-red-400'}`}>
             {summary ? formatPKR(summary.net_profit) : '—'}
           </p>
-          <p className="font-heading text-[10px] text-white/20 mt-1">Revenue − Purchases − Expenses</p>
+          <p className="font-heading text-[10px] text-white mt-1">Revenue − Purchases − Expenses</p>
         </div>
       </div>
 
@@ -271,7 +271,7 @@ function SummaryTab() {
       {summary && summary.expense_breakdown.length > 0 && (
         <div className="border border-white/5 bg-[#111] rounded-sm overflow-hidden">
           <div className="px-5 py-3 border-b border-white/5">
-            <p className="font-heading text-xs tracking-widest text-white/40">EXPENSE BREAKDOWN</p>
+            <p className="font-heading text-xs tracking-widest text-white">EXPENSE BREAKDOWN</p>
           </div>
           <div className="divide-y divide-white/5">
             {summary.expense_breakdown.map(e => (
@@ -283,7 +283,7 @@ function SummaryTab() {
                       style={{ width: `${Math.round((e.amount / summary.total_expenses) * 100)}%` }} />
                   </div>
                 </div>
-                <span className="font-heading text-sm text-white/70">{formatPKR(e.amount)}</span>
+                <span className="font-heading text-sm text-white">{formatPKR(e.amount)}</span>
               </div>
             ))}
           </div>
@@ -293,14 +293,14 @@ function SummaryTab() {
       {/* P&L formula */}
       {summary && (
         <div className="border border-white/5 bg-[#111] rounded-sm px-5 py-4">
-          <p className="font-heading text-[10px] tracking-widest text-white/20 mb-3">PROFIT & LOSS FORMULA</p>
+          <p className="font-heading text-[10px] tracking-widest text-white mb-3">PROFIT & LOSS FORMULA</p>
           <div className="flex flex-wrap items-center gap-2 font-heading text-sm">
             <span className="text-green-400">{formatPKR(summary.total_revenue)}</span>
-            <span className="text-white/20">−</span>
+            <span className="text-white">−</span>
             <span className="text-blue-400">{formatPKR(summary.total_purchases)}</span>
-            <span className="text-white/20">−</span>
+            <span className="text-white">−</span>
             <span className="text-yellow-400">{formatPKR(summary.total_expenses)}</span>
-            <span className="text-white/20">=</span>
+            <span className="text-white">=</span>
             <span className={profitPositive ? 'text-white' : 'text-red-400'}>{formatPKR(summary.net_profit)}</span>
           </div>
         </div>
@@ -380,7 +380,7 @@ function PurchasesTab() {
 
       {/* Add form */}
       <form onSubmit={handleAdd} className="border border-white/5 bg-[#111] rounded-sm px-5 py-5 mb-6 space-y-4">
-        <p className="font-heading text-xs tracking-widest text-white/40 mb-1">ADD PURCHASE</p>
+        <p className="font-heading text-xs tracking-widest text-white mb-1">ADD PURCHASE</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <label className={labelClass}>VENDOR</label>
@@ -420,7 +420,7 @@ function PurchasesTab() {
         {(['today', '7d', 'month', '30d'] as Preset[]).map(p => (
           <button key={p} onClick={() => setPreset(p)}
             className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
-              preset === p ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+              preset === p ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white hover:text-white'
             }`}>
             {p === 'today' ? 'TODAY' : p === '7d' ? 'LAST 7D' : p === 'month' ? 'THIS MONTH' : 'LAST 30D'}
           </button>
@@ -430,13 +430,13 @@ function PurchasesTab() {
       {/* List */}
       <div className="border border-white/5 rounded-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
-          <p className="font-heading text-xs tracking-widest text-white/40">PURCHASES · {dates.from} → {dates.to}</p>
-          {purchases.length > 0 && <p className="font-heading text-xs text-white/60">TOTAL: <span className="text-white">{formatPKR(total)}</span></p>}
+          <p className="font-heading text-xs tracking-widest text-white">PURCHASES · {dates.from} → {dates.to}</p>
+          {purchases.length > 0 && <p className="font-heading text-xs text-white">TOTAL: <span className="text-white">{formatPKR(total)}</span></p>}
         </div>
         {loading ? (
-          <div className="px-5 py-10 text-center text-white/20 font-heading text-xs tracking-widest">LOADING…</div>
+          <div className="px-5 py-10 text-center text-white font-heading text-xs tracking-widest">LOADING…</div>
         ) : purchases.length === 0 ? (
-          <div className="px-5 py-10 text-center text-white/20 font-heading text-xs tracking-widest">NO PURCHASES YET</div>
+          <div className="px-5 py-10 text-center text-white font-heading text-xs tracking-widest">NO PURCHASES YET</div>
         ) : (
           <div className="divide-y divide-white/5">
             {purchases.map(p => (
@@ -444,7 +444,7 @@ function PurchasesTab() {
                 <div className="flex items-center justify-between px-5 py-3">
                   <div>
                     <p className="font-heading text-sm text-white">{p.vendor_name}</p>
-                    <p className="font-heading text-[10px] text-white/30 mt-0.5">{formatDate(p.purchase_date)}{p.description ? ` · ${p.description}` : ''}</p>
+                    <p className="font-heading text-[10px] text-white mt-0.5">{formatDate(p.purchase_date)}{p.description ? ` · ${p.description}` : ''}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-heading text-sm text-blue-400">{formatPKR(p.amount)}</span>
@@ -458,7 +458,7 @@ function PurchasesTab() {
                   <div className="px-5 py-2.5 bg-red-950/30 flex items-center gap-4">
                     <p className="font-heading text-xs text-red-400">Delete this purchase?</p>
                     <button onClick={() => handleDelete(p.id)} className="font-heading text-[10px] px-3 py-1 bg-red-600 text-white rounded-sm hover:bg-red-700">CONFIRM</button>
-                    <button onClick={() => setDeleteId(null)} className="font-heading text-[10px] text-white/30 hover:text-white">CANCEL</button>
+                    <button onClick={() => setDeleteId(null)} className="font-heading text-[10px] text-white hover:text-white">CANCEL</button>
                   </div>
                 )}
               </div>
@@ -527,7 +527,7 @@ function ExpensesTab() {
 
       {/* Add form */}
       <form onSubmit={handleAdd} className="border border-white/5 bg-[#111] rounded-sm px-5 py-5 mb-6 space-y-3">
-        <p className="font-heading text-xs tracking-widest text-white/40 mb-1">ADD EXPENSE</p>
+        <p className="font-heading text-xs tracking-widest text-white mb-1">ADD EXPENSE</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <label className={labelClass}>CATEGORY <span className="text-[#E4002B]">*</span></label>
@@ -561,7 +561,7 @@ function ExpensesTab() {
         {(['today', '7d', 'month', '30d'] as Preset[]).map(p => (
           <button key={p} onClick={() => setPreset(p)}
             className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
-              preset === p ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white/30 hover:text-white'
+              preset === p ? 'bg-[#E4002B] border-[#E4002B] text-white' : 'border-white/10 text-white hover:text-white'
             }`}>
             {p === 'today' ? 'TODAY' : p === '7d' ? 'LAST 7D' : p === 'month' ? 'THIS MONTH' : 'LAST 30D'}
           </button>
@@ -571,13 +571,13 @@ function ExpensesTab() {
       {/* List */}
       <div className="border border-white/5 rounded-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
-          <p className="font-heading text-xs tracking-widest text-white/40">EXPENSES · {dates.from} → {dates.to}</p>
-          {expenses.length > 0 && <p className="font-heading text-xs text-white/60">TOTAL: <span className="text-white">{formatPKR(total)}</span></p>}
+          <p className="font-heading text-xs tracking-widest text-white">EXPENSES · {dates.from} → {dates.to}</p>
+          {expenses.length > 0 && <p className="font-heading text-xs text-white">TOTAL: <span className="text-white">{formatPKR(total)}</span></p>}
         </div>
         {loading ? (
-          <div className="px-5 py-10 text-center text-white/20 font-heading text-xs tracking-widest">LOADING…</div>
+          <div className="px-5 py-10 text-center text-white font-heading text-xs tracking-widest">LOADING…</div>
         ) : expenses.length === 0 ? (
-          <div className="px-5 py-10 text-center text-white/20 font-heading text-xs tracking-widest">NO EXPENSES YET</div>
+          <div className="px-5 py-10 text-center text-white font-heading text-xs tracking-widest">NO EXPENSES YET</div>
         ) : (
           <div className="divide-y divide-white/5">
             {expenses.map(e => (
@@ -588,7 +588,7 @@ function ExpensesTab() {
                       <span className="font-heading text-[9px] tracking-widest px-2 py-0.5 border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 rounded-sm">{e.category.toUpperCase()}</span>
                       {e.description && <p className="font-heading text-sm text-white">{e.description}</p>}
                     </div>
-                    <p className="font-heading text-[10px] text-white/30 mt-0.5">{formatDate(e.expense_date)}</p>
+                    <p className="font-heading text-[10px] text-white mt-0.5">{formatDate(e.expense_date)}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-heading text-sm text-yellow-400">{formatPKR(e.amount)}</span>
@@ -602,7 +602,7 @@ function ExpensesTab() {
                   <div className="px-5 py-2.5 bg-red-950/30 flex items-center gap-4">
                     <p className="font-heading text-xs text-red-400">Delete this expense?</p>
                     <button onClick={() => handleDelete(e.id)} className="font-heading text-[10px] px-3 py-1 bg-red-600 text-white rounded-sm hover:bg-red-700">CONFIRM</button>
-                    <button onClick={() => setDeleteId(null)} className="font-heading text-[10px] text-white/30 hover:text-white">CANCEL</button>
+                    <button onClick={() => setDeleteId(null)} className="font-heading text-[10px] text-white hover:text-white">CANCEL</button>
                   </div>
                 )}
               </div>
@@ -690,7 +690,7 @@ function VendorsTab() {
 
       {/* Add form */}
       <form onSubmit={handleAdd} className="border border-white/5 bg-[#111] rounded-sm px-5 py-5 mb-6">
-        <p className="font-heading text-xs tracking-widest text-white/40 mb-4">ADD VENDOR</p>
+        <p className="font-heading text-xs tracking-widest text-white mb-4">ADD VENDOR</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
           <div>
             <label className={labelClass}>NAME <span className="text-[#E4002B]">*</span></label>
@@ -720,12 +720,12 @@ function VendorsTab() {
       {/* List */}
       <div className="border border-white/5 rounded-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-white/5">
-          <p className="font-heading text-xs tracking-widest text-white/40">VENDORS ({vendors.length})</p>
+          <p className="font-heading text-xs tracking-widest text-white">VENDORS ({vendors.length})</p>
         </div>
         {loading ? (
-          <div className="px-5 py-10 text-center text-white/20 font-heading text-xs tracking-widest">LOADING…</div>
+          <div className="px-5 py-10 text-center text-white font-heading text-xs tracking-widest">LOADING…</div>
         ) : vendors.length === 0 ? (
-          <div className="px-5 py-10 text-center text-white/20 font-heading text-xs tracking-widest">NO VENDORS YET</div>
+          <div className="px-5 py-10 text-center text-white font-heading text-xs tracking-widest">NO VENDORS YET</div>
         ) : (
           <div className="divide-y divide-white/5">
             {vendors.map(v => (
@@ -733,13 +733,13 @@ function VendorsTab() {
                 <div key={v.id} className="flex items-center justify-between px-5 py-3">
                   <div>
                     <p className="font-heading text-sm text-white">{v.name}</p>
-                    <p className="font-heading text-[10px] text-white/30 mt-0.5">
+                    <p className="font-heading text-[10px] text-white mt-0.5">
                       {[v.phone, v.category].filter(Boolean).join(' · ') || 'No details'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => editId === v.id ? setEditId(null) : startEdit(v)}
-                      className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white/30 hover:text-white rounded-sm transition-colors">
+                      className="font-heading text-[10px] tracking-widest px-3 py-1.5 border border-white/10 text-white hover:text-white rounded-sm transition-colors">
                       {editId === v.id ? 'CANCEL' : 'EDIT'}
                     </button>
                     <button onClick={() => setDeleteId(deleteId === v.id ? null : v.id)}
@@ -765,7 +765,7 @@ function VendorsTab() {
                   <div key={v.id + '-del'} className="px-5 py-2.5 bg-red-950/30 flex items-center gap-4">
                     <p className="font-heading text-xs text-red-400">Delete &quot;{v.name}&quot;?</p>
                     <button onClick={() => handleDelete(v.id)} className="font-heading text-[10px] px-3 py-1 bg-red-600 text-white rounded-sm hover:bg-red-700">CONFIRM</button>
-                    <button onClick={() => setDeleteId(null)} className="font-heading text-[10px] text-white/30 hover:text-white">CANCEL</button>
+                    <button onClick={() => setDeleteId(null)} className="font-heading text-[10px] text-white hover:text-white">CANCEL</button>
                   </div>
                 )}
               </>
@@ -795,7 +795,7 @@ export function LedgerClient() {
       <div className="mb-8">
         <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">FINANCE</p>
         <h1 className="font-heading text-3xl text-white">LEDGER</h1>
-        <p className="text-white/30 text-xs mt-1 font-heading tracking-wider">Track purchases, expenses and profit</p>
+        <p className="text-white text-xs mt-1 font-heading tracking-wider">Track purchases, expenses and profit</p>
       </div>
 
       {/* Tabs */}
@@ -803,7 +803,7 @@ export function LedgerClient() {
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`font-heading text-xs tracking-widest px-5 py-3 border-b-2 -mb-px transition-colors ${
-              tab === t.key ? 'border-[#E4002B] text-white' : 'border-transparent text-white/30 hover:text-white'
+              tab === t.key ? 'border-[#E4002B] text-white' : 'border-transparent text-white hover:text-white'
             }`}>
             {t.label}
           </button>
