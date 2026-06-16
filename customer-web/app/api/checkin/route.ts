@@ -22,7 +22,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ detail: 'Invalid PIN' }, { status: 401 });
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Use Pakistan time (UTC+5) so date matches what's on the clock in the restaurant
+  const pkNow = new Date(Date.now() + 5 * 60 * 60 * 1000);
+  const today = pkNow.toISOString().slice(0, 10);
   const now   = new Date().toISOString();
 
   // Check if already checked in today
@@ -54,10 +56,10 @@ export async function POST(req: NextRequest) {
   }
 
   // Check-in (upsert in case record exists but no check_in)
-  const checkInTime = new Date();
-  const hours = checkInTime.getHours();
-  // Mark late if checking in after 9:30 AM (adjust as needed)
-  const status = hours >= 10 ? 'late' : 'present';
+  // Compare against Pakistan local hour (UTC+5)
+  const pkHour = pkNow.getUTCHours();
+  // Late if checking in after 10:00 AM Pakistan time
+  const status = pkHour >= 10 ? 'late' : 'present';
 
   await db.from('attendance').upsert({
     staff_id:  staff.id,

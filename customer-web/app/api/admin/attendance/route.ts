@@ -6,17 +6,24 @@ export async function GET(req: NextRequest) {
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  const date  = req.nextUrl.searchParams.get('date') ?? new Date().toISOString().slice(0, 10);
+  // Default to Pakistan date (UTC+5) if not specified
+  const pkNow = new Date(Date.now() + 5 * 60 * 60 * 1000);
+  const date  = req.nextUrl.searchParams.get('date') ?? pkNow.toISOString().slice(0, 10);
   const month = req.nextUrl.searchParams.get('month'); // YYYY-MM for monthly view
 
   const db = createServiceClient();
 
   if (month) {
+    // Compute last day of month correctly
+    const [y, m] = month.split('-').map(Number);
+    const lastDay = new Date(y, m, 0).getDate(); // day 0 of next month = last day of this month
+    const monthEnd = `${month}-${String(lastDay).padStart(2, '0')}`;
+
     const [{ data: records }, { data: allStaff }] = await Promise.all([
       db.from('attendance')
         .select('*, staff(full_name, role, staff_type)')
         .gte('date', `${month}-01`)
-        .lte('date', `${month}-31`)
+        .lte('date', monthEnd)
         .order('date', { ascending: false }),
       db.from('staff').select('id, full_name, role, staff_type').eq('is_active', true),
     ]);
