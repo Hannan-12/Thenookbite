@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CATEGORIES, type Category, type MenuCard as MenuCardType } from '@/lib/types';
+import { CATEGORIES, CATEGORY_LABELS, type Category, type MenuCard as MenuCardType } from '@/lib/types';
 import { MenuCard } from './MenuCard';
 import { Reveal } from './Reveal';
 
@@ -54,7 +54,7 @@ export function MenuBrowser({
                 : 'bg-surface text-muted border-theme hover:border-primary hover:text-primary'
             }`}
           >
-            {cat.toUpperCase()}
+            {(CATEGORY_LABELS[cat] ?? cat).toUpperCase()}
           </button>
         ))}
       </div>

@@ -103,16 +103,7 @@ export default function CheckoutPage() {
         delivery_address: orderType === 'delivery' ? address.trim() : null,
       });
       clear();
-      const params = new URLSearchParams({
-        id: order.id,
-        method: 'cash',
-        name: name.trim(),
-        phone: phone.trim(),
-        address: address.trim(),
-        tip: String(tipAmount),
-        type: orderType,
-      });
-      router.push(`/order-confirmation?${params.toString()}`);
+      router.push(`/order-confirmation?id=${order.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
       setSubmitting(false);
@@ -320,8 +311,9 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setShowCardModal(true)}
-                  className="bg-card border border-theme rounded-sm px-4 py-4 flex items-center gap-3 text-left hover:border-brand-red/40 transition-colors duration-150 opacity-70"
+                  className="relative bg-card border border-theme rounded-sm px-4 py-4 flex items-center gap-3 text-left opacity-60 cursor-not-allowed"
                 >
+                  <span className="absolute top-2 right-2 font-heading text-[9px] tracking-widest bg-brand-red/20 text-brand-red border border-brand-red/30 px-1.5 py-0.5 rounded-sm">SOON</span>
                   <span className="text-2xl">💳</span>
                   <div>
                     <p className="font-heading text-sm text-muted tracking-wider">ONLINE PAYMENT</p>

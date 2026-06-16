@@ -32,11 +32,17 @@ export default function KitchenDisplay() {
   const [error, setError] = useState<string | null>(null);
   const [reconnectBanner, setReconnectBanner] = useState(false);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const [now, setNow] = useState(new Date());
   const supabaseRef = useRef(createClient());
   const channelRef  = useRef<ReturnType<typeof supabaseRef.current.channel> | null>(null);
   const isFirstConnect = useRef(true);
 
   useStopwatchTick();
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -140,8 +146,8 @@ export default function KitchenDisplay() {
           <span className="text-white/40 text-sm tracking-widest">KITCHEN DISPLAY</span>
         </div>
         <div className="flex items-center gap-6 text-sm">
-          <span className="text-white/40">
-            {new Date().toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+          <span className="text-white/40 tabular-nums">
+            {now.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />

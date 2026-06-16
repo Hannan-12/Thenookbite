@@ -63,9 +63,11 @@ export default function CheckInPage() {
     setResult(data);
   }
 
-  // Auto-submit when 4 digits entered
+  // Auto-submit 600ms after 4th digit — short window to correct a mistake via backspace
   useEffect(() => {
-    if (pin.length === 4) handleSubmit();
+    if (pin.length !== 4) return;
+    const id = setTimeout(() => handleSubmit(), 600);
+    return () => clearTimeout(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin]);
 

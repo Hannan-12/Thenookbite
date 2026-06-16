@@ -13,6 +13,7 @@ type Order = {
 };
 
 const STATUSES = ['pending', 'preparing', 'ready', 'completed'] as const;
+const STATUS_ORDER: Record<string, number> = { pending: 0, preparing: 1, ready: 2, completed: 3 };
 
 const STATUS_STYLES: Record<string, string> = {
   pending:   'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
@@ -127,20 +128,27 @@ export function OrderDetailClient({ order }: { order: Order }) {
       <div className="border border-white/5 rounded-sm bg-[#111111] px-5 py-4">
         <p className="font-heading text-xs tracking-widest text-white/40 mb-3">UPDATE STATUS</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {STATUSES.map((s) => (
-            <button
-              key={s}
-              disabled={saving || status === s}
-              onClick={() => updateStatus(s)}
-              className={`py-2.5 px-3 font-heading text-xs tracking-wider rounded-sm border transition-colors duration-150 disabled:cursor-not-allowed ${
-                status === s
-                  ? STATUS_STYLES[s]
-                  : 'border-white/10 text-white/30 hover:border-white/30 hover:text-white disabled:opacity-40'
-              }`}
-            >
-              {s.toUpperCase()}
-            </button>
-          ))}
+          {STATUSES.map((s) => {
+            const isBackward = STATUS_ORDER[s] < STATUS_ORDER[status];
+            const isCurrent  = status === s;
+            return (
+              <button
+                key={s}
+                disabled={saving || isCurrent || isBackward}
+                onClick={() => !isBackward && updateStatus(s)}
+                title={isBackward ? 'Cannot move order backwards' : undefined}
+                className={`py-2.5 px-3 font-heading text-xs tracking-wider rounded-sm border transition-colors duration-150 disabled:cursor-not-allowed ${
+                  isCurrent
+                    ? STATUS_STYLES[s]
+                    : isBackward
+                    ? 'border-white/5 text-white/10 opacity-40'
+                    : 'border-white/10 text-white/30 hover:border-white/30 hover:text-white'
+                }`}
+              >
+                {s.toUpperCase()}
+              </button>
+            );
+          })}
         </div>
       </div>
 

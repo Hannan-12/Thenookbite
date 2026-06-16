@@ -23,6 +23,11 @@ export const CATEGORIES: Category[] = [
   'Drinks & Desserts',
 ];
 
+// Maps internal DB category names to customer-facing display labels
+export const CATEGORY_LABELS: Record<string, string> = {
+  'Pizza Regular v1': 'Pizza Classic',
+};
+
 // Raw row from menu_items (one row per SKU).
 export interface MenuItem {
   id: string;

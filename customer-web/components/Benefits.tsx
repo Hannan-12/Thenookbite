@@ -26,7 +26,7 @@ const BENEFITS = [
       </svg>
     ),
     title: 'Easy Payment',
-    desc: 'Pay by card online or cash on delivery — your choice.',
+    desc: 'Pay cash at the table or at the counter — fast, simple, no hassle.',
   },
   {
     icon: (

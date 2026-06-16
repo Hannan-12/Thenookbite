@@ -68,8 +68,9 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
     ready:     orders.filter(o => o.status === 'ready').length,
     completed: orders.filter(o => o.status === 'completed').length,
   };
-  const revenue   = orders.reduce((s, o) => s + (o.total ?? 0), 0);
-  const avgOrder  = orders.length ? Math.round(revenue / orders.length) : 0;
+  const completedOrders = orders.filter(o => o.status === 'completed');
+  const revenue   = completedOrders.reduce((s, o) => s + (o.total ?? 0), 0);
+  const avgOrder  = completedOrders.length ? Math.round(revenue / completedOrders.length) : 0;
 
   return (
     <div className="px-4 sm:px-8 py-8">
@@ -109,7 +110,7 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
       {/* Key stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
         <div className="border border-[#E4002B]/20 bg-[#E4002B]/5 rounded-sm px-4 py-5 lg:col-span-2">
-          <p className="font-heading text-xs tracking-widest text-[#E4002B]/60 mb-1">TODAY&apos;S REVENUE</p>
+          <p className="font-heading text-xs tracking-widest text-[#E4002B]/60 mb-1">TODAY&apos;S REVENUE (COMPLETED)</p>
           <p className="font-heading text-4xl text-white">{formatPKR(revenue)}</p>
         </div>
         <div className="border border-white/5 rounded-sm px-4 py-5">

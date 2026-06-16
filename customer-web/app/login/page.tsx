@@ -105,12 +105,17 @@ function LoginForm() {
         {loading ? 'SIGNING IN…' : 'SIGN IN →'}
       </button>
 
-      <p className="text-center text-sm text-white/30 pt-2">
-        Don&apos;t have an account?{' '}
-        <Link href="/signup" className="text-white font-heading tracking-wider hover:text-brand-red transition-colors">
-          SIGN UP
+      <div className="flex items-center justify-between pt-2">
+        <p className="text-sm text-white/30">
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" className="text-white font-heading tracking-wider hover:text-brand-red transition-colors">
+            SIGN UP
+          </Link>
+        </p>
+        <Link href="/forgot-password" className="text-xs text-white/30 font-heading tracking-wider hover:text-white transition-colors">
+          FORGOT PASSWORD?
         </Link>
-      </p>
+      </div>
     </form>
   );
 }

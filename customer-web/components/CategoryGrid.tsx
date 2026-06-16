@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { CATEGORIES, type Category } from '@/lib/types';
+import { CATEGORIES, CATEGORY_LABELS, type Category } from '@/lib/types';
 import { Reveal } from './Reveal';
 
 interface CatMeta { image: string; count: string; }
@@ -64,7 +64,7 @@ export function CategoryGrid() {
                       {meta.count}
                     </span>
                     <h3 className="font-heading text-lg sm:text-xl text-white leading-tight">
-                      {cat}
+                      {CATEGORY_LABELS[cat] ?? cat}
                     </h3>
                     <div className="mt-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-75">
                       <span className="font-heading text-xs tracking-widest text-white/70">ORDER</span>

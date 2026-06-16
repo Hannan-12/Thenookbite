@@ -1,21 +1,39 @@
 import Link from 'next/link';
+import { createServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
 
-export default function OrderConfirmationPage({
+export default async function OrderConfirmationPage({
   searchParams,
 }: {
-  searchParams: { id?: string; method?: string; name?: string; phone?: string; address?: string; tip?: string; type?: string };
+  searchParams: { id?: string };
 }) {
   const id = searchParams.id ?? '';
   const shortId = id ? id.slice(-6).toUpperCase() : '------';
-  const method = searchParams.method === 'card' ? 'Card' : 'Cash on Delivery';
-  const name = searchParams.name ?? '';
-  const phone = searchParams.phone ?? '';
-  const address = searchParams.address ?? '';
-  const tip = parseInt(searchParams.tip ?? '0') || 0;
-  const orderTypeMap: Record<string, string> = { 'dine-in': '🍽️ Dine In', 'takeaway': '🥡 Takeaway', 'delivery': '🛵 Delivery' };
-  const orderType = orderTypeMap[searchParams.type ?? ''] ?? '';
+
+  // Fetch from DB — don't rely on URL params for sensitive data
+  let order: { customer_name: string; total: number; order_type: string; delivery_address: string | null; tip: number; payment_method: string } | null = null;
+  if (id) {
+    const db = createServiceClient();
+    const { data } = await db
+      .from('orders')
+      .select('customer_name, total, order_type, delivery_address, tip, payment_method')
+      .eq('id', id)
+      .single();
+    order = data;
+  }
+
+  const orderTypeMap: Record<string, string> = {
+    'dine-in':  '🍽️ Dine In',
+    'takeaway': '🥡 Takeaway',
+    'delivery': '🛵 Delivery',
+  };
+
+  const name        = order?.customer_name ?? '';
+  const orderType   = orderTypeMap[order?.order_type ?? ''] ?? '';
+  const address     = order?.delivery_address ?? '';
+  const tip         = order?.tip ?? 0;
+  const method      = order?.payment_method === 'card' ? 'Card' : 'Cash on Delivery';
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen flex items-center justify-center px-6">
@@ -56,12 +74,6 @@ export default function OrderConfirmationPage({
                 <span className="text-white text-sm font-body">{name}</span>
               </div>
             )}
-            {phone && (
-              <div className="flex items-start gap-3">
-                <span className="font-heading text-xs tracking-widest text-white/30 w-20 flex-shrink-0 pt-0.5">PHONE</span>
-                <span className="text-white text-sm font-body">{phone}</span>
-              </div>
-            )}
             {address && (
               <div className="flex items-start gap-3">
                 <span className="font-heading text-xs tracking-widest text-white/30 w-20 flex-shrink-0 pt-0.5">ADDRESS</span>
@@ -85,10 +97,10 @@ export default function OrderConfirmationPage({
             ORDER AGAIN
           </Link>
           <Link
-            href="/"
+            href="/my-orders"
             className="inline-flex items-center justify-center gap-2 border border-white/20 text-white/60 font-heading text-sm px-8 py-4 tracking-widest hover:border-white/60 hover:text-white transition-colors duration-200"
           >
-            GO HOME
+            MY ORDERS
           </Link>
         </div>
       </div>
