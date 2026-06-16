@@ -38,20 +38,35 @@ export async function GET() {
     (profiles ?? []).map((p: { id: string; full_name: string | null; phone: string | null; is_banned: boolean | null }) => [p.id, p])
   );
 
-  // Fetch order stats per user
-  const { data: orders } = await db
-    .from('orders')
-    .select('user_id, total, created_at, status')
-    .in('user_id', userIds)
-    .order('created_at', { ascending: false });
+  // Build phone → userId map for matching guest orders
+  const phoneToUserId: Record<string, string> = {};
+  for (const p of profiles ?? []) {
+    if (p.phone) phoneToUserId[p.phone] = p.id;
+  }
+
+  const phones = Object.keys(phoneToUserId);
+  const [byUserRes, byPhoneRes] = await Promise.all([
+    db.from('orders').select('id, user_id, customer_phone, total, created_at, status').in('user_id', userIds).order('created_at', { ascending: false }),
+    phones.length > 0
+      ? db.from('orders').select('id, user_id, customer_phone, total, created_at, status').is('user_id', null).in('customer_phone', phones).order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  type OrderRow = { id: string; user_id: string | null; customer_phone: string | null; total: number; created_at: string; status: string };
+  const seenIds = new Set<string>();
+  const allOrders: OrderRow[] = [];
+  for (const o of [...(byUserRes.data ?? []), ...(byPhoneRes.data ?? [])]) {
+    if (!seenIds.has(o.id)) { seenIds.add(o.id); allOrders.push(o as OrderRow); }
+  }
 
   const ordersByUser: Record<string, { count: number; totalSpent: number; lastOrder: string | null }> = {};
-  for (const o of orders ?? []) {
-    if (!o.user_id) continue;
-    if (!ordersByUser[o.user_id]) ordersByUser[o.user_id] = { count: 0, totalSpent: 0, lastOrder: null };
-    ordersByUser[o.user_id].count++;
-    if (o.status === 'completed') ordersByUser[o.user_id].totalSpent += o.total ?? 0;
-    if (!ordersByUser[o.user_id].lastOrder) ordersByUser[o.user_id].lastOrder = o.created_at;
+  for (const o of allOrders) {
+    const uid = o.user_id ?? (o.customer_phone ? phoneToUserId[o.customer_phone] : null);
+    if (!uid) continue;
+    if (!ordersByUser[uid]) ordersByUser[uid] = { count: 0, totalSpent: 0, lastOrder: null };
+    ordersByUser[uid].count++;
+    if (o.status === 'completed') ordersByUser[uid].totalSpent += o.total ?? 0;
+    if (!ordersByUser[uid].lastOrder) ordersByUser[uid].lastOrder = o.created_at;
   }
 
   const result = customerAuthUsers.map(u => {
