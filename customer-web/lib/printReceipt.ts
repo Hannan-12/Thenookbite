@@ -18,7 +18,7 @@ export function printOrderReceipt(order: ReceiptOrder) {
   const placedAt  = new Date(order.created_at);
   const dateStr   = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
   const timeStr   = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const shortId   = order.id.slice(-6).toUpperCase();
+  const shortId   = parseInt(order.id.replace(/-/g, '').slice(-4), 16).toString().padStart(4, '0');
   const orderType = order.order_type ?? 'dine-in';
 
   const typeLabel =

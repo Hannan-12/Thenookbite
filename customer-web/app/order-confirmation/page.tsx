@@ -10,7 +10,7 @@ export default async function OrderConfirmationPage({
   searchParams: { id?: string };
 }) {
   const id = searchParams.id ?? '';
-  const shortId = id ? id.slice(-6).toUpperCase() : '------';
+  const shortId = id ? parseInt(id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0") : '------';
 
   let order: {
     customer_name: string;

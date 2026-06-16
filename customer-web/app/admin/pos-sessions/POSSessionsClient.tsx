@@ -91,7 +91,7 @@ export function POSSessionsClient() {
       const type = o.order_type === 'dine-in' ? (o.table_number ? `T${o.table_number}` : 'DINE') : 'TAKE';
       return `
       <tr>
-        <td style="padding:3px 0;font-size:11px;">#${o.id.slice(-6).toUpperCase()}</td>
+        <td style="padding:3px 0;font-size:11px;">#${parseInt(o.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}</td>
         <td style="padding:3px 0;font-size:11px;text-align:center;">${time}</td>
         <td style="padding:3px 0;font-size:11px;text-align:center;">${type}</td>
         <td style="padding:3px 0;font-size:11px;text-align:center;">${o.payment_method.toUpperCase()}</td>
@@ -182,7 +182,7 @@ export function POSSessionsClient() {
     ).join('');
 
     const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Receipt #${order.id.slice(-6).toUpperCase()}</title>
+<html><head><meta charset="utf-8"><title>Receipt #${parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}</title>
 <style>
   * { margin:0;padding:0;box-sizing:border-box; }
   body { font-family:'Courier New',Courier,monospace;width:80mm;margin:0 auto;padding:6mm 4mm 10mm;font-size:12px;color:#000;background:#fff; }
@@ -200,7 +200,7 @@ export function POSSessionsClient() {
   </div>
   <hr class="solid">
   <table style="margin:4px 0;">
-    <tr><td class="small">Order #</td><td class="small" style="text-align:right;"><b>${order.id.slice(-6).toUpperCase()}</b></td></tr>
+    <tr><td class="small">Order #</td><td class="small" style="text-align:right;"><b>${parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}</b></td></tr>
     <tr><td class="small">Date</td><td class="small" style="text-align:right;">${dateStr}</td></tr>
     <tr><td class="small">Time</td><td class="small" style="text-align:right;">${timeStr}</td></tr>
     <tr><td class="small">Type</td><td class="small" style="text-align:right;">${order.order_type === 'dine-in' ? `DINE-IN${order.table_number ? ` · TABLE ${order.table_number}` : ''}` : 'TAKEAWAY'}</td></tr>
@@ -394,7 +394,7 @@ export function POSSessionsClient() {
                         <div key={order.id} className="flex items-start justify-between px-5 py-3 gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <span className="font-heading text-sm text-white">#{order.id.slice(-6).toUpperCase()}</span>
+                              <span className="font-heading text-sm text-white">#{parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}</span>
                               <span className={`font-heading text-[10px] px-1.5 py-0.5 border rounded-sm ${STATUS_STYLES[order.status] ?? 'text-white border-white/10 bg-white/5'}`}>
                                 {order.status.toUpperCase()}
                               </span>

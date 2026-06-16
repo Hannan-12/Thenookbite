@@ -147,7 +147,7 @@ export default function VerifyDisplay() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-heading text-xl text-white tracking-widest">
-                        #{order.id.slice(-6).toUpperCase()}
+                        #{parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}
                       </span>
                       <span className="font-heading text-[10px] tracking-widest px-2 py-0.5 bg-orange-500/20 border border-orange-500/40 text-orange-400 rounded-sm">
                         ONLINE

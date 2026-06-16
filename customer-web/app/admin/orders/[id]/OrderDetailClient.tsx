@@ -50,7 +50,7 @@ export function OrderDetailClient({ order }: { order: Order }) {
     setTimeout(() => setToast(null), 2500);
   }
 
-  const shortId = order.id.slice(-6).toUpperCase();
+  const shortId = parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0");
   const date = new Date(order.created_at).toLocaleString('en-PK', {
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });

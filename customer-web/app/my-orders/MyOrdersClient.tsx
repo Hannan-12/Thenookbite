@@ -69,7 +69,7 @@ export default function MyOrdersClient({ orders }: { orders: Order[] }) {
   return (
     <div className="space-y-4">
       {orders.map((order) => {
-        const shortId = order.id.slice(-6).toUpperCase();
+        const shortId = parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0");
         const date = new Date(order.created_at).toLocaleDateString('en-PK', {
           day: 'numeric', month: 'short', year: 'numeric',
         });

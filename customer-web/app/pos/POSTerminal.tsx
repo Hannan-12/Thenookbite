@@ -43,6 +43,10 @@ type OrderType = 'dine-in' | 'takeaway' | 'delivery';
 type PaymentMethod = 'cash' | 'card';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+function orderNum(id: string): string {
+  return parseInt(id.replace(/-/g, '').slice(-4), 16).toString().padStart(4, '0');
+}
+
 function cardImage(card: MenuCard): string {
   const dbUrl = 'item' in card ? card.item.image_url : card.base.image_url;
   return imageForItem(card.name, card.category, dbUrl);
@@ -294,7 +298,7 @@ export function POSTerminal({
 <html>
 <head>
 <meta charset="utf-8">
-<title>Receipt #${id.slice(-6).toUpperCase()}</title>
+<title>Receipt #${orderNum(id)}</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Courier New', Courier, monospace; width: 80mm; margin: 0 auto; padding: 6mm 4mm 10mm; font-size: 12px; color: #000; background: #fff; }
@@ -325,7 +329,7 @@ export function POSTerminal({
     <table>
       <tr>
         <td class="small">Order #</td>
-        <td class="small right"><b>${id.slice(-6).toUpperCase()}</b></td>
+        <td class="small right"><b>#${orderNum(id)}</b></td>
       </tr>
       <tr>
         <td class="small">Date</td>
@@ -516,7 +520,7 @@ export function POSTerminal({
                 <div key={o.id} className="px-3 py-2">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-heading text-[10px] text-white">
-                      #{o.id.slice(-6).toUpperCase()} · {new Date(o.created_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
+                      #{orderNum(o.id)} · {new Date(o.created_at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                     </span>
                     <span className="font-heading text-[10px] text-white">{formatPKR(o.total)}</span>
                   </div>
@@ -631,7 +635,7 @@ export function POSTerminal({
       {lastOrder && (
         <div className="mx-4 mb-4 border border-green-500/30 bg-green-500/5 rounded-sm px-4 py-3 flex-shrink-0">
           <p className="font-heading text-xs tracking-widest text-green-400 mb-0.5">ORDER PLACED ✓</p>
-          <p className="font-heading text-xs text-white">#{lastOrder.id.slice(-6).toUpperCase()} — {formatPKR(lastOrder.total)}</p>
+          <p className="font-heading text-xs text-white">#{orderNum(lastOrder.id)} — {formatPKR(lastOrder.total)}</p>
           <div className="flex items-center gap-4 mt-2">
             <a
               href={`/admin/orders/${lastOrder.id}`}
@@ -867,7 +871,7 @@ export function POSTerminal({
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-heading text-sm text-white">#{o.id.slice(-6).toUpperCase()}</span>
+                            <span className="font-heading text-sm text-white">#{orderNum(o.id)}</span>
                             <span className="font-heading text-[10px] px-1.5 py-0.5 border border-white/10 text-white rounded-sm">
                               {o.orderType === 'dine-in' ? (o.table ? `TABLE ${o.table}` : 'DINE-IN') : o.orderType === 'delivery' ? 'DELIVERY' : 'TAKEAWAY'}
                             </span>

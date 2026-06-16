@@ -232,7 +232,7 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
                 className="flex items-center justify-between px-5 py-3 hover:bg-white/3 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="font-heading text-sm text-white">#{order.id.slice(-6).toUpperCase()}</span>
+                  <span className="font-heading text-sm text-white">#{parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}</span>
                   <span className={`font-heading text-xs px-2 py-0.5 rounded-sm border ${STATUS_COLORS[order.status]}`}>
                     {order.status.toUpperCase()}
                   </span>

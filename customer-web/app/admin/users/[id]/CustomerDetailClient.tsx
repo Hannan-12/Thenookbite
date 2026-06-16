@@ -161,7 +161,7 @@ export function CustomerDetailClient({ customer: initial, orders }: { customer: 
                   >
                     <span className="font-heading text-[10px] text-white w-3">{isExpanded ? '▲' : '▼'}</span>
                     <span className="font-heading text-sm text-white w-24 flex-shrink-0">
-                      #{order.id.slice(-6).toUpperCase()}
+                      #{parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}
                     </span>
                     <span className={`font-heading text-[10px] tracking-widest px-2 py-0.5 border rounded-sm flex-shrink-0 ${STATUS_STYLES[order.status]}`}>
                       {order.status.toUpperCase()}

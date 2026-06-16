@@ -129,7 +129,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
       ) : (
         <div className="space-y-3">
           {filtered.map((order) => {
-            const shortId = order.id.slice(-6).toUpperCase();
+            const shortId = parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0");
             const date = new Date(order.created_at).toLocaleString('en-PK', {
               day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
             });

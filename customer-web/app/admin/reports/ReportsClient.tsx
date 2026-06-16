@@ -194,7 +194,7 @@ export function ReportsClient() {
           : '—';
         return `<tr>
           <td style="color:#6b7280;font-size:11px;">${date}</td>
-          <td style="font-weight:600;">#${order.id.slice(-6).toUpperCase()}</td>
+          <td style="font-weight:600;">#${parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}</td>
           <td>${order.customer_name}${order.table_number ? ` · T${order.table_number}` : ''}</td>
           <td style="color:#6b7280;font-size:11px;">${itemsSummary}</td>
           <td style="text-align:right;color:#6b7280;font-size:11px;">${order.payment_method.toUpperCase()}</td>
@@ -597,7 +597,7 @@ export function ReportsClient() {
                         {isExpanded ? '▲' : '▼'}
                       </span>
                       <span className="font-heading text-sm text-white w-[5.5rem] flex-shrink-0 tracking-wider">
-                        #{order.id.slice(-6).toUpperCase()}
+                        #{parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0")}
                       </span>
                       <span className="font-heading text-xs text-white flex-1 min-w-0 truncate">
                         {order.customer_name}
