@@ -111,12 +111,20 @@ export function RecentOrders() {
             <p className="font-heading text-xs tracking-[0.3em] text-brand-red mb-1">YOUR ORDERS</p>
             <p className="font-heading text-white/50 text-sm tracking-wider">You haven't placed any orders yet.</p>
           </div>
-          <Link
-            href="/menu"
-            className="font-heading text-sm tracking-widest px-6 py-3 bg-brand-red text-white hover:bg-red-600 transition-colors duration-200 rounded-sm flex-shrink-0"
-          >
-            ORDER NOW →
-          </Link>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Link
+              href="/my-orders"
+              className="font-heading text-sm tracking-widest px-6 py-3 border border-white/10 text-white/40 hover:text-white hover:border-white/30 transition-colors duration-200 rounded-sm"
+            >
+              MY ORDERS
+            </Link>
+            <Link
+              href="/menu"
+              className="font-heading text-sm tracking-widest px-6 py-3 bg-brand-red text-white hover:bg-red-600 transition-colors duration-200 rounded-sm"
+            >
+              ORDER NOW →
+            </Link>
+          </div>
         </div>
       </section>
     );
