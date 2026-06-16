@@ -187,10 +187,11 @@ export default function KitchenDisplay() {
             {pending.length === 0 && (
               <div className="text-white text-center text-sm tracking-widest py-16">NO PENDING ORDERS</div>
             )}
-            {pending.map(order => (
+            {pending.map((order, i) => (
               <OrderCard
                 key={order.id}
                 order={order}
+                orderNumber={i + 1}
                 onAction={() => advanceStatus(order.id, 'preparing')}
                 actionLabel="START PREPARING →"
                 actionColor="bg-yellow-500 hover:bg-yellow-400 text-black"
@@ -212,10 +213,11 @@ export default function KitchenDisplay() {
             {preparing.length === 0 && (
               <div className="text-white text-center text-sm tracking-widest py-16">NOTHING IN PROGRESS</div>
             )}
-            {preparing.map(order => (
+            {preparing.map((order, i) => (
               <OrderCard
                 key={order.id}
                 order={order}
+                orderNumber={i + 1}
                 onAction={() => advanceStatus(order.id, 'ready')}
                 actionLabel="MARK READY ✓"
                 actionColor="bg-green-600 hover:bg-green-500 text-white"
@@ -231,12 +233,14 @@ export default function KitchenDisplay() {
 
 function OrderCard({
   order,
+  orderNumber,
   onAction,
   actionLabel,
   actionColor,
   updating,
 }: {
   order: Order;
+  orderNumber: number;
   onAction: () => void;
   actionLabel: string;
   actionColor: string;
@@ -249,8 +253,8 @@ function OrderCard({
       {/* Card header */}
       <div className="px-4 py-3 flex items-center justify-between border-b border-white/10">
         <div className="flex items-center gap-3">
-          <span className="text-white text-xl font-bold tracking-widest">
-            #{order.id.slice(-6).toUpperCase()}
+          <span className="text-white text-4xl font-bold tracking-widest tabular-nums">
+            #{orderNumber}
           </span>
           {order.table_number && (
             <span className="bg-white/10 text-white text-xs px-2 py-0.5 tracking-widest rounded-sm">
