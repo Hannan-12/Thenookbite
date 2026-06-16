@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { formatPKR } from '@/lib/format';
 
 interface Customer {
@@ -140,17 +141,19 @@ export function UsersClient({ initialUsers }: { initialUsers: Customer[] }) {
                 {filtered.map(u => (
                   <tr key={u.id} className={`transition-colors ${u.is_banned ? 'bg-red-950/20' : 'hover:bg-white/[0.02]'}`}>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className={u.is_banned ? 'text-white/40 line-through' : 'text-white'}>
-                          {u.full_name ?? <span className="text-white/30 italic">No name</span>}
-                        </p>
-                        {u.is_banned && (
-                          <span className="font-heading text-[9px] tracking-widest px-1.5 py-0.5 bg-red-500/20 border border-red-500/40 text-red-400 rounded-sm">
-                            BANNED
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-white/30 mt-0.5">{u.email}</p>
+                      <Link href={`/admin/users/${u.id}`} className="block group">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className={`group-hover:text-[#E4002B] transition-colors ${u.is_banned ? 'text-white/40 line-through' : 'text-white'}`}>
+                            {u.full_name ?? <span className="text-white/30 italic">No name</span>}
+                          </p>
+                          {u.is_banned && (
+                            <span className="font-heading text-[9px] tracking-widest px-1.5 py-0.5 bg-red-500/20 border border-red-500/40 text-red-400 rounded-sm">
+                              BANNED
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-white/30 mt-0.5">{u.email}</p>
+                      </Link>
                     </td>
                     <td className="px-5 py-3.5 text-white/40 hidden md:table-cell">
                       {u.phone ?? '—'}
