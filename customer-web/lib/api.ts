@@ -15,6 +15,9 @@ export interface CreateOrderPayload {
   payment_method: 'cash';
   items: OrderItemPayload[];
   user_id?: string | null;
+  order_type?: string | null;
+  tip?: number | null;
+  delivery_address?: string | null;
 }
 
 export async function createOrder(payload: CreateOrderPayload): Promise<{ id: string }> {
