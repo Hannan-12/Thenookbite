@@ -36,19 +36,21 @@ export default async function POSPage() {
   const staffName = staffRow?.full_name ?? (isAdmin ? 'Admin' : 'Staff');
   const staffRole = staffRow?.role ?? (isAdmin ? 'admin' : 'cashier');
 
-  // Reuse today's active session if one exists, otherwise open a new one
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  // Reuse today's active session if one exists (PKT = UTC+5), otherwise open a new one
+  // Use a 24h lookback to avoid timezone edge cases on Vercel (UTC server)
+  const lookbackISO = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  const { data: existing } = await db
+  const { data: existing, error: existErr } = await db
     .from('pos_sessions')
     .select('id')
     .eq('staff_id', user.id)
     .is('ended_at', null)
-    .gte('started_at', todayStart.toISOString())
+    .gte('started_at', lookbackISO)
     .order('started_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  console.log('[POS] existing session:', existing?.id, 'err:', existErr?.message);
 
   let sessionId = existing?.id ?? '';
 
@@ -59,6 +61,7 @@ export default async function POSPage() {
       .select('id')
       .single();
     if (sessErr) console.error('[POS] Failed to create session:', sessErr.message);
+    else console.log('[POS] created new session:', newSession?.id);
     sessionId = newSession?.id ?? '';
   }
 
