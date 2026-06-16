@@ -98,10 +98,11 @@ export default function KitchenDisplay() {
         }
 
         if (payload.eventType === 'UPDATE') {
-          const row = payload.new as Order;
-          if (['pending', 'preparing'].includes(row.status)) {
+          const row = payload.new as Order & { verified: boolean };
+          if (['pending', 'preparing'].includes(row.status) && row.verified) {
             setOrders(prev => prev.map(o => o.id === row.id ? { ...o, status: row.status } : o));
           } else {
+            // Remove if status advanced past preparing, or if unverified
             setOrders(prev => prev.filter(o => o.id !== row.id));
           }
         }
