@@ -30,16 +30,18 @@ export default function MyOrdersClient({ orders }: { orders: Order[] }) {
   const [reordering, setReordering] = useState<string | null>(null);
 
   function handleReorder(order: Order) {
+    const hasCart = useCart.getState().lines.length > 0;
+    if (hasCart && !confirm('This will clear your current cart. Continue?')) return;
     setReordering(order.id);
     clear();
-    for (const item of order.order_items) {
+    order.order_items.forEach((item, idx) => {
       addLine({
-        key: `reorder-${item.item_name}`,
-        menu_item_id: '',
+        key: `reorder-${order.id}-${idx}`,
+        menu_item_id: null,
         name: item.item_name,
         price: item.item_price,
       }, item.quantity);
-    }
+    });
     router.push('/checkout');
   }
 

@@ -195,8 +195,12 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                   <div>
                     <p className="font-heading text-sm text-white">{s.full_name}</p>
                     <p className="font-heading text-xs text-white/30 mt-0.5">{s.email}</p>
-                    <p className="font-heading text-[10px] text-white/20 mt-0.5 uppercase">
-                      {s.staff_type} · PIN: {s.pin ?? '—'}
+                    <p className="font-heading text-[10px] text-white/20 mt-0.5 uppercase group/pin flex items-center gap-1">
+                      {s.staff_type} · PIN:&nbsp;
+                      <span className="relative">
+                        <span className="group-hover/pin:hidden">••••</span>
+                        <span className="hidden group-hover/pin:inline tracking-widest text-white/40">{s.pin ?? '—'}</span>
+                      </span>
                     </p>
                   </div>
                 </div>

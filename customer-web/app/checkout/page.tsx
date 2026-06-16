@@ -82,6 +82,10 @@ export default function CheckoutPage() {
       setError('Please enter a valid Pakistani mobile number starting with 03 (e.g. 03001234567).');
       return;
     }
+    if (orderType === 'delivery' && !address.trim()) {
+      setError('Please enter your delivery address.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -89,11 +93,14 @@ export default function CheckoutPage() {
       const order = await createOrder({
         customer_name: name.trim(),
         customer_phone: normalizedPhone,
-        table_number: table.trim() || null,
+        table_number: orderType === 'dine-in' ? (table.trim() || null) : null,
         special_notes: notes.trim() || null,
         payment_method: 'cash',
         items: itemsPayload,
         user_id: userId,
+        order_type: orderType,
+        tip: tipAmount,
+        delivery_address: orderType === 'delivery' ? address.trim() : null,
       });
       clear();
       const params = new URLSearchParams({

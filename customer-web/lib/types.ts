@@ -68,7 +68,7 @@ export type MenuCard =
 // Cart line — variant selection baked into a stable key.
 export interface CartLine {
   key: string; // sku — uniquely identifies the chosen variant/size
-  menu_item_id: string;
+  menu_item_id: string | null;
   name: string; // display name incl. size/cheese, e.g. "Chicken Tikka (Large)"
   price: number;
   quantity: number;

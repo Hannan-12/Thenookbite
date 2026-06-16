@@ -6,7 +6,7 @@ const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { customer_name, customer_phone, table_number, special_notes, payment_method, items, user_id, staff_id } = body;
+  const { customer_name, customer_phone, table_number, special_notes, payment_method, items, user_id, staff_id, order_type, tip, delivery_address } = body;
 
   if (!customer_name || !items?.length) {
     return NextResponse.json({ detail: 'customer_name and items are required' }, { status: 400 });
@@ -35,7 +35,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const total = items.reduce((sum: number, i: { item_price: number; quantity: number }) => sum + i.item_price * i.quantity, 0);
+  const itemsTotal = items.reduce((sum: number, i: { item_price: number; quantity: number }) => sum + i.item_price * i.quantity, 0);
+  const tipAmount  = typeof tip === 'number' && tip > 0 ? Math.round(tip) : 0;
+  const total      = itemsTotal + tipAmount;
+
+  const VALID_ORDER_TYPES = new Set(['dine-in', 'takeaway', 'delivery']);
+  const resolvedOrderType = VALID_ORDER_TYPES.has(order_type) ? order_type : 'dine-in';
 
   const { data: order, error: orderErr } = await db
     .from('orders')
@@ -48,6 +53,9 @@ export async function POST(req: NextRequest) {
       payment_status: payment_method === 'cash' ? 'paid' : 'pending',
       status: 'pending',
       total,
+      tip: tipAmount,
+      order_type: resolvedOrderType,
+      delivery_address: resolvedOrderType === 'delivery' ? (delivery_address || null) : null,
       user_id: user_id || null,
       staff_id: staff_id || null,
       source: staff_id ? 'pos' : 'online',
