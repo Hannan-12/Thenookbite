@@ -58,9 +58,10 @@ export default function CartPage() {
                 </div>
                 <button
                   onClick={() => removeLine(l.key)}
-                  className="text-muted hover:text-brand-red transition-colors p-1 flex-shrink-0"
+                  aria-label="Remove item"
+                  className="text-muted hover:text-brand-red transition-colors w-10 h-10 flex items-center justify-center flex-shrink-0 rounded-sm hover:bg-brand-red/5"
                 >
-                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path d="M18 6L6 18M6 6l12 12"/>
                   </svg>
                 </button>
@@ -86,8 +87,12 @@ export default function CartPage() {
                   <button onClick={() => setQuantity(l.key, l.quantity + 1)} className="w-8 h-8 border border-theme text-muted hover:border-primary hover:text-primary flex items-center justify-center text-lg transition-all rounded-sm">+</button>
                 </div>
                 <div className="w-24 text-right font-heading text-primary">{formatPKR(l.price * l.quantity)}</div>
-                <button onClick={() => removeLine(l.key)} className="text-muted hover:text-brand-red transition-colors p-1">
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <button
+                  onClick={() => removeLine(l.key)}
+                  aria-label="Remove item"
+                  className="text-muted hover:text-brand-red transition-colors w-10 h-10 flex items-center justify-center rounded-sm hover:bg-brand-red/5 flex-shrink-0"
+                >
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path d="M18 6L6 18M6 6l12 12"/>
                   </svg>
                 </button>

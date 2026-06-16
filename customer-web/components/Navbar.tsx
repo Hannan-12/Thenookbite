@@ -62,52 +62,57 @@ export function Navbar() {
             : 'bg-surface border-b border-theme'
         }`}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-[108px] flex items-center justify-between">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0" onClick={() => setMenuOpen(false)}>
             <Image
               src="/logo-light.png"
               alt="The Nook Bite"
-              width={105}
-              height={105}
-              className="block dark:hidden w-[105px] h-[105px] object-contain"
+              width={52}
+              height={52}
+              className="block dark:hidden w-[52px] h-[52px] object-contain"
               priority
             />
             <Image
               src="/logo-dark.png"
               alt="The Nook Bite"
-              width={105}
-              height={105}
-              className="hidden dark:block w-[105px] h-[105px] object-contain"
+              width={52}
+              height={52}
+              className="hidden dark:block w-[52px] h-[52px] object-contain"
               priority
             />
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            <Link href="/menu" className="text-muted hover:text-primary font-heading text-sm tracking-widest px-4 py-2 transition-colors duration-200">
-              MENU
-            </Link>
-            <Link
-              ref={cartRef}
-              href="/cart"
-              className="relative flex items-center gap-2 text-muted hover:text-primary font-heading text-sm tracking-widest px-4 py-2 transition-colors duration-200"
-            >
-              CART
-              {mounted && totalItems > 0 && (
-                <span key={totalItems} className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-red px-1 text-xs font-bold text-white animate-pop">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
-            <Link href={profileLink.href} className="text-muted hover:text-primary font-heading text-sm tracking-widest px-4 py-2 transition-colors duration-200">
-              {profileLink.label}
-            </Link>
-            {showProfile && (
-              <Link href="/profile" className="text-muted hover:text-primary font-heading text-sm tracking-widest px-4 py-2 transition-colors duration-200">
-                PROFILE
-              </Link>
-            )}
+            {[
+              { href: '/menu',           label: 'MENU' },
+              { href: '/cart',           label: 'CART', ref: cartRef },
+              { href: profileLink.href,  label: profileLink.label },
+              ...(showProfile ? [{ href: '/profile', label: 'PROFILE' }] : []),
+            ].map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  ref={item.ref as React.Ref<HTMLAnchorElement> | undefined}
+                  className={`relative flex items-center gap-2 font-heading text-sm tracking-widest px-4 py-2 transition-colors duration-200 ${
+                    isActive ? 'text-primary' : 'text-muted hover:text-primary'
+                  }`}
+                >
+                  {item.label}
+                  {item.href === '/cart' && mounted && totalItems > 0 && (
+                    <span key={totalItems} className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-red px-1 text-xs font-bold text-white animate-pop">
+                      {totalItems}
+                    </span>
+                  )}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-4 right-4 h-[2px] bg-brand-red rounded-full" />
+                  )}
+                </Link>
+              );
+            })}
             <div className="ml-2 pl-4 border-l border-theme">
               <ThemeToggle />
             </div>
@@ -150,29 +155,35 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — top-16 matches the new h-16 navbar */}
       {menuOpen && (
         <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMenuOpen(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <nav
-            className="absolute top-16 left-0 right-0 bg-surface border-b border-theme animate-fade-up"
+            className="absolute top-16 left-0 right-0 bg-surface border-b border-theme animate-fade-up shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             {[
-              { href: '/menu',           label: 'MENU' },
-              { href: '/cart',           label: mounted && totalItems > 0 ? `CART (${totalItems})` : 'CART' },
-              { href: profileLink.href,  label: profileLink.label },
+              { href: '/menu',          label: 'MENU' },
+              { href: '/cart',          label: mounted && totalItems > 0 ? `CART (${totalItems})` : 'CART' },
+              { href: profileLink.href, label: profileLink.label },
               ...(showProfile ? [{ href: '/profile', label: 'PROFILE' }] : []),
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center px-6 py-4 font-heading text-sm tracking-widest text-primary border-b border-theme hover:text-brand-red transition-colors duration-200"
-              >
-                {item.label}
-              </Link>
-            ))}
+            ].map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`flex items-center justify-between px-6 py-4 font-heading text-sm tracking-widest border-b border-theme transition-colors duration-200 ${
+                    isActive ? 'text-brand-red' : 'text-primary hover:text-brand-red'
+                  }`}
+                >
+                  {item.label}
+                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-brand-red" />}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       )}
