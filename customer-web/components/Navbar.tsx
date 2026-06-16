@@ -49,8 +49,8 @@ export function Navbar() {
   }, [menuOpen]);
 
   const profileLink = mounted && user
-    ? { href: '/profile', label: 'PROFILE' }
-    : { href: '/login',   label: 'SIGN IN' };
+    ? { href: '/my-orders', label: 'MY ORDERS' }
+    : { href: '/login',     label: 'SIGN IN' };
 
   return (
     <>
