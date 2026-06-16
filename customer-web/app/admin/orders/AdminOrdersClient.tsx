@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { formatPKR } from '@/lib/format';
+import { elapsed, elapsedColor, useStopwatchTick } from '@/lib/useStopwatch';
 
 type OrderItem = { item_name: string; item_price: number; quantity: number };
 type Order = {
@@ -27,6 +28,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
   const [toast, setToast]     = useState<string | null>(null);
   const [error, setError]     = useState<string | null>(null);
   const supabaseRef = useRef(createClient());
+  useStopwatchTick();
 
   const fetchOrders = useCallback(async (silent = false) => {
     const { data, error: err } = await supabaseRef.current
@@ -149,12 +151,20 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
                     </div>
                     <span className="font-heading text-white text-base flex-shrink-0">{formatPKR(order.total)}</span>
                   </div>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-white/30 font-heading tracking-wider">
+                  <div className="mt-2 flex items-center gap-3 text-xs text-white/30 font-heading tracking-wider flex-wrap">
                     <span>{order.customer_name}</span>
                     <span>•</span>
                     <span>{date}</span>
                     <span>•</span>
                     <span>{order.payment_method.toUpperCase()}</span>
+                    {['pending','preparing','ready'].includes(order.status) && (
+                      <>
+                        <span>•</span>
+                        <span className={`tabular-nums font-bold ${elapsedColor(order.created_at)}`}>
+                          ⏱ {elapsed(order.created_at)}
+                        </span>
+                      </>
+                    )}
                   </div>
                   <ul className="mt-3 space-y-0.5">
                     {order.order_items?.map((item, i) => (

@@ -50,6 +50,8 @@ export async function POST(req: NextRequest) {
       total,
       user_id: user_id || null,
       staff_id: staff_id || null,
+      source: staff_id ? 'pos' : 'online',
+      verified: !!staff_id,
     })
     .select()
     .single();

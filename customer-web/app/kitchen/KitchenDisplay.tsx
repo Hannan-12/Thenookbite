@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { elapsed, elapsedColor, useStopwatchTick } from '@/lib/useStopwatch';
 
 type OrderStatus = 'pending' | 'preparing' | 'ready' | 'completed';
 
@@ -24,21 +25,6 @@ interface Order {
   order_items: OrderItem[];
 }
 
-function elapsed(created_at: string): string {
-  const secs = Math.floor((Date.now() - new Date(created_at).getTime()) / 1000);
-  if (secs < 60) return `${secs}s`;
-  const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m`;
-  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-}
-
-function useElapsedTick() {
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setTick(n => n + 1), 10000);
-    return () => clearInterval(t);
-  }, []);
-}
 
 export default function KitchenDisplay() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -50,7 +36,7 @@ export default function KitchenDisplay() {
   const channelRef  = useRef<ReturnType<typeof supabaseRef.current.channel> | null>(null);
   const isFirstConnect = useRef(true);
 
-  useElapsedTick();
+  useStopwatchTick();
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -273,7 +259,7 @@ function OrderCard({
           )}
         </div>
         <div className="text-right">
-          <p className="text-white/40 text-xs tracking-widest">{elapsed(order.created_at)} AGO</p>
+          <p className={`text-xs tracking-widest font-bold tabular-nums ${elapsedColor(order.created_at)}`}>⏱ {elapsed(order.created_at)}</p>
           <p className="text-white/60 text-xs mt-0.5">{order.customer_name}</p>
         </div>
       </div>

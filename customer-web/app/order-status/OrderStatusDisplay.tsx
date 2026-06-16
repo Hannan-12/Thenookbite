@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { elapsed, elapsedColor, useStopwatchTick } from '@/lib/useStopwatch';
 
 interface Order {
   id: string;
@@ -83,6 +84,7 @@ function useClock() {
 export default function OrderStatusDisplay() {
   const { preparing, ready, reconnect, markCollected, collecting } = useOrders();
   const time = useClock();
+  useStopwatchTick();
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-mono overflow-hidden flex flex-col select-none">
@@ -197,6 +199,7 @@ function OrderTile({
           {order.table_number && (
             <p className="text-white/30 text-sm mt-1 tracking-wider">TABLE {order.table_number}</p>
           )}
+          <p className={`text-sm mt-2 tabular-nums font-bold ${elapsedColor(order.created_at)}`}>⏱ {elapsed(order.created_at)}</p>
         </div>
 
         {isReady && (

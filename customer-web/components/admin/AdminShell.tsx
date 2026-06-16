@@ -15,6 +15,7 @@ const NAV = [
   { href: '/admin/ledger',     label: 'LEDGER',     icon: '₨' },
   { href: '/admin/reports',    label: 'REPORTS',    icon: '▲' },
   { href: '/admin/users',      label: 'CUSTOMERS',  icon: '◑' },
+  { href: '/verify',           label: 'VERIFY',     icon: '⊛' },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
