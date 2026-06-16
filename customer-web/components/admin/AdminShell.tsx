@@ -6,16 +6,17 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 const NAV = [
-  { href: '/admin',          label: 'DASHBOARD', icon: '▦' },
-  { href: '/admin/orders',   label: 'ORDERS',    icon: '◈' },
-  { href: '/admin/menu',     label: 'MENU',      icon: '◉' },
-  { href: '/admin/staff',      label: 'STAFF',      icon: '◎' },
-  { href: '/admin/attendance', label: 'ATTENDANCE', icon: '◷' },
-  { href: '/admin/inventory',  label: 'INVENTORY',  icon: '◫' },
-  { href: '/admin/ledger',     label: 'LEDGER',     icon: '₨' },
-  { href: '/admin/reports',    label: 'REPORTS',    icon: '▲' },
-  { href: '/admin/users',      label: 'CUSTOMERS',  icon: '◑' },
-  { href: '/verify',           label: 'VERIFY',     icon: '⊛' },
+  { href: '/admin',               label: 'DASHBOARD',   icon: '▦' },
+  { href: '/admin/orders',        label: 'ORDERS',      icon: '◈' },
+  { href: '/admin/pos-sessions',  label: 'POS SESSIONS',icon: '⊡' },
+  { href: '/admin/menu',          label: 'MENU',        icon: '◉' },
+  { href: '/admin/staff',         label: 'STAFF',       icon: '◎' },
+  { href: '/admin/attendance',    label: 'ATTENDANCE',  icon: '◷' },
+  { href: '/admin/inventory',     label: 'INVENTORY',   icon: '◫' },
+  { href: '/admin/ledger',        label: 'LEDGER',      icon: '₨' },
+  { href: '/admin/reports',       label: 'REPORTS',     icon: '▲' },
+  { href: '/admin/users',         label: 'CUSTOMERS',   icon: '◑' },
+  { href: '/verify',              label: 'VERIFY',      icon: '⊛' },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

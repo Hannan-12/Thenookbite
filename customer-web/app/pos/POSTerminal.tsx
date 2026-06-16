@@ -24,6 +24,19 @@ interface PastOrder {
   order_items: { item_name: string; quantity: number; item_price: number }[];
 }
 
+interface SessionOrder {
+  id: string;
+  total: number;
+  customerName: string;
+  phone: string;
+  table: string;
+  orderType: OrderType;
+  payment: PaymentMethod;
+  items: CartLine[];
+  notes: string;
+  placedAt: Date;
+}
+
 type OrderType = 'dine-in' | 'takeaway';
 type PaymentMethod = 'cash' | 'card';
 
@@ -59,18 +72,9 @@ export function POSTerminal({
   const [payment, setPayment]       = useState<PaymentMethod>('cash');
   const [cartOpen, setCartOpen]     = useState(false);
   const [placing, setPlacing]       = useState(false);
-  const [lastOrder, setLastOrder]   = useState<{
-    id: string;
-    total: number;
-    customerName: string;
-    phone: string;
-    table: string;
-    orderType: OrderType;
-    payment: PaymentMethod;
-    items: CartLine[];
-    notes: string;
-    placedAt: Date;
-  } | null>(null);
+  const [lastOrder, setLastOrder]   = useState<SessionOrder | null>(null);
+  const [sessionOrders, setSessionOrders] = useState<SessionOrder[]>([]);
+  const [sessionOpen, setSessionOpen]     = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -180,7 +184,7 @@ export function POSTerminal({
         throw new Error(err.detail ?? 'Order failed');
       }
       const order = await res.json();
-      setLastOrder({
+      const completedOrder: SessionOrder = {
         id: order.id,
         total: order.total,
         customerName: customer || (orderType === 'dine-in' ? `Table ${table || '?'}` : 'Counter'),
@@ -191,7 +195,9 @@ export function POSTerminal({
         items: [...cart],
         notes,
         placedAt: new Date(),
-      });
+      };
+      setLastOrder(completedOrder);
+      setSessionOrders(prev => [completedOrder, ...prev]);
       clearCart();
       showToast('Order placed!');
     } catch (e) {
@@ -206,9 +212,10 @@ export function POSTerminal({
     setTimeout(() => setToast(null), 2000);
   }
 
-  function printReceipt() {
-    if (!lastOrder) return;
-    const { id, total, customerName, phone, table, orderType, payment, items, notes, placedAt } = lastOrder;
+  function printReceipt(order?: SessionOrder) {
+    const target = order ?? lastOrder;
+    if (!target) return;
+    const { id, total, customerName, phone, table, orderType, payment, items, notes, placedAt } = target;
     const dateStr = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const subtotal = items.reduce((s, l) => s + l.price * l.quantity, 0);
@@ -551,7 +558,7 @@ export function POSTerminal({
               VIEW ORDER →
             </a>
             <button
-              onClick={printReceipt}
+              onClick={() => printReceipt()}
               className="font-heading text-[10px] tracking-widest text-white/40 hover:text-white border border-white/10 hover:border-white/30 px-2 py-1 rounded-sm transition-colors"
             >
               🖨 PRINT
@@ -587,6 +594,17 @@ export function POSTerminal({
               <span className="font-heading text-[10px] tracking-widest text-white/40 uppercase">{staffName}</span>
               <span className="font-heading text-[9px] px-1.5 py-0.5 border border-white/10 text-white/20 rounded-sm uppercase hidden sm:inline">{staffRole}</span>
             </div>
+            <button
+              onClick={() => setSessionOpen(true)}
+              className="relative font-heading text-[10px] tracking-widest text-white/40 hover:text-white transition-colors border border-white/10 hover:border-white/30 px-2.5 py-1 rounded-sm"
+            >
+              SESSION
+              {sessionOrders.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-[#E4002B] text-white text-[9px] font-heading w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                  {sessionOrders.length}
+                </span>
+              )}
+            </button>
             <button
               onClick={async () => { await createClient().auth.signOut(); window.location.href = '/pos/login'; }}
               className="font-heading text-[10px] tracking-widest text-white/20 hover:text-white transition-colors"
@@ -706,6 +724,99 @@ export function POSTerminal({
             </div>
             <div className="flex-1 overflow-y-auto min-h-0">
               {cartPanel}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Session orders slide-over ──────────────────────────────────── */}
+      {sessionOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/70"
+            onClick={() => setSessionOpen(false)}
+          />
+          <div className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-[#111] border-l border-white/10 flex flex-col shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 flex-shrink-0">
+              <div>
+                <p className="font-heading text-xs tracking-[0.3em] text-[#E4002B] mb-0.5">CASHIER HISTORY</p>
+                <p className="font-heading text-lg text-white">SESSION ORDERS</p>
+              </div>
+              <button
+                onClick={() => setSessionOpen(false)}
+                className="font-heading text-xs text-white/30 hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-sm transition-colors"
+              >
+                CLOSE ✕
+              </button>
+            </div>
+
+            {/* Summary bar */}
+            {sessionOrders.length > 0 && (
+              <div className="px-5 py-3 border-b border-white/5 flex-shrink-0 flex items-center justify-between bg-white/[0.02]">
+                <div>
+                  <p className="font-heading text-[10px] tracking-widest text-white/30">{sessionOrders.length} ORDER{sessionOrders.length !== 1 ? 'S' : ''} THIS SESSION</p>
+                  <p className="font-heading text-xl text-white mt-0.5">
+                    {formatPKR(sessionOrders.reduce((s, o) => s + o.total, 0))}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-heading text-[10px] tracking-widest text-white/30">{staffName}</p>
+                  <p className="font-heading text-xs text-white/40 mt-0.5">{staffRole.toUpperCase()}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Order list */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              {sessionOrders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-white/20 gap-2">
+                  <span className="font-heading text-3xl">◎</span>
+                  <span className="font-heading text-xs tracking-widest">NO ORDERS YET THIS SESSION</span>
+                </div>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {sessionOrders.map((o, idx) => (
+                    <div key={o.id} className="px-5 py-4">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-heading text-sm text-white">#{o.id.slice(-6).toUpperCase()}</span>
+                            <span className="font-heading text-[10px] px-1.5 py-0.5 border border-white/10 text-white/30 rounded-sm">
+                              {o.orderType === 'dine-in' ? (o.table ? `TABLE ${o.table}` : 'DINE-IN') : 'TAKEAWAY'}
+                            </span>
+                            {idx === 0 && (
+                              <span className="font-heading text-[9px] px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 text-green-400 rounded-sm">LATEST</span>
+                            )}
+                          </div>
+                          <p className="font-heading text-xs text-white/30 tracking-wider">
+                            {o.customerName} · {o.placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-heading text-sm text-white">{formatPKR(o.total)}</p>
+                          <p className="font-heading text-[10px] text-white/30">{o.payment.toUpperCase()}</p>
+                        </div>
+                      </div>
+                      {/* Items */}
+                      <div className="mb-3 space-y-0.5">
+                        {o.items.map((item, i) => (
+                          <p key={i} className="font-body text-xs text-white/30">
+                            {item.quantity}× {item.name} <span className="text-white/15">— {formatPKR(item.price * item.quantity)}</span>
+                          </p>
+                        ))}
+                      </div>
+                      {/* Reprint */}
+                      <button
+                        onClick={() => printReceipt(o)}
+                        className="font-heading text-[10px] tracking-widest text-white/40 hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-sm transition-colors"
+                      >
+                        🖨 REPRINT RECEIPT
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </>
