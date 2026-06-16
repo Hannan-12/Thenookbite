@@ -24,7 +24,8 @@ export default function SignupPage() {
     e.preventDefault();
     if (!name.trim()) { setError('Please enter your name.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
-    if (phone && !isValidPakistaniPhone(normalizePhone(phone))) {
+    if (!phone) { setError('Phone number is required.'); return; }
+    if (!isValidPakistaniPhone(normalizePhone(phone))) {
       setError('Enter a valid Pakistani mobile number (03XXXXXXXXX).');
       return;
     }
@@ -109,8 +110,7 @@ export default function SignupPage() {
 
             <div>
               <label className="font-heading text-[10px] tracking-[0.25em] text-white/30 block mb-2">
-                PHONE NUMBER
-                <span className="text-white/20 normal-case font-body tracking-normal ml-2">(optional)</span>
+                PHONE NUMBER <span className="text-brand-red">*</span>
               </label>
               <div className="relative">
                 <input
@@ -119,13 +119,13 @@ export default function SignupPage() {
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="03001234567"
                   maxLength={11}
+                  required
                   className={inputClass}
                 />
                 {phone && isValidPakistaniPhone(normalizePhone(phone)) && (
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-green-400 text-sm">✓</span>
                 )}
               </div>
-              <p className="text-white/20 text-xs mt-1.5 font-body">Used to match your past orders</p>
             </div>
 
             <div>
