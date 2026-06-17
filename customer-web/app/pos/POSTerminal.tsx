@@ -125,7 +125,9 @@ export function POSTerminal({
         }));
         setSessionOrders(loaded);
       })
-      .catch(() => {});
+      .catch((err: unknown) => {
+        console.error('Failed to load session orders', err instanceof Error ? err.message : err);
+      });
   }, [staffId, sessionId]);
 
   // ── Phone lookup ─────────────────────────────────────────────────────────────

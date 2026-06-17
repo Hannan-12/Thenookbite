@@ -19,7 +19,13 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const { id, action, reject_reason, rider_name } = await req.json() as {
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { id, action, reject_reason, rider_name } = body as {
     id: string;
     action: 'approve' | 'reject';
     reject_reason?: string;

@@ -7,7 +7,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  const { stock_qty, low_stock_threshold, note } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { stock_qty, low_stock_threshold, note } = body;
   const db = createServiceClient();
 
   // Fetch current qty first

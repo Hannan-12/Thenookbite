@@ -27,7 +27,13 @@ export async function POST(req: NextRequest) {
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  const { menu_item_id, ingredient_id, quantity } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { menu_item_id, ingredient_id, quantity } = body;
   if (!menu_item_id || !ingredient_id) {
     return NextResponse.json({ detail: 'menu_item_id and ingredient_id are required' }, { status: 400 });
   }

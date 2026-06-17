@@ -45,14 +45,21 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
   const [data, setData]       = useState<DashboardData>(initial);
   const [lastSync, setLastSync] = useState(new Date());
 
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+
   const refresh = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/dashboard', { cache: 'no-store' });
       if (res.ok) {
         setData(await res.json());
         setLastSync(new Date());
+        setRefreshError(null);
+      } else {
+        setRefreshError('Failed to refresh dashboard');
       }
-    } catch {}
+    } catch {
+      setRefreshError('Network error — check your connection');
+    }
   }, []);
 
   useEffect(() => {
@@ -96,6 +103,12 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
           </button>
         </div>
       </div>
+
+      {refreshError && (
+        <div className="mb-4 border border-red-500/30 bg-red-500/5 rounded-sm px-4 py-3 text-red-400 font-heading text-xs tracking-wider">
+          {refreshError}
+        </div>
+      )}
 
       {/* Order status counts */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">

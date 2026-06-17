@@ -6,7 +6,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  const { is_banned } = await req.json() as { is_banned: boolean };
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { is_banned } = body as { is_banned: boolean };
   const db = createServiceClient();
 
   // Upsert profile row with is_banned flag
@@ -18,7 +24,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   // If banning, also revoke their active sessions immediately
   if (is_banned) {
-    await db.auth.admin.signOut(params.id, 'others');
+    const { error: signOutErr } = await db.auth.admin.signOut(params.id, 'others');
+    if (signOutErr) console.error('Failed to sign out banned user', params.id, signOutErr.message);
   }
 
   return NextResponse.json({ ok: true, is_banned });

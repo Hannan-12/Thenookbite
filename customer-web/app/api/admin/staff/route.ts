@@ -20,7 +20,13 @@ export async function POST(req: NextRequest) {
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  const { full_name, email, password, role, staff_type, pin } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { full_name, email, password, role, staff_type, pin } = body;
 
   if (!full_name || !email || !password) {
     return NextResponse.json({ detail: 'full_name, email and password are required' }, { status: 400 });
@@ -59,7 +65,7 @@ export async function POST(req: NextRequest) {
     const resolvedStaffType = staff_type ?? 'pos';
     const isPOS = resolvedStaffType === 'pos';
 
-    await fetch('https://api.resend.com/emails', {
+    const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendKey}` },
       body: JSON.stringify({
@@ -98,6 +104,7 @@ export async function POST(req: NextRequest) {
         `,
       }),
     });
+    if (!emailRes.ok) console.error('Failed to send welcome email to', email);
   }
 
   return NextResponse.json(staff, { status: 201 });

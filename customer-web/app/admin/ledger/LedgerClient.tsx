@@ -339,7 +339,7 @@ function PurchasesTab() {
       setPurchases(Array.isArray(p) ? p : []);
       setVendors(Array.isArray(v) ? v : []);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => { setLoading(false); showToast('Failed to load purchases', false); });
   }, [dates.from, dates.to]);
 
   function handleVendorSelect(id: string) {
@@ -493,7 +493,7 @@ function ExpensesTab() {
     fetch(`/api/admin/ledger/expenses?from_date=${dates.from}&to_date=${dates.to}`)
       .then(r => r.ok ? r.json() : [])
       .then(data => { setExpenses(Array.isArray(data) ? data : []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setLoading(false); showToast('Failed to load expenses', false); });
   }, [dates.from, dates.to]);
 
   async function handleAdd(e: React.FormEvent) {
@@ -640,7 +640,7 @@ function VendorsTab() {
     fetch('/api/admin/ledger/vendors')
       .then(r => r.ok ? r.json() : [])
       .then(data => { setVendors(Array.isArray(data) ? data : []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setLoading(false); showToast('Failed to load vendors', false); });
   }, []);
 
   async function handleAdd(e: React.FormEvent) {

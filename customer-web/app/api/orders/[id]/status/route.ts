@@ -4,7 +4,13 @@ import { createServiceClient } from '@/lib/supabase/service';
 const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const { status } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { status } = body;
 
   if (!VALID_STATUSES.has(status)) {
     return NextResponse.json({ detail: 'Invalid status' }, { status: 400 });

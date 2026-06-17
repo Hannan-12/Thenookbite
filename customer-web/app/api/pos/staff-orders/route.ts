@@ -25,7 +25,8 @@ export async function GET(req: NextRequest) {
   if (sessionId && data?.length) {
     const unlinked = data.filter(o => !o.session_id).map(o => o.id);
     if (unlinked.length) {
-      await db.from('orders').update({ session_id: sessionId }).in('id', unlinked);
+      const { error: backfillErr } = await db.from('orders').update({ session_id: sessionId }).in('id', unlinked);
+      if (backfillErr) console.error('Failed to back-fill session_id on orders', backfillErr.message);
     }
   }
 

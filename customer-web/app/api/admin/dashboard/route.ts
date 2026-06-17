@@ -13,17 +13,19 @@ export async function GET() {
   today.setHours(0, 0, 0, 0);
 
   // Today's orders with items and staff
-  const { data: orders } = await db
+  const { data: orders, error: ordersErr } = await db
     .from('orders')
     .select('id, status, total, created_at, staff_id')
     .gte('created_at', today.toISOString())
     .order('created_at', { ascending: false });
+  if (ordersErr) return NextResponse.json({ detail: ordersErr.message }, { status: 500 });
 
   // Items sold today
-  const { data: items } = await db
+  const { data: items, error: itemsErr } = await db
     .from('order_items')
     .select('quantity, orders!inner(created_at)')
     .gte('orders.created_at', today.toISOString());
+  if (itemsErr) console.error('Dashboard: failed to fetch items sold', itemsErr.message);
 
   const itemsSold = (items ?? []).reduce((s: number, i: { quantity: number }) => s + i.quantity, 0);
 

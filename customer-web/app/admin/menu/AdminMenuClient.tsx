@@ -17,15 +17,23 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
 
   async function toggleAvailability(item: MenuItem) {
     setLoading(item.id);
-    const res = await fetch(`/api/menu/${item.id}/availability`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ available: !item.available }),
-    });
-    setLoading(null);
-    if (res.ok) {
-      setItems(prev => prev.map(i => i.id === item.id ? { ...i, available: !i.available } : i));
-      showToast(`${item.name} marked as ${!item.available ? 'available' : 'unavailable'}`);
+    try {
+      const res = await fetch(`/api/menu/${item.id}/availability`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ available: !item.available }),
+      });
+      setLoading(null);
+      if (res.ok) {
+        setItems(prev => prev.map(i => i.id === item.id ? { ...i, available: !i.available } : i));
+        showToast(`${item.name} marked as ${!item.available ? 'available' : 'unavailable'}`);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast((err as { detail?: string }).detail ?? 'Failed to update availability');
+      }
+    } catch {
+      setLoading(null);
+      showToast('Network error — could not update availability');
     }
   }
 

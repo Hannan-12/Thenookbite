@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isValidPakistaniPhone } from '@/lib/format';
 
 export async function POST(req: NextRequest) {
-  const { name, phone, position, message } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { name, phone, position, message } = body;
 
   if (!name || !phone || !position) {
     return NextResponse.json({ detail: 'Name, phone and position are required.' }, { status: 400 });

@@ -31,7 +31,13 @@ export async function POST(req: NextRequest) {
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  const { category, amount, description, expense_date } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { category, amount, description, expense_date } = body;
 
   if (!category?.trim()) return NextResponse.json({ detail: 'category is required' }, { status: 400 });
   if (!amount || amount <= 0) return NextResponse.json({ detail: 'amount must be positive' }, { status: 400 });

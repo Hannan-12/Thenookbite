@@ -30,7 +30,13 @@ export async function POST(req: NextRequest) {
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  const { vendor_id, vendor_name, amount, description, purchase_date } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { vendor_id, vendor_name, amount, description, purchase_date } = body;
 
   if (!vendor_name?.trim()) return NextResponse.json({ detail: 'vendor_name is required' }, { status: 400 });
   if (!amount || amount <= 0) return NextResponse.json({ detail: 'amount must be positive' }, { status: 400 });

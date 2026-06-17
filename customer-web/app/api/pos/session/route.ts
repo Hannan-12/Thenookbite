@@ -3,7 +3,13 @@ import { createServiceClient } from '@/lib/supabase/service';
 
 // POST /api/pos/session — open a new POS session for a staff member
 export async function POST(req: NextRequest) {
-  const { staff_id } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { staff_id } = body;
   if (!staff_id) return NextResponse.json({ detail: 'staff_id required' }, { status: 400 });
 
   const db = createServiceClient();

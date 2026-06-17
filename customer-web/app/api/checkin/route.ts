@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 
 export async function POST(req: NextRequest) {
-  const { pin } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { pin } = body;
 
   if (!pin || pin.length !== 4) {
     return NextResponse.json({ detail: 'Enter a 4-digit PIN' }, { status: 400 });
@@ -37,10 +43,11 @@ export async function POST(req: NextRequest) {
 
   if (existing?.check_in && !existing?.check_out) {
     // Already checked in — this is a check-out
-    await db
+    const { error: checkoutErr } = await db
       .from('attendance')
       .update({ check_out: now })
       .eq('id', existing.id);
+    if (checkoutErr) return NextResponse.json({ detail: checkoutErr.message }, { status: 500 });
 
     const hoursWorked = existing.check_in
       ? ((new Date(now).getTime() - new Date(existing.check_in).getTime()) / 3600000).toFixed(1)
@@ -61,12 +68,13 @@ export async function POST(req: NextRequest) {
   // Late if checking in after 10:00 AM Pakistan time
   const status = pkHour >= 10 ? 'late' : 'present';
 
-  await db.from('attendance').upsert({
+  const { error: checkinErr } = await db.from('attendance').upsert({
     staff_id:  staff.id,
     date:      today,
     check_in:  now,
     status,
   }, { onConflict: 'staff_id,date' });
+  if (checkinErr) return NextResponse.json({ detail: checkinErr.message }, { status: 500 });
 
   return NextResponse.json({
     action: 'checkin',

@@ -5,7 +5,12 @@ import { isValidPakistaniPhone, normalizePhone } from '@/lib/format';
 const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
   const { customer_name, customer_phone, table_number, special_notes, payment_method, items, user_id, staff_id, session_id, order_type, tip, delivery_address, rider_name } = body;
 
   if (!customer_name || !items?.length) {
@@ -76,7 +81,11 @@ export async function POST(req: NextRequest) {
     quantity: i.quantity,
   }));
 
-  await db.from('order_items').insert(itemRows);
+  const { error: itemsErr } = await db.from('order_items').insert(itemRows);
+  if (itemsErr) {
+    console.error('Failed to insert order_items for order', order.id, itemsErr.message);
+    return NextResponse.json({ detail: 'Order created but failed to save items. Please contact support.' }, { status: 500 });
+  }
 
   // Auto-deduct stock based on recipes (fire-and-forget — don't fail the order if this errors)
   try {
@@ -122,8 +131,8 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-  } catch (_) {
-    // Stock deduction failure must never block order creation
+  } catch (stockErr) {
+    console.error('Stock deduction failed for order', order.id, stockErr instanceof Error ? stockErr.message : stockErr);
   }
 
   return NextResponse.json(order, { status: 201 });

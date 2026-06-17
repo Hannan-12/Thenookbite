@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const { available } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { available } = body;
   const db = createServiceClient();
 
   const { data, error } = await db

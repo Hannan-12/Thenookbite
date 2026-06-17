@@ -21,7 +21,13 @@ export async function GET() {
 
 // Mark a ready order as collected (completed). Called from the order-status display screen.
 export async function PATCH(req: NextRequest) {
-  const { id } = await req.json() as { id: string };
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ detail: 'Invalid JSON in request body' }, { status: 400 });
+  }
+  const { id } = body as { id: string };
   if (!id) return NextResponse.json({ detail: 'id required' }, { status: 400 });
 
   const db = createServiceClient();

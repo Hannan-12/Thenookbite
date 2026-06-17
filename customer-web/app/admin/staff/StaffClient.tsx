@@ -58,14 +58,21 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
   }
 
   async function toggleActive(id: string, current: boolean) {
-    const res = await fetch(`/api/admin/staff/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_active: !current }),
-    });
-    if (res.ok) {
-      setStaff(prev => prev.map(s => s.id === id ? { ...s, is_active: !current } : s));
-      router.refresh();
+    try {
+      const res = await fetch(`/api/admin/staff/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !current }),
+      });
+      if (res.ok) {
+        setStaff(prev => prev.map(s => s.id === id ? { ...s, is_active: !current } : s));
+        router.refresh();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setError((err as { detail?: string }).detail ?? 'Failed to update staff status');
+      }
+    } catch {
+      setError('Network error — could not update staff status');
     }
   }
 
