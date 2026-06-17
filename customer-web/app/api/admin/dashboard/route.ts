@@ -1,25 +1,22 @@
 import { NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
-  const db = createServiceClient();
+  const db = result.db;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Today's orders with items and staff
   const { data: orders } = await db
     .from('orders')
     .select('id, status, total, created_at, staff_id')
     .gte('created_at', today.toISOString())
     .order('created_at', { ascending: false });
 
-  // Items sold today
   const { data: items } = await db
     .from('order_items')
     .select('quantity, orders!inner(created_at)')
@@ -27,7 +24,6 @@ export async function GET() {
 
   const itemsSold = (items ?? []).reduce((s: number, i: { quantity: number }) => s + i.quantity, 0);
 
-  // Staff stats — count orders per staff_id today
   const allOrders = orders ?? [];
   const staffMap: Record<string, number> = {};
   for (const o of allOrders) {
@@ -52,14 +48,12 @@ export async function GET() {
       .sort((a, b) => b.count - a.count);
   }
 
-  // Low stock ingredients
   const { data: allIngredients } = await db
     .from('ingredients')
     .select('id, name, unit, stock_qty, low_stock_threshold');
 
   const lowStock = (allIngredients ?? []).filter(i => i.stock_qty <= i.low_stock_threshold);
 
-  // Today's profit
   const todayISO = today.toISOString().slice(0, 10);
   const [purchasesRes, expensesRes] = await Promise.all([
     db.from('purchases').select('amount').eq('purchase_date', todayISO),

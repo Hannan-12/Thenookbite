@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb } from '@/lib/api-helpers';
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const body = await req.json();
-  const db = createServiceClient();
-
-  const { data, error } = await db
+  const { data, error } = await result.db
     .from('staff')
     .update(body)
     .eq('id', params.id)
@@ -18,30 +15,25 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   if (error) return NextResponse.json({ detail: error.message }, { status: 500 });
 
-  // If deactivating, kill their auth session immediately
   if (body.is_active === false) {
-    await db.auth.admin.signOut(params.id, 'others');
+    await result.db.auth.admin.signOut(params.id, 'others');
   }
 
   return NextResponse.json(data);
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
-  const db = createServiceClient();
-
-  // Deactivate instead of hard delete to preserve order history
-  const { error } = await db
+  const { error } = await result.db
     .from('staff')
     .update({ is_active: false })
     .eq('id', params.id);
 
   if (error) return NextResponse.json({ detail: error.message }, { status: 500 });
 
-  // Kill their auth session immediately
-  await db.auth.admin.signOut(params.id, 'others');
+  await result.db.auth.admin.signOut(params.id, 'others');
 
   return NextResponse.json({ ok: true });
 }

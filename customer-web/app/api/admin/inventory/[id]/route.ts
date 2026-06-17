@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb } from '@/lib/api-helpers';
 
-// PATCH: update stock_qty (restock) or low_stock_threshold
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const { stock_qty, low_stock_threshold, note } = await req.json();
-  const db = createServiceClient();
+  const db = result.db;
 
-  // Fetch current qty first
   const { data: current } = await db
     .from('ingredients')
     .select('stock_qty')
@@ -30,7 +27,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   if (error) return NextResponse.json({ detail: error.message }, { status: 400 });
 
-  // Log stock movement if qty changed
   if (stock_qty !== undefined && current) {
     const qtyChange = stock_qty - current.stock_qty;
     await db.from('stock_movements').insert({

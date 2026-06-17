@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const { searchParams } = new URL(req.url);
   const from = searchParams.get('from_date');
   const to   = searchParams.get('to_date');
 
-  const db = createServiceClient();
-  let query = db
+  let query = result.db
     .from('purchases')
     .select('id, vendor_id, vendor_name, amount, description, purchase_date, created_at')
     .order('purchase_date', { ascending: false });
@@ -27,16 +25,15 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const { vendor_id, vendor_name, amount, description, purchase_date } = await req.json();
 
   if (!vendor_name?.trim()) return NextResponse.json({ detail: 'vendor_name is required' }, { status: 400 });
   if (!amount || amount <= 0) return NextResponse.json({ detail: 'amount must be positive' }, { status: 400 });
 
-  const db = createServiceClient();
-  const { data, error } = await db
+  const { data, error } = await result.db
     .from('purchases')
     .insert({
       vendor_id:     vendor_id || null,

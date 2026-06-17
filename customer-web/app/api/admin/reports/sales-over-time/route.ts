@@ -1,35 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb, parseDateRange } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const { searchParams } = new URL(req.url);
-  const from     = searchParams.get('from_date');
-  const to       = searchParams.get('to_date');
   const group_by = searchParams.get('group_by') ?? 'day';
 
-  if (!from || !to) {
-    return NextResponse.json({ detail: 'from_date and to_date are required' }, { status: 400 });
-  }
+  const range = parseDateRange(req);
+  if (range instanceof NextResponse) return range;
 
-  const db = createServiceClient();
-  const toEnd = new Date(to);
-  toEnd.setDate(toEnd.getDate() + 1);
-
-  const { data: orders } = await db
+  const { data: orders } = await result.db
     .from('orders')
     .select('id, total, created_at')
     .eq('status', 'completed')
-    .gte('created_at', new Date(from).toISOString())
-    .lt('created_at', toEnd.toISOString())
+    .gte('created_at', new Date(range.from).toISOString())
+    .lt('created_at', range.toEndISO)
     .order('created_at', { ascending: true });
 
-  // Group in JS — avoids needing raw SQL / RPC
   const buckets: Record<string, { revenue: number; orders: number }> = {};
 
   for (const order of orders ?? []) {
@@ -39,7 +30,6 @@ export async function GET(req: NextRequest) {
     if (group_by === 'month') {
       key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     } else if (group_by === 'week') {
-      // ISO week start (Monday)
       const day = d.getDay() === 0 ? 6 : d.getDay() - 1;
       const monday = new Date(d);
       monday.setDate(d.getDate() - day);
@@ -53,7 +43,7 @@ export async function GET(req: NextRequest) {
     buckets[key].orders  += 1;
   }
 
-  const result = Object.entries(buckets)
+  const data = Object.entries(buckets)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, val]) => {
       let label: string;
@@ -68,5 +58,5 @@ export async function GET(req: NextRequest) {
       return { label, revenue: val.revenue, orders: val.orders };
     });
 
-  return NextResponse.json(result);
+  return NextResponse.json(data);
 }

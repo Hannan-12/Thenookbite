@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb } from '@/lib/api-helpers';
 
 export async function GET() {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
-  const db = createServiceClient();
-  const { data, error } = await db
+  const { data, error } = await result.db
     .from('staff')
     .select('id, full_name, email, role, staff_type, pin, is_active, created_at')
     .order('created_at', { ascending: false });
@@ -17,8 +15,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const { full_name, email, password, role, staff_type, pin } = await req.json();
 
@@ -26,9 +24,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ detail: 'full_name, email and password are required' }, { status: 400 });
   }
 
-  const db = createServiceClient();
+  const db = result.db;
 
-  // Create Supabase auth user
   const { data: authData, error: authError } = await db.auth.admin.createUser({
     email,
     password,
@@ -38,7 +35,6 @@ export async function POST(req: NextRequest) {
 
   if (authError) return NextResponse.json({ detail: authError.message }, { status: 400 });
 
-  // Insert into staff table
   const { data: staff, error: staffError } = await db
     .from('staff')
     .insert({ id: authData.user.id, full_name, email, role: role ?? 'cashier', staff_type: staff_type ?? 'pos', pin: pin ?? null })
@@ -46,12 +42,10 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (staffError) {
-    // Rollback auth user
     await db.auth.admin.deleteUser(authData.user.id);
     return NextResponse.json({ detail: staffError.message }, { status: 500 });
   }
 
-  // Send welcome email via Resend
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
     const emailDomain = process.env.EMAIL_DOMAIN ?? 'thenookbite.com';

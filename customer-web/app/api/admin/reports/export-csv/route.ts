@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const { searchParams, origin } = new URL(req.url);
   const from    = searchParams.get('from_date');
@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ detail: 'from_date and to_date are required' }, { status: 400 });
   }
 
-  // Fetch data from the relevant report API
   let apiUrl: string;
   if (type === 'items') {
     apiUrl = `${origin}/api/admin/reports/top-items?from_date=${from}&to_date=${to}&sort_by=${sort_by}&limit=100`;
@@ -27,7 +26,6 @@ export async function GET(req: NextRequest) {
     apiUrl = `${origin}/api/admin/reports/sales-over-time?from_date=${from}&to_date=${to}&group_by=day`;
   }
 
-  // Forward the cookie so auth passes
   const cookie = req.headers.get('cookie') ?? '';
   const dataRes = await fetch(apiUrl, { headers: { cookie } });
   if (!dataRes.ok) return NextResponse.json({ detail: 'Failed to fetch report data' }, { status: 500 });

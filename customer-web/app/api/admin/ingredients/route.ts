@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb } from '@/lib/api-helpers';
 
 export async function GET() {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
-  const db = createServiceClient();
-  const { data, error } = await db
+  const { data, error } = await result.db
     .from('ingredients')
     .select('*')
     .order('name');
@@ -17,14 +15,13 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const { name, unit } = await req.json();
   if (!name?.trim()) return NextResponse.json({ detail: 'name is required' }, { status: 400 });
 
-  const db = createServiceClient();
-  const { data, error } = await db
+  const { data, error } = await result.db
     .from('ingredients')
     .insert({ name: name.trim(), unit: unit ?? 'g' })
     .select()

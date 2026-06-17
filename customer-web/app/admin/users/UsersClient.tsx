@@ -2,33 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { formatPKR } from '@/lib/format';
+import { formatPKR, fmtDate, fmtDateTime } from '@/lib/format';
+import { CustomerInfo } from '@/lib/customer-stats';
 
-interface Customer {
-  id: string;
-  email: string;
-  full_name: string | null;
-  phone: string | null;
-  joined_at: string;
-  last_sign_in: string | null;
-  order_count: number;
-  total_spent: number;
-  last_order_at: string | null;
-  is_banned: boolean;
-}
-
-function fmtDate(iso: string | null) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function fmtDateTime(iso: string | null) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleString('en-PK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-}
-
-export function UsersClient({ initialUsers }: { initialUsers: Customer[] }) {
-  const [users, setUsers]         = useState<Customer[]>(initialUsers);
+export function UsersClient({ initialUsers }: { initialUsers: CustomerInfo[] }) {
+  const [users, setUsers]         = useState<CustomerInfo[]>(initialUsers);
   const [search, setSearch]       = useState('');
   const [loading, setLoading]     = useState(false);
   const [banningId, setBanningId] = useState<string | null>(null);

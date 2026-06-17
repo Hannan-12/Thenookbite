@@ -1,44 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase/service';
-import { requireAdminApi } from '@/lib/admin-auth';
+import { withAdminDb, parseDateRange, getCompletedOrderIds } from '@/lib/api-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const authErr = await requireAdminApi();
-  if (authErr) return authErr;
+  const result = await withAdminDb();
+  if (result.error) return result.error;
 
   const { searchParams } = new URL(req.url);
-  const from    = searchParams.get('from_date');
-  const to      = searchParams.get('to_date');
   const sort_by = searchParams.get('sort_by') ?? 'revenue';
   const limit   = parseInt(searchParams.get('limit') ?? '10');
 
-  if (!from || !to) {
-    return NextResponse.json({ detail: 'from_date and to_date are required' }, { status: 400 });
-  }
+  const range = parseDateRange(req);
+  if (range instanceof NextResponse) return range;
 
-  const db = createServiceClient();
-  const toEnd = new Date(to);
-  toEnd.setDate(toEnd.getDate() + 1);
-
-  // Get completed order IDs in range
-  const { data: orders } = await db
-    .from('orders')
-    .select('id')
-    .eq('status', 'completed')
-    .gte('created_at', new Date(from).toISOString())
-    .lt('created_at', toEnd.toISOString());
-
-  const orderIds = (orders ?? []).map(o => o.id);
+  const { orderIds } = await getCompletedOrderIds(result.db, range.from, range.toEndISO);
   if (orderIds.length === 0) return NextResponse.json([]);
 
-  const { data: items } = await db
+  const { data: items } = await result.db
     .from('order_items')
     .select('item_name, item_price, quantity, order_id')
     .in('order_id', orderIds);
 
-  // Aggregate by item_name
   const map: Record<string, { revenue: number; qty: number; orders: Set<string> }> = {};
   for (const row of items ?? []) {
     if (!map[row.item_name]) map[row.item_name] = { revenue: 0, qty: 0, orders: new Set() };
@@ -47,7 +30,7 @@ export async function GET(req: NextRequest) {
     map[row.item_name].orders.add(row.order_id);
   }
 
-  const result = Object.entries(map)
+  const data = Object.entries(map)
     .map(([item_name, v]) => ({
       item_name,
       revenue: v.revenue,
@@ -57,5 +40,5 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => sort_by === 'qty' ? b.qty - a.qty : b.revenue - a.revenue)
     .slice(0, limit);
 
-  return NextResponse.json(result);
+  return NextResponse.json(data);
 }
