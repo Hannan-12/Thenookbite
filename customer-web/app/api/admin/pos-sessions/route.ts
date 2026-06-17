@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { requireAdminApi } from '@/lib/admin-auth';
 
 export async function GET(req: NextRequest) {
+  const authErr = await requireAdminApi();
+  if (authErr) return authErr;
+
   const date   = req.nextUrl.searchParams.get('date');
   const month  = req.nextUrl.searchParams.get('month'); // YYYY-MM
   const db     = createServiceClient();

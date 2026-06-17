@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { requireStaffApi } from '@/lib/admin-auth';
 
 const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const authErr = await requireStaffApi();
+  if (authErr) return authErr;
+
   const { status } = await req.json();
 
   if (!VALID_STATUSES.has(status)) {

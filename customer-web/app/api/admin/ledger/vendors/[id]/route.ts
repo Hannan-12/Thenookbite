@@ -8,9 +8,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const body = await req.json();
   const db = createServiceClient();
+
+  const allowed = ['name', 'phone', 'category', 'notes'];
+  const update: Record<string, unknown> = {};
+  for (const key of allowed) {
+    if (key in body) update[key] = body[key];
+  }
+
   const { data, error } = await db
     .from('vendors')
-    .update(body)
+    .update(update)
     .eq('id', params.id)
     .select()
     .single();

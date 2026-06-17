@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { requireAdminApi } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
+  const authErr = await requireAdminApi();
+  if (authErr) return authErr;
+
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get('mode') ?? 'daily'; // daily | monthly
   const db = createServiceClient();

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { requireStaffApi } from '@/lib/admin-auth';
 
 export async function GET(req: NextRequest) {
+  const authErr = await requireStaffApi();
+  if (authErr) return authErr;
+
   const staffId  = req.nextUrl.searchParams.get('staff_id');
   const sessionId = req.nextUrl.searchParams.get('session_id');
 

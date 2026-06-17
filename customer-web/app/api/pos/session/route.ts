@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { requireStaffApi } from '@/lib/admin-auth';
 
 // POST /api/pos/session — open a new POS session for a staff member
 export async function POST(req: NextRequest) {
+  const authErr = await requireStaffApi();
+  if (authErr) return authErr;
+
   const { staff_id } = await req.json();
   if (!staff_id) return NextResponse.json({ detail: 'staff_id required' }, { status: 400 });
 

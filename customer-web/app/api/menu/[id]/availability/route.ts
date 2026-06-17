@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { requireAdminApi } from '@/lib/admin-auth';
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const authErr = await requireAdminApi();
+  if (authErr) return authErr;
+
   const { available } = await req.json();
   const db = createServiceClient();
 

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { CATEGORIES, type Category, type MenuCard } from '@/lib/types';
-import { formatPKR, isValidPakistaniPhone, normalizePhone } from '@/lib/format';
+import { formatPKR, isValidPakistaniPhone, normalizePhone, escapeHtml } from '@/lib/format';
 import { imageForItem } from '@/lib/itemImages';
 import { createClient } from '@/lib/supabase/client';
 
@@ -285,7 +285,7 @@ export function POSTerminal({
 
     const rows = items.map(l => `
       <tr>
-        <td style="padding:4px 0 2px;font-size:12px;vertical-align:top;">${l.name}</td>
+        <td style="padding:4px 0 2px;font-size:12px;vertical-align:top;">${escapeHtml(l.name)}</td>
         <td style="padding:4px 0 2px;font-size:12px;text-align:center;vertical-align:top;white-space:nowrap;">x${l.quantity}</td>
         <td style="padding:4px 0 2px;font-size:12px;text-align:right;vertical-align:top;white-space:nowrap;">Rs.${(l.price * l.quantity).toLocaleString()}</td>
       </tr>
@@ -342,17 +342,17 @@ export function POSTerminal({
       <tr>
         <td class="small">Type</td>
         <td class="small right">${
-          orderType === 'dine-in'  ? `DINE-IN${table ? ` · TABLE ${table}` : ''}` :
+          orderType === 'dine-in'  ? `DINE-IN${table ? ` · TABLE ${escapeHtml(table)}` : ''}` :
           orderType === 'delivery' ? 'DELIVERY' : 'TAKEAWAY'
         }</td>
       </tr>
-      ${address ? `<tr><td class="small">Address</td><td class="small right" style="max-width:120px;word-break:break-word;">${address}</td></tr>` : ''}
-      ${rider ? `<tr><td class="small">Rider</td><td class="small right">${rider}</td></tr>` : ''}
-      ${customerName ? `<tr><td class="small">Customer</td><td class="small right">${customerName}</td></tr>` : ''}
-      ${phone ? `<tr><td class="small">Phone</td><td class="small right">${phone}</td></tr>` : ''}
+      ${address ? `<tr><td class="small">Address</td><td class="small right" style="max-width:120px;word-break:break-word;">${escapeHtml(address)}</td></tr>` : ''}
+      ${rider ? `<tr><td class="small">Rider</td><td class="small right">${escapeHtml(rider)}</td></tr>` : ''}
+      ${customerName ? `<tr><td class="small">Customer</td><td class="small right">${escapeHtml(customerName)}</td></tr>` : ''}
+      ${phone ? `<tr><td class="small">Phone</td><td class="small right">${escapeHtml(phone)}</td></tr>` : ''}
       <tr>
         <td class="small">Cashier</td>
-        <td class="small right">${staffName}</td>
+        <td class="small right">${escapeHtml(staffName)}</td>
       </tr>
     </table>
   </div>
@@ -400,7 +400,7 @@ export function POSTerminal({
     </tr>
   </table>
 
-  ${notes ? `<hr class="dash"><div class="small" style="margin:3px 0;"><b>Note:</b> ${notes}</div>` : ''}
+  ${notes ? `<hr class="dash"><div class="small" style="margin:3px 0;"><b>Note:</b> ${escapeHtml(notes)}</div>` : ''}
 
   <hr class="solid">
 

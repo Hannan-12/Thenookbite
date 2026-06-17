@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { isValidPakistaniPhone, normalizePhone } from '@/lib/format';
+import { requireStaffApi } from '@/lib/admin-auth';
 
 const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
 
@@ -130,6 +131,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const authErr = await requireStaffApi();
+  if (authErr) return authErr;
+
   const status = req.nextUrl.searchParams.get('status');
   const user_id = req.nextUrl.searchParams.get('user_id');
   const db = createServiceClient();

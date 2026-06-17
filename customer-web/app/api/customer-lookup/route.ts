@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { isValidPakistaniPhone, normalizePhone } from '@/lib/format';
+import { requireStaffApi } from '@/lib/admin-auth';
 
 export async function GET(req: NextRequest) {
+  const authErr = await requireStaffApi();
+  if (authErr) return authErr;
+
   const phone = req.nextUrl.searchParams.get('phone');
 
   if (!phone) return NextResponse.json({ detail: 'phone is required' }, { status: 400 });
