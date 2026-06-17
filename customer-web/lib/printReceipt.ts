@@ -1,3 +1,5 @@
+import { escapeHtml } from '@/lib/format';
+
 export interface ReceiptOrder {
   id: string;
   customer_name: string;
@@ -24,11 +26,11 @@ export function printOrderReceipt(order: ReceiptOrder) {
   const typeLabel =
     orderType === 'delivery' ? 'DELIVERY' :
     orderType === 'takeaway' ? 'TAKEAWAY' :
-    order.table_number       ? `DINE-IN · TABLE ${order.table_number}` : 'DINE-IN';
+    order.table_number       ? `DINE-IN · TABLE ${escapeHtml(order.table_number)}` : 'DINE-IN';
 
   const rows = order.order_items.map(i => `
     <tr>
-      <td style="padding:4px 0 2px;font-size:12px;vertical-align:top;">${i.item_name}</td>
+      <td style="padding:4px 0 2px;font-size:12px;vertical-align:top;">${escapeHtml(i.item_name)}</td>
       <td style="padding:4px 0 2px;font-size:12px;text-align:center;white-space:nowrap;">×${i.quantity}</td>
       <td style="padding:4px 0 2px;font-size:12px;text-align:right;white-space:nowrap;">${i.item_price * i.quantity}</td>
     </tr>`).join('');
@@ -60,11 +62,11 @@ export function printOrderReceipt(order: ReceiptOrder) {
     <tr><td class="small">Date</td><td class="small right">${dateStr}</td></tr>
     <tr><td class="small">Time</td><td class="small right">${timeStr}</td></tr>
     <tr><td class="small">Type</td><td class="small right">${typeLabel}</td></tr>
-    ${order.delivery_address ? `<tr><td class="small">Address</td><td class="small right" style="max-width:120px;word-break:break-word;">${order.delivery_address}</td></tr>` : ''}
-    ${order.rider_name ? `<tr><td class="small">Rider</td><td class="small right">${order.rider_name}</td></tr>` : ''}
-    ${order.customer_name ? `<tr><td class="small">Customer</td><td class="small right">${order.customer_name}</td></tr>` : ''}
-    ${order.customer_phone ? `<tr><td class="small">Phone</td><td class="small right">${order.customer_phone}</td></tr>` : ''}
-    <tr><td class="small">Payment</td><td class="small right">${order.payment_method.toUpperCase()}</td></tr>
+    ${order.delivery_address ? `<tr><td class="small">Address</td><td class="small right" style="max-width:120px;word-break:break-word;">${escapeHtml(order.delivery_address)}</td></tr>` : ''}
+    ${order.rider_name ? `<tr><td class="small">Rider</td><td class="small right">${escapeHtml(order.rider_name)}</td></tr>` : ''}
+    ${order.customer_name ? `<tr><td class="small">Customer</td><td class="small right">${escapeHtml(order.customer_name)}</td></tr>` : ''}
+    ${order.customer_phone ? `<tr><td class="small">Phone</td><td class="small right">${escapeHtml(order.customer_phone)}</td></tr>` : ''}
+    <tr><td class="small">Payment</td><td class="small right">${escapeHtml(order.payment_method.toUpperCase())}</td></tr>
   </table>
 
   <hr class="divider" />
@@ -89,7 +91,7 @@ export function printOrderReceipt(order: ReceiptOrder) {
     </tr>
   </table>
 
-  ${order.special_notes ? `<hr class="divider" /><p class="small center" style="color:#555;">Note: ${order.special_notes}</p>` : ''}
+  ${order.special_notes ? `<hr class="divider" /><p class="small center" style="color:#555;">Note: ${escapeHtml(order.special_notes)}</p>` : ''}
 
   <hr class="divider" />
   <p class="center small" style="color:#555;margin-top:4px;">Thank you for your order!</p>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isValidPakistaniPhone } from '@/lib/format';
+import { isValidPakistaniPhone, escapeHtml } from '@/lib/format';
 
 export async function POST(req: NextRequest) {
   const { name, phone, position, message } = await req.json();
@@ -36,17 +36,17 @@ export async function POST(req: NextRequest) {
 
           <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:24px;margin-bottom:24px">
             <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:2px">POSITION</p>
-            <p style="margin:0 0 20px;font-weight:700;font-size:18px;color:#E4002B">${position}</p>
+            <p style="margin:0 0 20px;font-weight:700;font-size:18px;color:#E4002B">${escapeHtml(position)}</p>
 
             <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:2px">APPLICANT NAME</p>
-            <p style="margin:0 0 20px;font-weight:600;font-size:15px;color:#fff">${name}</p>
+            <p style="margin:0 0 20px;font-weight:600;font-size:15px;color:#fff">${escapeHtml(name)}</p>
 
             <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:2px">PHONE</p>
-            <p style="margin:0 0 20px;font-weight:600;font-size:15px;color:#FFD700">${phone}</p>
+            <p style="margin:0 0 20px;font-weight:600;font-size:15px;color:#FFD700">${escapeHtml(phone)}</p>
 
             ${message ? `
             <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:2px">MESSAGE</p>
-            <p style="margin:0;font-size:14px;color:#ccc;line-height:1.6">${message}</p>
+            <p style="margin:0;font-size:14px;color:#ccc;line-height:1.6">${escapeHtml(message)}</p>
             ` : ''}
           </div>
 

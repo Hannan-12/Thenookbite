@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { requireAdminApi } from '@/lib/admin-auth';
+import { escapeHtml } from '@/lib/format';
 
 export async function GET() {
   const authErr = await requireAdminApi();
@@ -69,21 +70,21 @@ export async function POST(req: NextRequest) {
         html: `
           <div style="font-family:sans-serif;max-width:500px;margin:0 auto;background:#0d0d0d;color:#fff;padding:36px;border-radius:6px">
             <div style="background:#E4002B;color:#fff;font-weight:700;font-size:16px;padding:6px 14px;display:inline-block;letter-spacing:3px;margin-bottom:28px">TNB</div>
-            <h2 style="margin:0 0 6px;font-size:24px;font-weight:700">Welcome, ${full_name}!</h2>
+            <h2 style="margin:0 0 6px;font-size:24px;font-weight:700">Welcome, ${escapeHtml(full_name)}!</h2>
             <p style="color:#888;margin:0 0 28px;font-size:14px">Your staff account at The Nook Bite has been created. Keep these credentials safe.</p>
 
             <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:24px;margin-bottom:24px">
 
               ${isPOS ? `
               <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:2px">POS LOGIN EMAIL</p>
-              <p style="margin:0 0 20px;font-weight:600;font-size:15px;color:#fff">${email}</p>
+              <p style="margin:0 0 20px;font-weight:600;font-size:15px;color:#fff">${escapeHtml(email)}</p>
 
               <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:2px">POS LOGIN PASSWORD</p>
-              <p style="margin:0 0 20px;font-weight:700;font-size:22px;letter-spacing:4px;color:#E4002B;background:#1f0000;padding:10px 16px;border-radius:4px;display:inline-block">${password}</p>
+              <p style="margin:0 0 20px;font-weight:700;font-size:22px;letter-spacing:4px;color:#E4002B;background:#1f0000;padding:10px 16px;border-radius:4px;display:inline-block">${escapeHtml(password)}</p>
               ` : ''}
 
               <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:2px">CHECK-IN PIN</p>
-              <p style="margin:0 0 4px;font-weight:700;font-size:32px;letter-spacing:10px;color:#FFD700;background:#1a1600;padding:12px 20px;border-radius:4px;display:inline-block">${pin ?? '----'}</p>
+              <p style="margin:0 0 4px;font-weight:700;font-size:32px;letter-spacing:10px;color:#FFD700;background:#1a1600;padding:12px 20px;border-radius:4px;display:inline-block">${escapeHtml(pin ?? '----')}</p>
               <p style="margin:8px 0 20px;font-size:12px;color:#555">Enter this PIN on the shared tablet at the entrance to check in and out each day.</p>
 
               <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:2px">ROLE</p>

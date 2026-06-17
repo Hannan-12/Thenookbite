@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { requireStaffApi } from '@/lib/admin-auth';
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const authErr = await requireStaffApi();
+  if (authErr) return authErr;
+
   const db = createServiceClient();
   const { data, error } = await db
     .from('orders')
