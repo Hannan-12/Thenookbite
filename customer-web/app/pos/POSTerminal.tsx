@@ -427,20 +427,16 @@ export function POSTerminal({
     </tr>
     <tr>
       <td class="small" style="padding-top:3px;">Payment</td>
-      <td class="small right" style="padding-top:3px;font-weight:bold;${isPayLater ? 'color:#c2410c;' : ''}">${
-        isPayLater ? 'TO BE PAID' : payment === 'cash' ? 'CASH' : 'CARD'
+      <td class="small right" style="padding-top:3px;font-weight:bold;">${
+        isPayLater ? 'PAY LATER' : payment === 'cash' ? 'CASH' : 'CARD'
       }</td>
     </tr>
   </table>
 
-  ${isPayLater ? `
-  <div style="margin:8px 0;padding:8px;border:2px dashed #c2410c;text-align:center;">
-    <div style="font-size:13px;font-weight:900;letter-spacing:2px;color:#c2410c;">⚠ PAYMENT PENDING</div>
-    <div style="font-size:10px;color:#555;margin-top:3px;">Please collect payment before customer leaves</div>
-  </div>` : `
+  ${!isPayLater ? `
   <div style="margin:8px 0;padding:6px;border:1px solid #16a34a;text-align:center;">
     <div style="font-size:12px;font-weight:bold;letter-spacing:1px;color:#16a34a;">✓ PAID — ${payment === 'cash' ? 'CASH' : 'CARD'}</div>
-  </div>`}
+  </div>` : ''}
 
   ${notes ? `<hr class="dash"><div class="small" style="margin:3px 0;"><b>Note:</b> ${notes}</div>` : ''}
 
@@ -448,7 +444,7 @@ export function POSTerminal({
 
   <!-- FOOTER -->
   <div class="center" style="margin-top:8px;">
-    <div style="font-size:11px;font-weight:bold;letter-spacing:1px;margin-bottom:3px;">${isPayLater ? 'PAYMENT DUE — THANK YOU' : 'THANK YOU FOR YOUR VISIT!'}</div>
+    <div style="font-size:11px;font-weight:bold;letter-spacing:1px;margin-bottom:3px;">THANK YOU FOR YOUR VISIT!</div>
     <div class="small" style="color:#444;margin-bottom:2px;">Please come again</div>
     <div class="small" style="color:#777;">Powered by TNB POS System</div>
   </div>
