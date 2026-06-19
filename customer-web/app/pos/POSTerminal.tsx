@@ -34,13 +34,14 @@ interface SessionOrder {
   rider: string;
   orderType: OrderType;
   payment: PaymentMethod;
+  paymentStatus: 'paid' | 'pending';
   items: CartLine[];
   notes: string;
   placedAt: Date;
 }
 
 type OrderType = 'dine-in' | 'takeaway' | 'delivery';
-type PaymentMethod = 'cash' | 'card';
+type PaymentMethod = 'cash' | 'card' | 'pay_later';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function orderNum(id: string): string {
@@ -85,6 +86,9 @@ export function POSTerminal({
   const [lastOrder, setLastOrder]   = useState<SessionOrder | null>(null);
   const [sessionOrders, setSessionOrders] = useState<SessionOrder[]>([]);
   const [sessionOpen, setSessionOpen]     = useState(false);
+  const [sessionTab, setSessionTab]       = useState<'all' | 'unpaid'>('all');
+  const [settleId, setSettleId]           = useState<string | null>(null);
+  const [settling, setSettling]           = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -99,7 +103,7 @@ export function POSTerminal({
       .then((orders: Array<{
         id: string; total: number; customer_name: string; customer_phone: string;
         table_number: string | null; delivery_address: string | null; rider_name: string | null;
-        order_type: string; payment_method: string;
+        order_type: string; payment_method: string; payment_status: string;
         special_notes: string | null; created_at: string;
         order_items: { item_name: string; item_price: number; quantity: number }[];
       }>) => {
@@ -113,6 +117,7 @@ export function POSTerminal({
           rider: o.rider_name ?? '',
           orderType: (o.order_type as OrderType) ?? 'dine-in',
           payment: (o.payment_method as PaymentMethod) ?? 'cash',
+          paymentStatus: (o.payment_status === 'paid' ? 'paid' : 'pending') as 'paid' | 'pending',
           notes: o.special_notes ?? '',
           placedAt: new Date(o.created_at),
           items: o.order_items.map(i => ({
@@ -253,6 +258,7 @@ export function POSTerminal({
         rider,
         orderType,
         payment,
+        paymentStatus: payment === 'pay_later' ? 'pending' : 'paid',
         items: [...cart],
         notes,
         placedAt: new Date(),
@@ -273,10 +279,35 @@ export function POSTerminal({
     setTimeout(() => setToast(null), 2000);
   }
 
+  async function settleOrder(orderId: string, method: 'cash' | 'card') {
+    setSettling(true);
+    try {
+      const res = await fetch('/api/orders/settle', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, payment_method: method }),
+      });
+      if (!res.ok) throw new Error('Failed to settle');
+      setSessionOrders(prev => prev.map(o =>
+        o.id === orderId ? { ...o, payment: method, paymentStatus: 'paid' } : o
+      ));
+      setSettleId(null);
+      showToast('Payment settled ✓');
+      // Print paid receipt for the settled order
+      const settled = sessionOrders.find(o => o.id === orderId);
+      if (settled) printReceipt({ ...settled, payment: method, paymentStatus: 'paid' });
+    } catch {
+      showToast('Settle failed');
+    } finally {
+      setSettling(false);
+    }
+  }
+
   function printReceipt(order?: SessionOrder) {
     const target = order ?? lastOrder;
     if (!target) return;
-    const { id, total, customerName, phone, table, address, rider, orderType, payment, items, notes, placedAt } = target;
+    const { id, total, customerName, phone, table, address, rider, orderType, payment, paymentStatus, items, notes, placedAt } = target;
+    const isPayLater = payment === 'pay_later' || paymentStatus === 'pending';
     const dateStr  = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr  = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const subtotal = items.reduce((s, l) => s + l.price * l.quantity, 0);
@@ -395,10 +426,21 @@ export function POSTerminal({
       <td style="font-size:15px;font-weight:900;text-align:right;">Rs.${total.toLocaleString()}</td>
     </tr>
     <tr>
-      <td class="small" style="padding-top:3px;">Payment Method</td>
-      <td class="small right" style="padding-top:3px;font-weight:bold;">${payment === 'cash' ? 'CASH' : 'CARD'}</td>
+      <td class="small" style="padding-top:3px;">Payment</td>
+      <td class="small right" style="padding-top:3px;font-weight:bold;${isPayLater ? 'color:#c2410c;' : ''}">${
+        isPayLater ? 'TO BE PAID' : payment === 'cash' ? 'CASH' : 'CARD'
+      }</td>
     </tr>
   </table>
+
+  ${isPayLater ? `
+  <div style="margin:8px 0;padding:8px;border:2px dashed #c2410c;text-align:center;">
+    <div style="font-size:13px;font-weight:900;letter-spacing:2px;color:#c2410c;">⚠ PAYMENT PENDING</div>
+    <div style="font-size:10px;color:#555;margin-top:3px;">Please collect payment before customer leaves</div>
+  </div>` : `
+  <div style="margin:8px 0;padding:6px;border:1px solid #16a34a;text-align:center;">
+    <div style="font-size:12px;font-weight:bold;letter-spacing:1px;color:#16a34a;">✓ PAID — ${payment === 'cash' ? 'CASH' : 'CARD'}</div>
+  </div>`}
 
   ${notes ? `<hr class="dash"><div class="small" style="margin:3px 0;"><b>Note:</b> ${notes}</div>` : ''}
 
@@ -406,7 +448,7 @@ export function POSTerminal({
 
   <!-- FOOTER -->
   <div class="center" style="margin-top:8px;">
-    <div style="font-size:11px;font-weight:bold;letter-spacing:1px;margin-bottom:3px;">THANK YOU FOR YOUR VISIT!</div>
+    <div style="font-size:11px;font-weight:bold;letter-spacing:1px;margin-bottom:3px;">${isPayLater ? 'PAYMENT DUE — THANK YOU' : 'THANK YOU FOR YOUR VISIT!'}</div>
     <div class="small" style="color:#444;margin-bottom:2px;">Please come again</div>
     <div class="small" style="color:#777;">Powered by TNB POS System</div>
   </div>
@@ -590,20 +632,31 @@ export function POSTerminal({
       {/* Payment */}
       <div className="px-4 pb-3 flex-shrink-0">
         <div className="flex gap-2">
-          {(['cash', 'card'] as const).map(p => (
+          {([
+            { value: 'cash',      label: '💵 CASH'     },
+            { value: 'card',      label: '💳 CARD'     },
+            { value: 'pay_later', label: '🕐 PAY LATER' },
+          ] as const).map(p => (
             <button
-              key={p}
-              onClick={() => setPayment(p)}
-              className={`flex-1 font-heading text-xs tracking-widest py-3 rounded-sm border transition-colors duration-100 ${
-                payment === p
-                  ? 'bg-white/10 border-white/20 text-white'
+              key={p.value}
+              onClick={() => setPayment(p.value)}
+              className={`flex-1 font-heading text-[10px] tracking-widest py-3 rounded-sm border transition-colors duration-100 ${
+                payment === p.value
+                  ? p.value === 'pay_later'
+                    ? 'bg-orange-500/20 border-orange-500/60 text-orange-400'
+                    : 'bg-white/10 border-white/20 text-white'
                   : 'border-white/5 text-white hover:text-white hover:border-white/10'
               }`}
             >
-              {p === 'cash' ? '💵 CASH' : '💳 CARD'}
+              {p.label}
             </button>
           ))}
         </div>
+        {payment === 'pay_later' && (
+          <p className="font-heading text-[9px] tracking-widest text-orange-400 mt-1.5 text-center">
+            ORDER GOES TO KITCHEN — PAYMENT COLLECTED LATER
+          </p>
+        )}
       </div>
 
       {/* Total + place order */}
@@ -685,7 +738,11 @@ export function POSTerminal({
               className="relative font-heading text-[10px] tracking-widest text-white hover:text-white transition-colors border border-white/10 hover:border-white/30 px-2.5 py-1 rounded-sm"
             >
               SESSION
-              {sessionOrders.length > 0 && (
+              {sessionOrders.filter(o => o.paymentStatus === 'pending').length > 0 ? (
+                <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] font-heading w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                  {sessionOrders.filter(o => o.paymentStatus === 'pending').length}
+                </span>
+              ) : sessionOrders.length > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-[#E4002B] text-white text-[9px] font-heading w-4 h-4 rounded-full flex items-center justify-center leading-none">
                   {sessionOrders.length}
                 </span>
@@ -842,20 +899,45 @@ export function POSTerminal({
             </div>
 
             {/* Summary bar */}
-            {sessionOrders.length > 0 && (
-              <div className="px-5 py-3 border-b border-white/5 flex-shrink-0 flex items-center justify-between bg-white/[0.02]">
-                <div>
-                  <p className="font-heading text-[10px] tracking-widest text-white">{sessionOrders.length} ORDER{sessionOrders.length !== 1 ? 'S' : ''} THIS SESSION</p>
-                  <p className="font-heading text-xl text-white mt-0.5">
-                    {formatPKR(sessionOrders.reduce((s, o) => s + o.total, 0))}
-                  </p>
+            {sessionOrders.length > 0 && (() => {
+              const unpaidOrders = sessionOrders.filter(o => o.paymentStatus === 'pending');
+              return (
+                <div className="border-b border-white/5 flex-shrink-0">
+                  <div className="px-5 py-3 flex items-center justify-between bg-white/[0.02]">
+                    <div>
+                      <p className="font-heading text-[10px] tracking-widest text-white">{sessionOrders.length} ORDER{sessionOrders.length !== 1 ? 'S' : ''} THIS SESSION</p>
+                      <p className="font-heading text-xl text-white mt-0.5">
+                        {formatPKR(sessionOrders.reduce((s, o) => s + o.total, 0))}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      {unpaidOrders.length > 0 && (
+                        <p className="font-heading text-[10px] tracking-widest text-orange-400 mb-1">
+                          {unpaidOrders.length} UNPAID
+                        </p>
+                      )}
+                      <p className="font-heading text-[10px] tracking-widest text-white">{staffName}</p>
+                    </div>
+                  </div>
+                  {/* Tabs */}
+                  <div className="flex border-t border-white/5">
+                    {(['all', 'unpaid'] as const).map(tab => (
+                      <button
+                        key={tab}
+                        onClick={() => setSessionTab(tab)}
+                        className={`flex-1 font-heading text-[10px] tracking-widest py-2 transition-colors ${
+                          sessionTab === tab
+                            ? tab === 'unpaid' ? 'text-orange-400 border-b-2 border-orange-400' : 'text-white border-b-2 border-white'
+                            : 'text-white'
+                        }`}
+                      >
+                        {tab === 'all' ? `ALL (${sessionOrders.length})` : `UNPAID (${unpaidOrders.length})`}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-heading text-[10px] tracking-widest text-white">{staffName}</p>
-                  <p className="font-heading text-xs text-white mt-0.5">{staffRole.toUpperCase()}</p>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Order list */}
             <div className="flex-1 overflow-y-auto min-h-0">
@@ -864,49 +946,101 @@ export function POSTerminal({
                   <span className="font-heading text-3xl">◎</span>
                   <span className="font-heading text-xs tracking-widest">NO ORDERS YET THIS SESSION</span>
                 </div>
-              ) : (
-                <div className="divide-y divide-white/5">
-                  {sessionOrders.map((o, idx) => (
-                    <div key={o.id} className="px-5 py-4">
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-heading text-sm text-white">#{orderNum(o.id)}</span>
-                            <span className="font-heading text-[10px] px-1.5 py-0.5 border border-white/10 text-white rounded-sm">
-                              {o.orderType === 'dine-in' ? (o.table ? `TABLE ${o.table}` : 'DINE-IN') : o.orderType === 'delivery' ? 'DELIVERY' : 'TAKEAWAY'}
-                            </span>
-                            {idx === 0 && (
-                              <span className="font-heading text-[9px] px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 text-green-400 rounded-sm">LATEST</span>
-                            )}
+              ) : (() => {
+                const visible = sessionTab === 'unpaid'
+                  ? sessionOrders.filter(o => o.paymentStatus === 'pending')
+                  : sessionOrders;
+                if (visible.length === 0) return (
+                  <div className="flex flex-col items-center justify-center h-full text-white gap-2">
+                    <span className="font-heading text-3xl text-green-400">✓</span>
+                    <span className="font-heading text-xs tracking-widest text-green-400">ALL ORDERS PAID</span>
+                  </div>
+                );
+                return (
+                  <div className="divide-y divide-white/5">
+                    {visible.map((o, idx) => (
+                      <div key={o.id} className={`px-5 py-4 ${o.paymentStatus === 'pending' ? 'bg-orange-500/5' : ''}`}>
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="font-heading text-sm text-white">#{orderNum(o.id)}</span>
+                              <span className="font-heading text-[10px] px-1.5 py-0.5 border border-white/10 text-white rounded-sm">
+                                {o.orderType === 'dine-in' ? (o.table ? `TABLE ${o.table}` : 'DINE-IN') : o.orderType === 'delivery' ? 'DELIVERY' : 'TAKEAWAY'}
+                              </span>
+                              {o.paymentStatus === 'pending' ? (
+                                <span className="font-heading text-[9px] px-1.5 py-0.5 bg-orange-500/20 border border-orange-500/40 text-orange-400 rounded-sm">UNPAID</span>
+                              ) : (
+                                idx === 0 && sessionTab === 'all' && (
+                                  <span className="font-heading text-[9px] px-1.5 py-0.5 bg-green-500/10 border border-green-500/20 text-green-400 rounded-sm">LATEST</span>
+                                )
+                              )}
+                            </div>
+                            <p className="font-heading text-xs text-white tracking-wider">
+                              {o.customerName} · {o.placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
                           </div>
-                          <p className="font-heading text-xs text-white tracking-wider">
-                            {o.customerName} · {o.placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
-                          </p>
+                          <div className="text-right flex-shrink-0">
+                            <p className="font-heading text-sm text-white">{formatPKR(o.total)}</p>
+                            <p className={`font-heading text-[10px] ${o.paymentStatus === 'pending' ? 'text-orange-400' : 'text-white'}`}>
+                              {o.paymentStatus === 'pending' ? 'PAY LATER' : o.payment.toUpperCase()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="font-heading text-sm text-white">{formatPKR(o.total)}</p>
-                          <p className="font-heading text-[10px] text-white">{o.payment.toUpperCase()}</p>
+                        {/* Items */}
+                        <div className="mb-3 space-y-0.5">
+                          {o.items.map((item, i) => (
+                            <p key={i} className="font-body text-xs text-white">
+                              {item.quantity}× {item.name} <span className="text-white">— {formatPKR(item.price * item.quantity)}</span>
+                            </p>
+                          ))}
+                        </div>
+                        {/* Actions */}
+                        <div className="flex gap-2 flex-wrap">
+                          {o.paymentStatus === 'pending' && settleId !== o.id && (
+                            <button
+                              onClick={() => setSettleId(o.id)}
+                              className="font-heading text-[10px] tracking-widest text-orange-400 border border-orange-500/40 hover:bg-orange-500/10 px-3 py-1.5 rounded-sm transition-colors"
+                            >
+                              💰 SETTLE PAYMENT
+                            </button>
+                          )}
+                          {settleId === o.id && (
+                            <div className="flex gap-1.5 items-center flex-wrap">
+                              <span className="font-heading text-[9px] text-white tracking-widest">PAID BY:</span>
+                              <button
+                                onClick={() => settleOrder(o.id, 'cash')}
+                                disabled={settling}
+                                className="font-heading text-[10px] tracking-widest px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-sm disabled:opacity-50 transition-colors"
+                              >
+                                {settling ? '…' : '💵 CASH'}
+                              </button>
+                              <button
+                                onClick={() => settleOrder(o.id, 'card')}
+                                disabled={settling}
+                                className="font-heading text-[10px] tracking-widest px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-sm disabled:opacity-50 transition-colors"
+                              >
+                                {settling ? '…' : '💳 CARD'}
+                              </button>
+                              <button
+                                onClick={() => setSettleId(null)}
+                                className="font-heading text-[10px] text-white px-2 py-1.5 border border-white/10 rounded-sm"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => printReceipt(o)}
+                            className="font-heading text-[10px] tracking-widest text-white hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-sm transition-colors"
+                          >
+                            🖨 {o.paymentStatus === 'pending' ? 'PRINT SLIP' : 'REPRINT'}
+                          </button>
                         </div>
                       </div>
-                      {/* Items */}
-                      <div className="mb-3 space-y-0.5">
-                        {o.items.map((item, i) => (
-                          <p key={i} className="font-body text-xs text-white">
-                            {item.quantity}× {item.name} <span className="text-white">— {formatPKR(item.price * item.quantity)}</span>
-                          </p>
-                        ))}
-                      </div>
-                      {/* Reprint */}
-                      <button
-                        onClick={() => printReceipt(o)}
-                        className="font-heading text-[10px] tracking-widest text-white hover:text-white border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-sm transition-colors"
-                      >
-                        🖨 REPRINT RECEIPT
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </>

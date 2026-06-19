@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await db
     .from('orders')
-    .select('id, customer_name, customer_phone, total, order_type, table_number, delivery_address, rider_name, payment_method, special_notes, created_at, session_id, order_items(item_name, item_price, quantity)')
+    .select('id, customer_name, customer_phone, total, order_type, table_number, delivery_address, rider_name, payment_method, payment_status, special_notes, created_at, session_id, order_items(item_name, item_price, quantity)')
     .eq('staff_id', staffId)
     .gte('created_at', since)
     .order('created_at', { ascending: false });

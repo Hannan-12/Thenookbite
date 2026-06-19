@@ -27,9 +27,12 @@ const STATUS_STYLES: Record<string, string> = {
 
 export function OrderDetailClient({ order }: { order: Order }) {
   const router  = useRouter();
-  const [status, setStatus]   = useState(order.status);
-  const [saving, setSaving]   = useState(false);
-  const [toast, setToast]     = useState<string | null>(null);
+  const [status, setStatus]       = useState(order.status);
+  const [payMethod, setPayMethod] = useState(order.payment_method);
+  const [payStatus, setPayStatus] = useState(order.payment_status);
+  const [saving, setSaving]       = useState(false);
+  const [settling, setSettling]   = useState(false);
+  const [toast, setToast]         = useState<string | null>(null);
 
   async function updateStatus(newStatus: string) {
     setSaving(true);
@@ -48,6 +51,23 @@ export function OrderDetailClient({ order }: { order: Order }) {
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
+  }
+
+  async function settle(method: 'cash' | 'card') {
+    setSettling(true);
+    const res = await fetch('/api/orders/settle', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: order.id, payment_method: method }),
+    });
+    setSettling(false);
+    if (res.ok) {
+      setPayMethod(method);
+      setPayStatus('paid');
+      showToast(`Settled — ${method.toUpperCase()}`);
+    } else {
+      showToast('Failed to settle');
+    }
   }
 
   const shortId = parseInt(order.id.replace(/-/g,"").slice(-4),16).toString().padStart(4,"0");
@@ -128,8 +148,31 @@ export function OrderDetailClient({ order }: { order: Order }) {
         )}
         <div className="flex justify-between text-sm">
           <span className="font-heading text-xs tracking-wider text-white">PAYMENT</span>
-          <span className="font-heading text-white text-sm">{order.payment_method.toUpperCase()} — {order.payment_status.toUpperCase()}</span>
+          <span className={`font-heading text-sm ${payMethod === 'pay_later' && payStatus === 'pending' ? 'text-orange-400' : 'text-white'}`}>
+            {payMethod === 'pay_later' && payStatus === 'pending' ? 'PAY LATER — PENDING' : `${payMethod.toUpperCase()} — ${payStatus.toUpperCase()}`}
+          </span>
         </div>
+        {payMethod === 'pay_later' && payStatus === 'pending' && (
+          <div className="pt-2 border-t border-white/5">
+            <p className="font-heading text-xs tracking-wider text-orange-400 mb-2">SETTLE PAYMENT</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => settle('cash')}
+                disabled={settling}
+                className="flex-1 py-2 bg-green-700 hover:bg-green-600 disabled:opacity-50 font-heading text-xs tracking-widest text-white rounded-sm transition-colors"
+              >
+                {settling ? '…' : '💵 CASH'}
+              </button>
+              <button
+                onClick={() => settle('card')}
+                disabled={settling}
+                className="flex-1 py-2 bg-blue-700 hover:bg-blue-600 disabled:opacity-50 font-heading text-xs tracking-widest text-white rounded-sm transition-colors"
+              >
+                {settling ? '…' : '💳 CARD'}
+              </button>
+            </div>
+          </div>
+        )}
         {order.special_notes && (
           <div className="pt-2 border-t border-white/5">
             <p className="font-heading text-xs tracking-wider text-white mb-1">NOTES</p>

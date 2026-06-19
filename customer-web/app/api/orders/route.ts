@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       table_number: table_number || null,
       special_notes: special_notes || null,
       payment_method,
-      payment_status: payment_method === 'cash' ? 'paid' : 'pending',
+      payment_status: payment_method === 'cash' ? 'paid' : payment_method === 'pay_later' ? 'pending' : 'pending',
       status: 'pending',
       total,
       tip: tipAmount,
