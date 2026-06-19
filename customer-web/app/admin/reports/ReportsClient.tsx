@@ -267,12 +267,12 @@ export function ReportsClient() {
     <div className="px-4 sm:px-8 py-8 space-y-6">
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">ANALYTICS</p>
           <h1 className="font-heading text-3xl text-white">SALES REPORTS</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <button
             onClick={handleExportPDF}
             disabled={!summary}
@@ -349,7 +349,7 @@ export function ReportsClient() {
 
       {/* Report type tabs + sort */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-1 border-b border-white/5">
+        <div className="flex gap-1 border-b border-white/5 overflow-x-auto pb-px scrollbar-hide">
           {([
             { key: 'daily',          label: 'DAILY SALES' },
             { key: 'top_items',      label: 'TOP ITEMS' },
@@ -359,7 +359,7 @@ export function ReportsClient() {
             <button
               key={t.key}
               onClick={() => setReportType(t.key)}
-              className={`font-heading text-xs tracking-widest px-4 py-2.5 border-b-2 -mb-px transition-colors ${
+              className={`flex-shrink-0 font-heading text-xs tracking-widest px-4 py-2.5 border-b-2 -mb-px transition-colors ${
                 reportType === t.key ? 'border-[#E4002B] text-white' : 'border-transparent text-white hover:text-white'
               }`}
             >

@@ -173,9 +173,9 @@ export function AttendanceClient() {
                 NO STAFF FOUND
               </div>
             ) : records.map((r, i) => (
-              <div key={r.staff_id + i} className="flex items-center justify-between px-5 py-4 flex-wrap gap-3">
+              <div key={r.staff_id + i} className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-3">
                 <div className="flex items-center gap-3">
-                  <span className={`font-heading text-[10px] tracking-widest px-2 py-1 rounded-sm border ${STATUS_STYLES[r.status]}`}>
+                  <span className={`font-heading text-[10px] tracking-widest px-2 py-1 rounded-sm border flex-shrink-0 ${STATUS_STYLES[r.status]}`}>
                     {r.status.toUpperCase()}
                   </span>
                   <div>
@@ -183,8 +183,8 @@ export function AttendanceClient() {
                     <p className="font-heading text-[10px] text-white mt-0.5 uppercase">{r.staff?.role} · {r.staff?.staff_type}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
+                <div className="flex flex-wrap items-center gap-3 pl-0 sm:pl-0">
+                  <div>
                     <p className="font-heading text-xs text-white">
                       IN {fmt(r.check_in)} · OUT {fmt(r.check_out)}
                     </p>

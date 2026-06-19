@@ -84,7 +84,7 @@ export function UsersClient({ initialUsers }: { initialUsers: Customer[] }) {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         <div className="border border-white/5 bg-[#111] rounded-sm px-5 py-4">
           <p className="font-heading text-[10px] tracking-widest text-white mb-2">REGISTERED</p>
           <p className="font-heading text-2xl text-white">{users.length}</p>

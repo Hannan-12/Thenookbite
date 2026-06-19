@@ -75,7 +75,7 @@ export function DashboardClient({ initial }: { initial: DashboardData }) {
   return (
     <div className="px-4 sm:px-8 py-8">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-8">
         <div>
           <p className="font-heading text-xs tracking-[0.4em] text-[#E4002B] mb-1">OVERVIEW</p>
           <h1 className="font-heading text-3xl text-white">DASHBOARD</h1>

@@ -98,7 +98,7 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
             <h2 className="font-heading text-xs tracking-widest text-[#E4002B] mb-2 px-1">{category.toUpperCase()}</h2>
             <div className="border border-white/5 rounded-sm bg-[#111111] divide-y divide-white/5">
               {catItems.map(item => (
-                <div key={item.id} className="flex items-center justify-between px-4 sm:px-5 py-3 gap-4">
+                <div key={item.id} className="flex items-center justify-between px-4 sm:px-5 py-3 gap-3">
                   <div className="flex-1 min-w-0">
                     <p className={`font-heading text-sm truncate ${item.available ? 'text-white' : 'text-white line-through'}`}>
                       {item.name}
@@ -108,20 +108,20 @@ export function AdminMenuClient({ initialItems }: { initialItems: MenuItem[] }) 
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Link
                       href={`/admin/menu/${item.id}`}
-                      className="font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border border-white/10 text-white hover:text-white hover:border-white/30 transition-colors duration-150"
+                      className="font-heading text-[10px] sm:text-xs tracking-widest px-2 sm:px-3 py-1.5 rounded-sm border border-white/10 text-white hover:text-white hover:border-white/30 transition-colors duration-150"
                     >
                       EDIT
                     </Link>
                     <button
                       onClick={() => toggleAvailability(item)}
                       disabled={loading === item.id}
-                      className={`font-heading text-xs tracking-widest px-3 py-1.5 rounded-sm border transition-colors duration-150 disabled:opacity-40 ${
+                      className={`font-heading text-[10px] sm:text-xs tracking-widest px-2 sm:px-3 py-1.5 rounded-sm border transition-colors duration-150 disabled:opacity-40 ${
                         item.available
                           ? 'border-green-500/30 bg-green-500/10 text-green-400 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
                           : 'border-white/10 text-white hover:bg-green-500/10 hover:border-green-500/30 hover:text-green-400'
                       }`}
                     >
-                      {loading === item.id ? '…' : item.available ? 'AVAILABLE' : 'SOLD OUT'}
+                      {loading === item.id ? '…' : item.available ? 'AVAIL' : 'SOLD OUT'}
                     </button>
                   </div>
                 </div>

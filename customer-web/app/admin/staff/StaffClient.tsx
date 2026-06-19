@@ -190,12 +190,12 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
         ) : (
           <div className="divide-y divide-white/5">
             {staff.map(s => (
-              <div key={s.id} className="flex items-center justify-between px-5 py-4">
-                <div className="flex items-center gap-4">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${s.is_active ? 'bg-green-500' : 'bg-white/10'}`} />
-                  <div>
+              <div key={s.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-3">
+                <div className="flex items-start gap-4">
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${s.is_active ? 'bg-green-500' : 'bg-white/10'}`} />
+                  <div className="min-w-0">
                     <p className="font-heading text-sm text-white">{s.full_name}</p>
-                    <p className="font-heading text-xs text-white mt-0.5">{s.email}</p>
+                    <p className="font-heading text-xs text-white mt-0.5 break-all">{s.email}</p>
                     <p className="font-heading text-[10px] text-white mt-0.5 uppercase group/pin flex items-center gap-1">
                       {s.staff_type} · PIN:&nbsp;
                       <span className="relative">
@@ -210,7 +210,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 pl-6 sm:pl-0 flex-shrink-0">
                   <span className={`font-heading text-[10px] tracking-widest px-2 py-1 rounded-sm border ${
                     s.role === 'manager'
                       ? 'border-[#E4002B]/30 text-[#E4002B]/70'

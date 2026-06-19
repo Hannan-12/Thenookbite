@@ -101,31 +101,31 @@ export default function VerifyDisplay() {
     <div className="min-h-screen bg-[#0a0a0a] text-white font-mono select-none flex flex-col">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-5 bg-black border-b border-white/10 flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="bg-[#E4002B] text-white font-heading text-xl px-4 py-2 tracking-widest">TNB</div>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-8 py-4 sm:py-5 bg-black border-b border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="bg-[#E4002B] text-white font-heading text-base sm:text-xl px-3 sm:px-4 py-2 tracking-widest">TNB</div>
           <div>
             <p className="text-white text-xs tracking-[0.3em]">ORDER VERIFICATION</p>
-            <p className="text-white text-[10px] tracking-widest mt-0.5">APPROVE ONLINE ORDERS BEFORE THEY REACH KITCHEN</p>
+            <p className="text-white text-[10px] tracking-widest mt-0.5 hidden sm:block">APPROVE ONLINE ORDERS BEFORE THEY REACH KITCHEN</p>
           </div>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {reconnect && <span className="text-yellow-400 text-xs tracking-widest animate-pulse">SYNCING…</span>}
           <div className="text-right">
             <p className="text-white text-sm tabular-nums">{time}</p>
             <p className="text-white text-[10px] tracking-widest mt-0.5">
-              {orders.length} PENDING VERIFICATION
+              {orders.length} PENDING
             </p>
           </div>
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-white text-xs tracking-widest">LIVE</span>
+            <span className="text-white text-xs tracking-widest hidden sm:inline">LIVE</span>
           </span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-4 sm:p-8">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <p className="text-white text-xl tracking-widest animate-pulse">LOADING…</p>
