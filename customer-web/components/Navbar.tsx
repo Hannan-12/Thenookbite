@@ -62,7 +62,7 @@ export function Navbar() {
             : 'bg-surface border-b border-theme'
         }`}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-[108px] flex items-center justify-between">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-[72px] sm:h-[108px] flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0" onClick={() => setMenuOpen(false)}>
             <Image
@@ -70,7 +70,7 @@ export function Navbar() {
               alt="The Nook Bite"
               width={105}
               height={105}
-              className="block dark:hidden w-[105px] h-[105px] object-contain"
+              className="block dark:hidden w-[64px] h-[64px] sm:w-[105px] sm:h-[105px] object-contain"
               priority
             />
             <Image
@@ -78,7 +78,7 @@ export function Navbar() {
               alt="The Nook Bite"
               width={105}
               height={105}
-              className="hidden dark:block w-[105px] h-[105px] object-contain"
+              className="hidden dark:block w-[64px] h-[64px] sm:w-[105px] sm:h-[105px] object-contain"
               priority
             />
           </Link>
@@ -160,7 +160,7 @@ export function Navbar() {
         <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMenuOpen(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <nav
-            className="absolute top-[108px] left-0 right-0 bg-surface border-b border-theme animate-fade-up shadow-lg"
+            className="absolute top-[72px] sm:top-[108px] left-0 right-0 bg-surface border-b border-theme animate-fade-up shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             {[

@@ -53,9 +53,15 @@ export function StatsBar() {
         {STATS.map((stat, i) => (
           <div
             key={stat.label}
-            className={`flex flex-col items-center justify-center py-8 sm:py-10 px-3 sm:px-6 gap-1 ${
-              i < STATS.length - 1 ? 'border-r border-theme' : ''
-            }`}
+            className={[
+              'flex flex-col items-center justify-center py-8 sm:py-10 px-3 sm:px-6 gap-1',
+              // mobile 2-col: right border only on left column (even indices)
+              i % 2 === 0 ? 'border-r border-theme' : '',
+              // mobile: bottom border on first row (indices 0 and 1), remove on sm
+              i < 2 ? 'border-b border-theme sm:border-b-0' : '',
+              // sm+ 4-col: all except last get border-r (override mobile even/odd logic)
+              i < STATS.length - 1 ? 'sm:border-r sm:border-theme' : 'sm:border-r-0',
+            ].filter(Boolean).join(' ')}
           >
             <CountUp to={stat.to} suffix={stat.suffix} />
             <p className="text-xs font-heading tracking-[0.25em] text-muted mt-1">

@@ -117,14 +117,14 @@ export default function CheckoutPage() {
 
         {/* Guest nudge — only shown when not logged in */}
         {!userId && (
-          <div className="mb-6 border border-theme rounded-sm px-4 py-3 flex items-center justify-between gap-4 bg-card">
+          <div className="mb-6 border border-theme rounded-sm px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-card">
             <p className="text-sm text-muted">
               <Link href="/login?next=/checkout" className="text-primary font-heading tracking-wider hover:text-brand-red transition-colors">
                 SIGN IN
               </Link>
               {' '}to pre-fill your details and track this order.
             </p>
-            <span className="text-xs text-muted/50 font-heading tracking-wider flex-shrink-0">OR CONTINUE AS GUEST</span>
+            <span className="text-xs text-muted/50 font-heading tracking-wider sm:flex-shrink-0">OR CONTINUE AS GUEST</span>
           </div>
         )}
 
