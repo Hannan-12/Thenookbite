@@ -98,8 +98,10 @@ export function POSTerminal({
   const [cashStep, setCashStep]           = useState(false);
   const [cashGiven, setCashGiven]         = useState('');
   const { openDrawer: fireDrawer, pairPrinter, paired: drawerPaired, status: drawerStatus } = useCashDrawer();
+  const [isOnline, setIsOnline]     = useState(true);
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flushingRef                 = useRef(false);
 
   // ── Load today's orders for this staff member on mount ───────────────────────
   useEffect(() => {
@@ -140,6 +142,84 @@ export function POSTerminal({
       })
       .catch(() => {});
   }, [staffId, sessionId]);
+
+  // ── Offline queue helpers ────────────────────────────────────────────────────
+  const QUEUE_KEY = `tnb_pos_queue_${sessionId}`;
+
+  function saveToOfflineQueue(payload: object) {
+    const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]');
+    queue.push({ payload, queuedAt: new Date().toISOString() });
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+  }
+
+  async function flushOfflineQueue() {
+    if (flushingRef.current) return;
+    const raw = localStorage.getItem(QUEUE_KEY);
+    if (!raw) return;
+    let queue: Array<{ payload: object; queuedAt: string }>;
+    try { queue = JSON.parse(raw); } catch { return; }
+    if (!queue.length) return;
+    flushingRef.current = true;
+    showToast(`Syncing ${queue.length} offline order${queue.length > 1 ? 's' : ''}…`);
+    const remaining: typeof queue = [];
+    for (const entry of queue) {
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entry.payload),
+        });
+        if (!res.ok) { remaining.push(entry); continue; }
+        const order = await res.json();
+        const p = entry.payload as Record<string, unknown>;
+        const flushedOrder: SessionOrder = {
+          id: order.id,
+          total: order.total,
+          customerName: String(p.customer_name ?? ''),
+          phone: String(p.customer_phone ?? ''),
+          table: String(p.table_number ?? ''),
+          address: String(p.delivery_address ?? ''),
+          rider: String(p.rider_name ?? ''),
+          orderType: (p.order_type as OrderType) ?? 'dine-in',
+          payment: (p.payment_method as PaymentMethod) ?? 'cash',
+          paymentStatus: p.payment_method === 'pay_later' ? 'pending' : 'paid',
+          items: (p.items as CartLine[]) ?? [],
+          notes: String(p.special_notes ?? ''),
+          placedAt: new Date(entry.queuedAt),
+        };
+        setSessionOrders(prev => [flushedOrder, ...prev]);
+      } catch {
+        remaining.push(entry);
+      }
+    }
+    if (remaining.length) {
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
+      showToast(`${remaining.length} order${remaining.length > 1 ? 's' : ''} still pending — retry soon`);
+    } else {
+      localStorage.removeItem(QUEUE_KEY);
+      showToast('All offline orders synced ✓');
+    }
+    flushingRef.current = false;
+  }
+
+  // ── Online/offline listeners ──────────────────────────────────────────────────
+  useEffect(() => {
+    function handleOnline() {
+      setIsOnline(true);
+      flushOfflineQueue();
+    }
+    function handleOffline() { setIsOnline(false); }
+    setIsOnline(navigator.onLine);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    // Flush any leftover queue on mount in case last session closed while offline
+    if (navigator.onLine) flushOfflineQueue();
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Phone lookup ─────────────────────────────────────────────────────────────
   const lookupPhone = useCallback(async (raw: string) => {
@@ -212,9 +292,11 @@ export function POSTerminal({
   }
 
   const total = cart.reduce((s, l) => s + l.price * l.quantity, 0);
+  // 1.5% card surcharge, rounded up to nearest rupee
+  const cardTotal = Math.ceil(total * 1.015);
 
   // ── Place order ───────────────────────────────────────────────────────────────
-  async function placeOrder(selectedPayment?: PaymentMethod) {
+  async function placeOrder(selectedPayment?: PaymentMethod, overrideTotal?: number) {
     if (!cart.length) return;
     const normalizedPhone = normalizePhone(phone);
     if (!isValidPakistaniPhone(normalizedPhone)) {
@@ -225,33 +307,61 @@ export function POSTerminal({
     const method = selectedPayment ?? payment;
     setPayment(method);
     setPlacing(true);
+    const chargedTotal = overrideTotal ?? total;
+    const nameDefault =
+      orderType === 'dine-in'  ? `Table ${table || '?'}` :
+      orderType === 'delivery' ? 'Delivery'               : 'Counter';
+
+    const orderPayload = {
+      customer_name:    customer || nameDefault,
+      customer_phone:   normalizedPhone,
+      table_number:     orderType === 'dine-in' ? (table || null) : null,
+      delivery_address: orderType === 'delivery' ? (address || null) : null,
+      rider_name:       orderType === 'delivery' ? (rider || null) : null,
+      order_type:       orderType,
+      special_notes:    notes || null,
+      payment_method:   method,
+      override_total:   method === 'card' ? chargedTotal : undefined,
+      user_id:          null,
+      staff_id:         staffId,
+      session_id:       sessionId,
+      items: cart.map(l => ({
+        menu_item_id: l.menu_item_id,
+        item_name: l.name,
+        item_price: l.price,
+        quantity: l.quantity,
+      })),
+    };
+
     try {
-      const nameDefault =
-        orderType === 'dine-in'  ? `Table ${table || '?'}` :
-        orderType === 'delivery' ? 'Delivery'               : 'Counter';
+      if (!navigator.onLine) {
+        saveToOfflineQueue(orderPayload);
+        const offlineOrder: SessionOrder = {
+          id: `offline-${Date.now()}`,
+          total: chargedTotal,
+          customerName: customer || nameDefault,
+          phone: normalizedPhone,
+          table,
+          address,
+          rider,
+          orderType,
+          payment: method,
+          paymentStatus: method === 'pay_later' ? 'pending' : 'paid',
+          items: [...cart],
+          notes,
+          placedAt: new Date(),
+        };
+        setLastOrder(offlineOrder);
+        setSessionOrders(prev => [offlineOrder, ...prev]);
+        clearCart();
+        showToast('Offline — order saved, will sync when reconnected');
+        return;
+      }
 
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customer_name:    customer || nameDefault,
-          customer_phone:   normalizedPhone,
-          table_number:     orderType === 'dine-in' ? (table || null) : null,
-          delivery_address: orderType === 'delivery' ? (address || null) : null,
-          rider_name:       orderType === 'delivery' ? (rider || null) : null,
-          order_type:       orderType,
-          special_notes:    notes || null,
-          payment_method:   method,
-          user_id:          null,
-          staff_id:         staffId,
-          session_id:       sessionId,
-          items: cart.map(l => ({
-            menu_item_id: l.menu_item_id,
-            item_name: l.name,
-            item_price: l.price,
-            quantity: l.quantity,
-          })),
-        }),
+        body: JSON.stringify(orderPayload),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -267,8 +377,8 @@ export function POSTerminal({
         address,
         rider,
         orderType,
-        payment,
-        paymentStatus: payment === 'pay_later' ? 'pending' : 'paid',
+        payment: method,
+        paymentStatus: method === 'pay_later' ? 'pending' : 'paid',
         items: [...cart],
         notes,
         placedAt: new Date(),
@@ -278,7 +388,31 @@ export function POSTerminal({
       clearCart();
       showToast('Order placed!');
     } catch (e) {
-      showToast('Failed: ' + (e instanceof Error ? e.message : 'unknown error'));
+      // Network failure — queue it
+      if (!navigator.onLine || (e instanceof TypeError && e.message.includes('fetch'))) {
+        saveToOfflineQueue(orderPayload);
+        const offlineOrder: SessionOrder = {
+          id: `offline-${Date.now()}`,
+          total: chargedTotal,
+          customerName: customer || nameDefault,
+          phone: normalizedPhone,
+          table,
+          address,
+          rider,
+          orderType,
+          payment: method,
+          paymentStatus: method === 'pay_later' ? 'pending' : 'paid',
+          items: [...cart],
+          notes,
+          placedAt: new Date(),
+        };
+        setLastOrder(offlineOrder);
+        setSessionOrders(prev => [offlineOrder, ...prev]);
+        clearCart();
+        showToast('Network lost — order queued, will sync when back online');
+      } else {
+        showToast('Failed: ' + (e instanceof Error ? e.message : 'unknown error'));
+      }
     } finally {
       setPlacing(false);
     }
@@ -442,10 +576,15 @@ export function POSTerminal({
       <td class="small">Subtotal (${itemCount} item${itemCount !== 1 ? 's' : ''})</td>
       <td class="small right">Rs.${subtotal.toLocaleString()}</td>
     </tr>
+    ${payment === 'card' && total > subtotal ? `
+    <tr>
+      <td class="small" style="color:#555;">Card Service Charge (1.5%)</td>
+      <td class="small right" style="color:#555;">Rs.${(total - subtotal).toLocaleString()}</td>
+    </tr>` : `
     <tr>
       <td class="small" style="color:#555;">Tax / Service Charge</td>
       <td class="small right" style="color:#555;">Incl.</td>
-    </tr>
+    </tr>`}
   </table>
 
   <hr class="solid">
@@ -710,9 +849,9 @@ export function POSTerminal({
 
                   <div className="flex flex-col gap-2">
                     {([
-                      { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table' },
-                      { value: 'card',      label: '💳 CARD',      sub: 'Card / machine payment'  },
-                      { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later'   },
+                      { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table',           chargedTotal: total    },
+                      { value: 'card',      label: '💳 CARD',      sub: `+1.5% service charge → ${formatPKR(cardTotal)}`, chargedTotal: cardTotal },
+                      { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later',             chargedTotal: total    },
                     ] as const).map(p => (
                       <button
                         key={p.value}
@@ -722,7 +861,7 @@ export function POSTerminal({
                             setCashStep(true);
                             setCashGiven('');
                           } else {
-                            await placeOrder(p.value);
+                            await placeOrder(p.value, p.chargedTotal);
                             setPaymentModal(false);
                             setCartOpen(false);
                           }
@@ -736,8 +875,11 @@ export function POSTerminal({
                         <span className="text-2xl">{p.label.split(' ')[0]}</span>
                         <div>
                           <p className="font-heading text-sm tracking-widest">{p.label.split(' ').slice(1).join(' ')}</p>
-                          <p className="font-heading text-[10px] tracking-wider opacity-50 mt-0.5">{p.sub}</p>
+                          <p className={`font-heading text-[10px] tracking-wider mt-0.5 ${p.value === 'card' ? 'text-yellow-400/70' : 'opacity-50'}`}>{p.sub}</p>
                         </div>
+                        {p.value === 'card' && (
+                          <span className="ml-auto font-heading text-sm text-yellow-400 flex-shrink-0">{formatPKR(cardTotal)}</span>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -886,6 +1028,13 @@ export function POSTerminal({
       {drawerStatus === 'error' && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-orange-600 text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none flex items-center gap-2">
           <span className="text-base">⚠</span> DRAWER ERROR — CHECK PRINTER
+        </div>
+      )}
+
+      {/* Offline banner */}
+      {!isOnline && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-orange-600 text-white font-heading text-xs tracking-widest px-4 py-2.5 text-center flex items-center justify-center gap-2">
+          <span>⚡</span> NO INTERNET — ORDERS WILL BE SAVED AND SYNCED WHEN RECONNECTED
         </div>
       )}
 

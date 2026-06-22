@@ -6,7 +6,7 @@ const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { customer_name, customer_phone, table_number, special_notes, payment_method, items, user_id, staff_id, session_id, order_type, tip, delivery_address, rider_name } = body;
+  const { customer_name, customer_phone, table_number, special_notes, payment_method, items, user_id, staff_id, session_id, order_type, tip, delivery_address, rider_name, override_total } = body;
 
   if (!customer_name || !items?.length) {
     return NextResponse.json({ detail: 'customer_name and items are required' }, { status: 400 });
@@ -37,7 +37,10 @@ export async function POST(req: NextRequest) {
 
   const itemsTotal = items.reduce((sum: number, i: { item_price: number; quantity: number }) => sum + i.item_price * i.quantity, 0);
   const tipAmount  = typeof tip === 'number' && tip > 0 ? Math.round(tip) : 0;
-  const total      = itemsTotal + tipAmount;
+  // Allow POS to pass override_total (e.g. for card surcharge); validate it's >= itemsTotal
+  const total = typeof override_total === 'number' && override_total >= itemsTotal
+    ? Math.round(override_total)
+    : itemsTotal + tipAmount;
 
   const VALID_ORDER_TYPES = new Set(['dine-in', 'takeaway', 'delivery']);
   const resolvedOrderType = VALID_ORDER_TYPES.has(order_type) ? order_type : 'dine-in';
