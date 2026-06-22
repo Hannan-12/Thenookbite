@@ -2,6 +2,13 @@
 
 import { useCallback, useRef, useState } from 'react';
 
+// Minimal type for Web Serial API (not yet in TS lib)
+interface SerialPort {
+  readable: ReadableStream | null;
+  writable: WritableStream<Uint8Array> | null;
+  open(options: { baudRate: number }): Promise<void>;
+}
+
 // ESC/POS cash drawer kick command: ESC p <pin> <on-time> <off-time>
 // Works for pin 2 (most common drawer connector)
 const DRAWER_PULSE = new Uint8Array([0x1b, 0x70, 0x00, 0x19, 0xfa]);

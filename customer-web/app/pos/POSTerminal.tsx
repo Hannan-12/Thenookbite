@@ -92,6 +92,8 @@ export function POSTerminal({
   const [settling, setSettling]           = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
   const [paymentModal, setPaymentModal]   = useState(false);
+  const [cashStep, setCashStep]           = useState(false);
+  const [cashGiven, setCashGiven]         = useState('');
   const { openDrawer: fireDrawer, pairPrinter, paired: drawerPaired, status: drawerStatus } = useCashDrawer();
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -649,7 +651,7 @@ export function POSTerminal({
             </button>
           )}
           <button
-            onClick={() => { if (cart.length) setPaymentModal(true); }}
+            onClick={() => { if (cart.length) { setCashStep(false); setCashGiven(''); setPaymentModal(true); } }}
             disabled={!cart.length || placing}
             className="flex-1 font-heading text-sm tracking-widest py-3.5 bg-[#E4002B] text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-sm transition-colors"
           >
@@ -659,61 +661,167 @@ export function POSTerminal({
       </div>
 
       {/* Payment method popup */}
-      {paymentModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-          onClick={() => !placing && setPaymentModal(false)}
-        >
+      {paymentModal && (() => {
+        const given  = parseInt(cashGiven) || 0;
+        const change = given - total;
+        // Quick-amount buttons: round up to common PKR notes
+        const notes  = [500, 1000, 2000, 5000].filter(n => n >= total);
+        // Also add exact and the next note above total
+        const quickAmounts = Array.from(new Set([
+          total,
+          ...notes,
+        ])).sort((a, b) => a - b).slice(0, 4);
+
+        return (
           <div
-            className="bg-[#111] border border-white/10 rounded-sm w-full max-w-xs p-6"
-            onClick={e => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+            onClick={() => !placing && (setCashStep(false), setCashGiven(''), setPaymentModal(false))}
           >
-            <p className="font-heading text-xs tracking-[0.3em] text-[#E4002B] mb-1">SELECT</p>
-            <h2 className="font-heading text-2xl text-white mb-1">PAYMENT METHOD</h2>
-            <p className="font-heading text-2xl text-white mb-5">{formatPKR(total)}</p>
-
-            <div className="flex flex-col gap-2">
-              {([
-                { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table' },
-                { value: 'card',      label: '💳 CARD',      sub: 'Card / machine payment'  },
-                { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later'   },
-              ] as const).map(p => (
-                <button
-                  key={p.value}
-                  disabled={placing}
-                  onClick={async () => {
-                    if (p.value === 'cash') openCashDrawer();
-                    await placeOrder(p.value);
-                    setPaymentModal(false);
-                    setCartOpen(false);
-                  }}
-                  className={`flex items-center gap-4 px-4 py-4 rounded-sm border transition-colors duration-100 text-left disabled:opacity-40 ${
-                    p.value === 'pay_later'
-                      ? 'border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 text-orange-300'
-                      : 'border-white/10 bg-white/3 hover:bg-white/8 text-white'
-                  }`}
-                >
-                  <span className="text-2xl">{p.label.split(' ')[0]}</span>
-                  <div>
-                    <p className="font-heading text-sm tracking-widest">{p.label.split(' ').slice(1).join(' ')}</p>
-                    <p className="font-heading text-[10px] tracking-wider opacity-50 mt-0.5">{p.sub}</p>
-                  </div>
-                  {placing && (
-                    <span className="ml-auto font-heading text-xs tracking-widest opacity-60">PLACING…</span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setPaymentModal(false)}
-              className="mt-4 w-full font-heading text-xs tracking-widest py-3 border border-white/10 text-white/40 hover:text-white/70 rounded-sm transition-colors"
+            <div
+              className="bg-[#111] border border-white/10 rounded-sm w-full max-w-xs p-6"
+              onClick={e => e.stopPropagation()}
             >
-              CANCEL
-            </button>
+              {!cashStep ? (
+                /* ── Step 1: choose method ── */
+                <>
+                  <p className="font-heading text-xs tracking-[0.3em] text-[#E4002B] mb-1">SELECT</p>
+                  <h2 className="font-heading text-2xl text-white mb-1">PAYMENT METHOD</h2>
+                  <p className="font-heading text-2xl text-white mb-5">{formatPKR(total)}</p>
+
+                  <div className="flex flex-col gap-2">
+                    {([
+                      { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table' },
+                      { value: 'card',      label: '💳 CARD',      sub: 'Card / machine payment'  },
+                      { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later'   },
+                    ] as const).map(p => (
+                      <button
+                        key={p.value}
+                        disabled={placing}
+                        onClick={async () => {
+                          if (p.value === 'cash') {
+                            setCashStep(true);
+                            setCashGiven('');
+                          } else {
+                            await placeOrder(p.value);
+                            setPaymentModal(false);
+                            setCartOpen(false);
+                          }
+                        }}
+                        className={`flex items-center gap-4 px-4 py-4 rounded-sm border transition-colors duration-100 text-left disabled:opacity-40 ${
+                          p.value === 'pay_later'
+                            ? 'border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 text-orange-300'
+                            : 'border-white/10 bg-white/3 hover:bg-white/8 text-white'
+                        }`}
+                      >
+                        <span className="text-2xl">{p.label.split(' ')[0]}</span>
+                        <div>
+                          <p className="font-heading text-sm tracking-widest">{p.label.split(' ').slice(1).join(' ')}</p>
+                          <p className="font-heading text-[10px] tracking-wider opacity-50 mt-0.5">{p.sub}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setPaymentModal(false)}
+                    className="mt-4 w-full font-heading text-xs tracking-widest py-3 border border-white/10 text-white/40 hover:text-white/70 rounded-sm transition-colors"
+                  >
+                    CANCEL
+                  </button>
+                </>
+              ) : (
+                /* ── Step 2: cash tendered + change ── */
+                <>
+                  <button
+                    onClick={() => { setCashStep(false); setCashGiven(''); }}
+                    className="font-heading text-[10px] tracking-widest text-white/40 hover:text-white/70 mb-4 flex items-center gap-1 transition-colors"
+                  >
+                    ← BACK
+                  </button>
+
+                  <p className="font-heading text-xs tracking-[0.3em] text-[#E4002B] mb-1">💵 CASH</p>
+                  <div className="flex items-baseline justify-between mb-4">
+                    <span className="font-heading text-xs tracking-widest text-white/50">TOTAL DUE</span>
+                    <span className="font-heading text-3xl text-white">{formatPKR(total)}</span>
+                  </div>
+
+                  {/* Quick amounts */}
+                  <div className="flex gap-2 mb-3">
+                    {quickAmounts.map(amt => (
+                      <button
+                        key={amt}
+                        onClick={() => setCashGiven(String(amt))}
+                        className={`flex-1 font-heading text-xs tracking-widest py-2 rounded-sm border transition-colors ${
+                          given === amt
+                            ? 'bg-white/10 border-white/30 text-white'
+                            : 'border-white/10 text-white/50 hover:text-white hover:border-white/20'
+                        }`}
+                      >
+                        {amt === total ? 'EXACT' : `${(amt/1000).toFixed(amt % 1000 === 0 ? 0 : 1)}K`}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Cash input */}
+                  <input
+                    autoFocus
+                    type="number"
+                    min={total}
+                    value={cashGiven}
+                    onChange={e => setCashGiven(e.target.value)}
+                    placeholder={`Enter amount (min ${total})`}
+                    className="w-full bg-black/40 border border-white/20 focus:border-white/50 px-4 py-3 text-xl text-white font-heading placeholder:text-white/20 focus:outline-none rounded-sm mb-4 tabular-nums"
+                    onKeyDown={async e => {
+                      if (e.key === 'Enter' && given >= total) {
+                        openCashDrawer();
+                        await placeOrder('cash');
+                        setCashStep(false); setCashGiven('');
+                        setPaymentModal(false); setCartOpen(false);
+                      }
+                    }}
+                  />
+
+                  {/* Change display */}
+                  <div className={`rounded-sm px-4 py-4 mb-4 border transition-colors ${
+                    given === 0
+                      ? 'border-white/5 bg-white/3'
+                      : given >= total
+                        ? 'border-green-500/30 bg-green-500/8'
+                        : 'border-red-500/30 bg-red-500/5'
+                  }`}>
+                    {given === 0 ? (
+                      <p className="font-heading text-xs tracking-widest text-white/30 text-center">ENTER CASH AMOUNT</p>
+                    ) : given < total ? (
+                      <>
+                        <p className="font-heading text-[10px] tracking-widest text-red-400 mb-0.5">SHORT BY</p>
+                        <p className="font-heading text-3xl text-red-400">{formatPKR(total - given)}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-heading text-[10px] tracking-widest text-green-400 mb-0.5">CHANGE TO RETURN</p>
+                        <p className="font-heading text-4xl text-green-400">{formatPKR(change)}</p>
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    disabled={given < total || placing}
+                    onClick={async () => {
+                      openCashDrawer();
+                      await placeOrder('cash');
+                      setCashStep(false); setCashGiven('');
+                      setPaymentModal(false); setCartOpen(false);
+                    }}
+                    className="w-full font-heading text-sm tracking-widest py-4 bg-[#E4002B] text-white hover:bg-red-700 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm transition-colors"
+                  >
+                    {placing ? 'PLACING…' : given >= total ? `CONFIRM — CHANGE ${formatPKR(change)}` : 'ENTER AMOUNT'}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Last order confirmation */}
       {lastOrder && (
