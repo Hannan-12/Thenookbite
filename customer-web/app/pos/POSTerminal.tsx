@@ -90,6 +90,7 @@ export function POSTerminal({
   const [settleId, setSettleId]           = useState<string | null>(null);
   const [settling, setSettling]           = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
+  const [paymentModal, setPaymentModal]   = useState(false);
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -206,7 +207,7 @@ export function POSTerminal({
   const total = cart.reduce((s, l) => s + l.price * l.quantity, 0);
 
   // ── Place order ───────────────────────────────────────────────────────────────
-  async function placeOrder() {
+  async function placeOrder(selectedPayment?: PaymentMethod) {
     if (!cart.length) return;
     const normalizedPhone = normalizePhone(phone);
     if (!isValidPakistaniPhone(normalizedPhone)) {
@@ -214,6 +215,8 @@ export function POSTerminal({
       showToast('Phone number required');
       return;
     }
+    const method = selectedPayment ?? payment;
+    setPayment(method);
     setPlacing(true);
     try {
       const nameDefault =
@@ -231,7 +234,7 @@ export function POSTerminal({
           rider_name:       orderType === 'delivery' ? (rider || null) : null,
           order_type:       orderType,
           special_notes:    notes || null,
-          payment_method:   payment,
+          payment_method:   method,
           user_id:          null,
           staff_id:         staffId,
           session_id:       sessionId,
@@ -625,36 +628,6 @@ export function POSTerminal({
         />
       </div>
 
-      {/* Payment */}
-      <div className="px-4 pb-3 flex-shrink-0">
-        <div className="flex gap-2">
-          {([
-            { value: 'cash',      label: '💵 CASH'     },
-            { value: 'card',      label: '💳 CARD'     },
-            { value: 'pay_later', label: '🕐 PAY LATER' },
-          ] as const).map(p => (
-            <button
-              key={p.value}
-              onClick={() => setPayment(p.value)}
-              className={`flex-1 font-heading text-[10px] tracking-widest py-3 rounded-sm border transition-colors duration-100 ${
-                payment === p.value
-                  ? p.value === 'pay_later'
-                    ? 'bg-orange-500/20 border-orange-500/60 text-orange-400'
-                    : 'bg-white/10 border-white/20 text-white'
-                  : 'border-white/5 text-white hover:text-white hover:border-white/10'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-        {payment === 'pay_later' && (
-          <p className="font-heading text-[9px] tracking-widest text-orange-400 mt-1.5 text-center">
-            ORDER GOES TO KITCHEN — PAYMENT COLLECTED LATER
-          </p>
-        )}
-      </div>
-
       {/* Total + place order */}
       <div className="px-4 pb-4 space-y-2 border-t border-white/5 pt-3 flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -671,14 +644,70 @@ export function POSTerminal({
             </button>
           )}
           <button
-            onClick={async () => { await placeOrder(); setCartOpen(false); }}
+            onClick={() => { if (cart.length) setPaymentModal(true); }}
             disabled={!cart.length || placing}
             className="flex-1 font-heading text-sm tracking-widest py-3.5 bg-[#E4002B] text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-sm transition-colors"
           >
-            {placing ? 'PLACING…' : 'PLACE ORDER'}
+            PLACE ORDER
           </button>
         </div>
       </div>
+
+      {/* Payment method popup */}
+      {paymentModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          onClick={() => !placing && setPaymentModal(false)}
+        >
+          <div
+            className="bg-[#111] border border-white/10 rounded-sm w-full max-w-xs p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="font-heading text-xs tracking-[0.3em] text-[#E4002B] mb-1">SELECT</p>
+            <h2 className="font-heading text-2xl text-white mb-1">PAYMENT METHOD</h2>
+            <p className="font-heading text-2xl text-white mb-5">{formatPKR(total)}</p>
+
+            <div className="flex flex-col gap-2">
+              {([
+                { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table' },
+                { value: 'card',      label: '💳 CARD',      sub: 'Card / machine payment'  },
+                { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later'   },
+              ] as const).map(p => (
+                <button
+                  key={p.value}
+                  disabled={placing}
+                  onClick={async () => {
+                    await placeOrder(p.value);
+                    setPaymentModal(false);
+                    setCartOpen(false);
+                  }}
+                  className={`flex items-center gap-4 px-4 py-4 rounded-sm border transition-colors duration-100 text-left disabled:opacity-40 ${
+                    p.value === 'pay_later'
+                      ? 'border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/10 text-orange-300'
+                      : 'border-white/10 bg-white/3 hover:bg-white/8 text-white'
+                  }`}
+                >
+                  <span className="text-2xl">{p.label.split(' ')[0]}</span>
+                  <div>
+                    <p className="font-heading text-sm tracking-widest">{p.label.split(' ').slice(1).join(' ')}</p>
+                    <p className="font-heading text-[10px] tracking-wider opacity-50 mt-0.5">{p.sub}</p>
+                  </div>
+                  {placing && (
+                    <span className="ml-auto font-heading text-xs tracking-widest opacity-60">PLACING…</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setPaymentModal(false)}
+              className="mt-4 w-full font-heading text-xs tracking-widest py-3 border border-white/10 text-white/40 hover:text-white/70 rounded-sm transition-colors"
+            >
+              CANCEL
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Last order confirmation */}
       {lastOrder && (
