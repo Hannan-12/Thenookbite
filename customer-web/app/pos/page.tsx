@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service';
 import { buildMenuCards } from '@/lib/menu';
 import type { MenuItem } from '@/lib/types';
 import { POSTerminal } from './POSTerminal';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,12 +85,14 @@ export default async function POSPage() {
   const cards = buildMenuCards(items);
 
   return (
-    <POSTerminal
-      cards={cards}
-      staffId={user.id}
-      staffName={staffName}
-      staffRole={staffRole}
-      sessionId={sessionId}
-    />
+    <ErrorBoundary>
+      <POSTerminal
+        cards={cards}
+        staffId={user.id}
+        staffName={staffName}
+        staffRole={staffRole}
+        sessionId={sessionId}
+      />
+    </ErrorBoundary>
   );
 }

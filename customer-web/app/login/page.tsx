@@ -31,8 +31,9 @@ function LoginForm() {
       return;
     }
 
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    if (adminEmail && data.user.email === adminEmail) {
+    const verifyRes = await fetch('/api/admin/verify');
+    const { isAdmin } = await verifyRes.json();
+    if (isAdmin) {
       await supabase.auth.signOut();
       setError('Admin accounts cannot log in here. Use the admin panel.');
       setLoading(false);

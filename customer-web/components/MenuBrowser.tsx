@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CATEGORIES, CATEGORY_LABELS, type Category, type MenuCard as MenuCardType } from '@/lib/types';
 import { MenuCard } from './MenuCard';
 import { Reveal } from './Reveal';
@@ -12,8 +13,26 @@ export function MenuBrowser({
   cards: MenuCardType[];
   initialCategory?: Category;
 }) {
-  const [active, setActive] = useState<Category | 'All'>(initialCategory ?? 'All');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const paramCat = searchParams.get('category') as Category | null;
+  const [active, setActive] = useState<Category | 'All'>(paramCat ?? initialCategory ?? 'All');
   const [query, setQuery] = useState('');
+
+  // Keep state in sync if the URL changes (e.g. browser back/forward)
+  useEffect(() => {
+    const cat = searchParams.get('category') as Category | null;
+    setActive(cat ?? 'All');
+  }, [searchParams]);
+
+  function selectCategory(cat: Category | 'All') {
+    setActive(cat);
+    const params = new URLSearchParams(searchParams.toString());
+    if (cat === 'All') params.delete('category');
+    else params.set('category', cat);
+    router.push(`?${params.toString()}`, { scroll: false });
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -47,7 +66,7 @@ export function MenuBrowser({
         {(['All', ...CATEGORIES] as const).map((cat) => (
           <button
             key={cat}
-            onClick={() => setActive(cat)}
+            onClick={() => selectCategory(cat)}
             className={`font-heading text-xs tracking-widest px-4 py-2.5 border rounded-sm transition-all duration-150 flex-shrink-0 ${
               active === cat
                 ? 'bg-brand-red text-white border-brand-red'

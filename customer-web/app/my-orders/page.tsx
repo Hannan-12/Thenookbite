@@ -44,7 +44,7 @@ export default async function MyOrdersPage() {
       </div>
 
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-8 sm:py-12">
-        <MyOrdersClient orders={orders ?? []} />
+        <MyOrdersClient orders={orders ?? []} userId={user.id} />
 
         <div className="mt-8">
           <Link

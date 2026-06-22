@@ -28,7 +28,7 @@ export default function CheckoutPage() {
   const [orderType, setOrderType]   = useState<'dine-in' | 'takeaway' | 'delivery'>('dine-in');
   const [showCardModal, setShowCardModal] = useState(false);
 
-  const tipAmount = tip === -1 ? (parseInt(customTip) || 0) : tip;
+  const tipAmount = tip === -1 ? Math.min(Math.round(parseFloat(customTip) || 0), 10000) : tip;
   const grandTotal = totalPrice() + tipAmount;
 
   useEffect(() => {
@@ -275,9 +275,10 @@ export default function CheckoutPage() {
                 <input
                   type="number"
                   min="0"
+                  max="10000"
                   value={customTip}
                   onChange={(e) => setCustomTip(e.target.value)}
-                  placeholder="Enter tip amount (PKR)"
+                  placeholder="Enter tip amount (PKR, max 10,000)"
                   className={`${inputClass} mt-2`}
                 />
               )}

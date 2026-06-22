@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { checkRateLimit } from '@/lib/ratelimit';
+import { pkDate, pkHour } from '@/lib/timezone';
 
 export async function POST(req: NextRequest) {
+  const rateLimitErr = await checkRateLimit(req, 'checkin');
+  if (rateLimitErr) return rateLimitErr;
+
   const { pin, photo_url } = await req.json();
 
   if (!pin || pin.length !== 4) {
@@ -22,9 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ detail: 'Invalid PIN' }, { status: 401 });
   }
 
-  // Use Pakistan time (UTC+5) so date matches what's on the clock in the restaurant
-  const pkNow = new Date(Date.now() + 5 * 60 * 60 * 1000);
-  const today = pkNow.toISOString().slice(0, 10);
+  const today = pkDate();
   const now   = new Date().toISOString();
 
   // Check if already checked in today
@@ -56,10 +59,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Check-in (upsert in case record exists but no check_in)
-  // Compare against Pakistan local hour (UTC+5)
-  const pkHour = pkNow.getUTCHours();
   // Late if checking in after 10:00 AM Pakistan time
-  const status = pkHour >= 10 ? 'late' : 'present';
+  const status = pkHour() >= 10 ? 'late' : 'present';
 
   await db.from('attendance').upsert({
     staff_id:  staff.id,

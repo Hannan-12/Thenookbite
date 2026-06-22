@@ -81,7 +81,7 @@ export async function POST() {
     reset_by: 'admin',
   });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ detail: error.message }, { status: 500 });
 
   return NextResponse.json({ ok: true, amount_at_reset: amountAtReset });
 }

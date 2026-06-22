@@ -23,6 +23,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: null });
   }
 
-  const { data } = db.storage.from('attendance-photos').getPublicUrl(path);
-  return NextResponse.json({ url: data.publicUrl });
+  // Store the storage path, not a public URL — admin routes generate signed URLs on demand
+  return NextResponse.json({ url: path });
 }

@@ -49,9 +49,6 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
   }, []);
 
   useEffect(() => {
-    // Poll every 30s as safety net
-    const poll = setInterval(() => fetchOrders(true), 30000);
-
     const channel = supabaseRef.current
       .channel('admin-orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
@@ -59,10 +56,7 @@ export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] })
       })
       .subscribe();
 
-    return () => {
-      clearInterval(poll);
-      supabaseRef.current.removeChannel(channel);
-    };
+    return () => { supabaseRef.current.removeChannel(channel); };
   }, [fetchOrders]);
 
   function showToast(msg: string) {

@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { requireAdminApi } from '@/lib/admin-auth';
+import { pkDate } from '@/lib/timezone';
 
 export async function GET(req: NextRequest) {
   const authErr = await requireAdminApi();
   if (authErr) return authErr;
 
-  // Default to Pakistan date (UTC+5) if not specified
-  const pkNow = new Date(Date.now() + 5 * 60 * 60 * 1000);
-  const date  = req.nextUrl.searchParams.get('date') ?? pkNow.toISOString().slice(0, 10);
+  const date  = req.nextUrl.searchParams.get('date') ?? pkDate();
   const month = req.nextUrl.searchParams.get('month'); // YYYY-MM for monthly view
 
   const db = createServiceClient();
@@ -19,7 +18,7 @@ export async function GET(req: NextRequest) {
     const monthEnd = `${month}-${String(lastDay).padStart(2, '0')}`;
 
     // Today in PKT — don't count future days as absent
-    const pkToday = new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const pkToday = pkDate();
     const cutoff  = pkToday < monthEnd ? pkToday : monthEnd;
 
     const [{ data: records }, { data: allStaff }] = await Promise.all([
@@ -80,6 +79,18 @@ export async function GET(req: NextRequest) {
     db.from('staff').select('id, full_name, role, staff_type').eq('is_active', true),
   ]);
 
+  // Convert stored photo paths to signed URLs (1-hour expiry — never public)
+  type RawAttendance = { checkin_photo: string | null; [key: string]: unknown };
+  const recordsWithSignedPhotos = await Promise.all(
+    (records ?? []).map(async (r: RawAttendance) => {
+      if (!r.checkin_photo) return r;
+      const { data: signed } = await db.storage
+        .from('attendance-photos')
+        .createSignedUrl(r.checkin_photo, 3600);
+      return { ...r, checkin_photo: signed?.signedUrl ?? null };
+    })
+  );
+
   // Mark staff with no record as absent in the response
   const presentIds = new Set((records ?? []).map((r: { staff_id: string }) => r.staff_id));
   const absentStaff = (allStaff ?? [])
@@ -92,10 +103,11 @@ export async function GET(req: NextRequest) {
       check_in: null,
       check_out: null,
       note: null,
+      checkin_photo: null,
       staff: { full_name: s.full_name, role: s.role, staff_type: s.staff_type },
     }));
 
-  return NextResponse.json([...(records ?? []), ...absentStaff]);
+  return NextResponse.json([...recordsWithSignedPhotos, ...absentStaff]);
 }
 
 export async function POST(req: NextRequest) {

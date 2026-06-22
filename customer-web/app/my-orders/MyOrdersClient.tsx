@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/store/cart';
 import { formatPKR } from '@/lib/format';
+import { createClient } from '@/lib/supabase/client';
 
 interface OrderItem { item_name: string; item_price: number; quantity: number; }
 interface Order {
@@ -25,18 +26,31 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled:  'bg-red-500/10 text-red-400 border-red-500/20',
 };
 
-export default function MyOrdersClient({ orders: initial }: { orders: Order[] }) {
+export default function MyOrdersClient({ orders: initial, userId }: { orders: Order[]; userId: string }) {
   const { addLine, clear } = useCart();
   const router = useRouter();
   const [orders, setOrders]   = useState<Order[]>(initial);
   const [reordering, setReordering]   = useState<string | null>(null);
   const [cancelling, setCancelling]   = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null);
+  const supabaseRef = useRef(createClient());
 
   useEffect(() => {
-    const id = setInterval(() => router.refresh(), 30_000);
-    return () => clearInterval(id);
-  }, [router]);
+    const channel = supabaseRef.current
+      .channel('my-orders-realtime')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => {
+        const updated = payload.new as Order;
+        setOrders(prev => prev.map(o => o.id === updated.id ? { ...o, status: updated.status } : o));
+      })
+      .subscribe();
+
+    return () => { supabaseRef.current.removeChannel(channel); };
+  }, [userId]);
 
   async function handleCancel(orderId: string) {
     setCancelling(orderId);

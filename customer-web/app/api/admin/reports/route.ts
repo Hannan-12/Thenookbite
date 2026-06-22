@@ -21,7 +21,7 @@ export async function GET(req: Request) {
       .gte('created_at', from.toISOString())
       .order('created_at', { ascending: true });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ detail: error.message }, { status: 500 });
 
     // Group by date
     const map: Record<string, { revenue: number; orders: number }> = {};
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
       .gte('created_at', from.toISOString())
       .order('created_at', { ascending: true });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ detail: error.message }, { status: 500 });
 
     const map: Record<string, { revenue: number; orders: number }> = {};
     for (let i = 0; i < 12; i++) {
@@ -92,5 +92,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ rows });
   }
 
-  return NextResponse.json({ error: 'Invalid mode' }, { status: 400 });
+  return NextResponse.json({ detail: 'Invalid mode' }, { status: 400 });
 }

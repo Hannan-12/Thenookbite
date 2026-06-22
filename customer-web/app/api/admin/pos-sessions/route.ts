@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { pkDate } from '@/lib/timezone';
 
 export async function GET(req: NextRequest) {
   const date   = req.nextUrl.searchParams.get('date');
   const month  = req.nextUrl.searchParams.get('month'); // YYYY-MM
   const db     = createServiceClient();
 
-  // Default to today (PKT = UTC+5)
-  const todayPKT = new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const todayPKT = pkDate();
 
   let fromISO: string;
   let toISO: string;

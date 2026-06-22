@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { createClient } from '@/lib/supabase/server';
 import { isValidPakistaniPhone, normalizePhone } from '@/lib/format';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 export async function GET(req: NextRequest) {
+  const rateLimitErr = await checkRateLimit(req, 'lookup');
+  if (rateLimitErr) return rateLimitErr;
+
+  // Require authenticated session (staff or admin — not a public endpoint)
+  const sessionClient = createClient();
+  const { data: { user } } = await sessionClient.auth.getUser();
+  if (!user) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
+
   const phone = req.nextUrl.searchParams.get('phone');
 
   if (!phone) return NextResponse.json({ detail: 'phone is required' }, { status: 400 });

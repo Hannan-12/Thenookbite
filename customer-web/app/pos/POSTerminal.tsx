@@ -7,6 +7,9 @@ import { imageForItem } from '@/lib/itemImages';
 import { createClient } from '@/lib/supabase/client';
 import { useCashDrawer } from '@/lib/useCashDrawer';
 
+const QUICK_CASH_NOTES = [500, 1000, 2000, 5000]; // PKR denominations in circulation
+const CARD_SURCHARGE_RATE = 0.015;                 // 1.5% per bank agreement
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CartLine {
   key: string;
@@ -306,11 +309,11 @@ export function POSTerminal({
     return Math.min(Math.round(v), total);
   })();
   const afterDiscount = total - discountAmount;
-  // 1.5% card surcharge on discounted price, rounded up to nearest rupee
-  const cardTotal = Math.ceil(afterDiscount * 1.015);
+  // Display-only: backend calculates this server-side from payment_method
+  const cardTotal = Math.ceil(afterDiscount * (1 + CARD_SURCHARGE_RATE));
 
   // ── Place order ───────────────────────────────────────────────────────────────
-  async function placeOrder(selectedPayment?: PaymentMethod, overrideTotal?: number) {
+  async function placeOrder(selectedPayment?: PaymentMethod) {
     if (!cart.length) return;
     const normalizedPhone = normalizePhone(phone);
     if (!isValidPakistaniPhone(normalizedPhone)) {
@@ -321,7 +324,8 @@ export function POSTerminal({
     const method = selectedPayment ?? payment;
     setPayment(method);
     setPlacing(true);
-    const chargedTotal = overrideTotal ?? afterDiscount;
+    // Backend calculates final total server-side; use display value locally for session tracking
+    const displayTotal = method === 'card' ? cardTotal : afterDiscount;
     const nameDefault =
       orderType === 'dine-in'  ? `Table ${table || '?'}` :
       orderType === 'delivery' ? 'Delivery'               : 'Counter';
@@ -335,7 +339,9 @@ export function POSTerminal({
       order_type:       orderType,
       special_notes:    notes || null,
       payment_method:   method,
-      override_total:   chargedTotal < total ? chargedTotal : method === 'card' ? chargedTotal : undefined,
+      discount_type:    discountAmount > 0 ? discountType : undefined,
+      discount_value:   discountAmount > 0 ? (parseFloat(discountValue) || 0) : undefined,
+      idempotency_key:  crypto.randomUUID(),
       user_id:          null,
       staff_id:         staffId,
       session_id:       sessionId,
@@ -348,7 +354,7 @@ export function POSTerminal({
     };
 
     const sessionOrderBase: Omit<SessionOrder, 'id'> = {
-      total: chargedTotal,
+      total: displayTotal,
       customerName: customer || nameDefault,
       phone: normalizedPhone,
       table,
@@ -890,7 +896,7 @@ export function POSTerminal({
         const given  = parseInt(cashGiven) || 0;
         const change = given - afterDiscount;
         // Quick-amount buttons: round up to common PKR notes
-        const notes  = [500, 1000, 2000, 5000].filter(n => n >= afterDiscount);
+        const notes  = QUICK_CASH_NOTES.filter(n => n >= afterDiscount);
         // Also add exact and the next note above afterDiscount
         const quickAmounts = Array.from(new Set([
           afterDiscount,
@@ -915,10 +921,10 @@ export function POSTerminal({
 
                   <div className="flex flex-col gap-2">
                     {([
-                      { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table',                                  chargedTotal: afterDiscount },
-                      { value: 'card',      label: '💳 CARD',      sub: `+1.5% service charge → ${formatPKR(cardTotal)}`,            chargedTotal: cardTotal     },
-                      { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later',                                     chargedTotal: afterDiscount },
-                    ] as const).map(p => (
+                      { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table'                             },
+                      { value: 'card',      label: '💳 CARD',      sub: `+1.5% service charge → ${formatPKR(cardTotal)}`      },
+                      { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later'                               },
+                    ] as { value: 'cash' | 'card' | 'pay_later'; label: string; sub: string }[]).map(p => (
                       <button
                         key={p.value}
                         disabled={placing}
@@ -927,7 +933,7 @@ export function POSTerminal({
                             setCashStep(true);
                             setCashGiven('');
                           } else {
-                            await placeOrder(p.value, p.chargedTotal);
+                            await placeOrder(p.value);
                             setPaymentModal(false);
                             setCartOpen(false);
                           }
@@ -1002,7 +1008,7 @@ export function POSTerminal({
                     onKeyDown={async e => {
                       if (e.key === 'Enter' && given >= afterDiscount) {
                         openCashDrawer();
-                        await placeOrder('cash', afterDiscount);
+                        await placeOrder('cash');
                         setCashStep(false); setCashGiven('');
                         setPaymentModal(false); setCartOpen(false);
                       }
@@ -1036,7 +1042,7 @@ export function POSTerminal({
                     disabled={given < afterDiscount || placing}
                     onClick={async () => {
                       openCashDrawer();
-                      await placeOrder('cash', afterDiscount);
+                      await placeOrder('cash');
                       setCashStep(false); setCashGiven('');
                       setPaymentModal(false); setCartOpen(false);
                     }}
