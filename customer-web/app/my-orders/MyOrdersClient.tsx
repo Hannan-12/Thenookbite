@@ -22,17 +22,35 @@ const STATUS_STYLES: Record<string, string> = {
   preparing:  'bg-blue-500/10 text-blue-400 border-blue-500/20',
   ready:      'bg-green-500/10 text-green-400 border-green-500/20',
   completed:  'bg-white/5 text-muted border-theme',
+  cancelled:  'bg-red-500/10 text-red-400 border-red-500/20',
 };
 
-export default function MyOrdersClient({ orders }: { orders: Order[] }) {
+export default function MyOrdersClient({ orders: initial }: { orders: Order[] }) {
   const { addLine, clear } = useCart();
   const router = useRouter();
-  const [reordering, setReordering] = useState<string | null>(null);
+  const [orders, setOrders]   = useState<Order[]>(initial);
+  const [reordering, setReordering]   = useState<string | null>(null);
+  const [cancelling, setCancelling]   = useState<string | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState<string | null>(null);
 
   useEffect(() => {
     const id = setInterval(() => router.refresh(), 30_000);
     return () => clearInterval(id);
   }, [router]);
+
+  async function handleCancel(orderId: string) {
+    setCancelling(orderId);
+    const res = await fetch(`/api/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled' }),
+    });
+    setCancelling(null);
+    setConfirmCancel(null);
+    if (res.ok) {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o));
+    }
+  }
 
   function handleReorder(order: Order) {
     const hasCart = useCart.getState().lines.length > 0;
@@ -86,10 +104,35 @@ export default function MyOrdersClient({ orders }: { orders: Order[] }) {
                     {order.status.toUpperCase()}
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap justify-end">
                   <span className="font-heading text-base sm:text-lg text-primary">
                     {formatPKR(order.total)}
                   </span>
+                  {order.status === 'pending' && confirmCancel !== order.id && (
+                    <button
+                      onClick={() => setConfirmCancel(order.id)}
+                      className="font-heading text-xs tracking-widest px-3 py-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors rounded-sm"
+                    >
+                      CANCEL
+                    </button>
+                  )}
+                  {confirmCancel === order.id && (
+                    <>
+                      <button
+                        onClick={() => handleCancel(order.id)}
+                        disabled={cancelling === order.id}
+                        className="font-heading text-xs tracking-widest px-3 py-2 bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 rounded-sm transition-colors"
+                      >
+                        {cancelling === order.id ? '…' : 'CONFIRM'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmCancel(null)}
+                        className="font-heading text-xs tracking-widest px-3 py-2 border border-theme text-muted hover:text-primary rounded-sm transition-colors"
+                      >
+                        KEEP
+                      </button>
+                    </>
+                  )}
                   <button
                     onClick={() => handleReorder(order)}
                     disabled={reordering === order.id}

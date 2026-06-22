@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 
-const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed']);
+const VALID_STATUSES = new Set(['pending', 'preparing', 'ready', 'completed', 'cancelled']);
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const { status } = await req.json();

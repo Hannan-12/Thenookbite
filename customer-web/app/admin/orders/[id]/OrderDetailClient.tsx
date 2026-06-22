@@ -23,6 +23,7 @@ const STATUS_STYLES: Record<string, string> = {
   preparing: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
   ready:     'border-green-500/30 bg-green-500/10 text-green-400',
   completed: 'border-white/10 bg-white/5 text-white',
+  cancelled: 'border-red-500/30 bg-red-500/10 text-red-400',
 };
 
 export function OrderDetailClient({ order }: { order: Order }) {
@@ -32,6 +33,8 @@ export function OrderDetailClient({ order }: { order: Order }) {
   const [payStatus, setPayStatus] = useState(order.payment_status);
   const [saving, setSaving]       = useState(false);
   const [settling, setSettling]   = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [toast, setToast]         = useState<string | null>(null);
 
   async function updateStatus(newStatus: string) {
@@ -51,6 +54,21 @@ export function OrderDetailClient({ order }: { order: Order }) {
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
+  }
+
+  async function cancelOrder() {
+    setCancelling(true);
+    const res = await fetch(`/api/orders/${order.id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled' }),
+    });
+    setCancelling(false);
+    setConfirmCancel(false);
+    if (res.ok) {
+      setStatus('cancelled');
+      showToast('Order cancelled');
+    }
   }
 
   async function settle(method: 'cash' | 'card') {
@@ -203,32 +221,76 @@ export function OrderDetailClient({ order }: { order: Order }) {
       </div>
 
       {/* Status update */}
-      <div className="border border-white/5 rounded-sm bg-[#111111] px-5 py-4">
-        <p className="font-heading text-xs tracking-widest text-white mb-3">UPDATE STATUS</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {STATUSES.map((s) => {
-            const isBackward = STATUS_ORDER[s] < STATUS_ORDER[status];
-            const isCurrent  = status === s;
-            return (
-              <button
-                key={s}
-                disabled={saving || isCurrent || isBackward}
-                onClick={() => !isBackward && updateStatus(s)}
-                title={isBackward ? 'Cannot move order backwards' : undefined}
-                className={`py-2.5 px-3 font-heading text-xs tracking-wider rounded-sm border transition-colors duration-150 disabled:cursor-not-allowed ${
-                  isCurrent
-                    ? STATUS_STYLES[s]
-                    : isBackward
-                    ? 'border-white/5 text-white opacity-40'
-                    : 'border-white/10 text-white hover:border-white/30 hover:text-white'
-                }`}
-              >
-                {s.toUpperCase()}
-              </button>
-            );
-          })}
+      {status !== 'cancelled' && (
+        <div className="border border-white/5 rounded-sm bg-[#111111] px-5 py-4">
+          <p className="font-heading text-xs tracking-widest text-white mb-3">UPDATE STATUS</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {STATUSES.map((s) => {
+              const isBackward = STATUS_ORDER[s] < STATUS_ORDER[status];
+              const isCurrent  = status === s;
+              return (
+                <button
+                  key={s}
+                  disabled={saving || isCurrent || isBackward}
+                  onClick={() => !isBackward && updateStatus(s)}
+                  title={isBackward ? 'Cannot move order backwards' : undefined}
+                  className={`py-2.5 px-3 font-heading text-xs tracking-wider rounded-sm border transition-colors duration-150 disabled:cursor-not-allowed ${
+                    isCurrent
+                      ? STATUS_STYLES[s]
+                      : isBackward
+                      ? 'border-white/5 text-white opacity-40'
+                      : 'border-white/10 text-white hover:border-white/30 hover:text-white'
+                  }`}
+                >
+                  {s.toUpperCase()}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Cancel order */}
+      {status !== 'cancelled' && status !== 'completed' && (
+        <div className="mt-4 border border-red-500/10 rounded-sm bg-red-500/3 px-5 py-4">
+          {!confirmCancel ? (
+            <div className="flex items-center justify-between">
+              <p className="font-heading text-[10px] tracking-widest text-red-400/60">CANCEL ORDER</p>
+              <button
+                onClick={() => setConfirmCancel(true)}
+                className="font-heading text-xs tracking-widest px-4 py-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-sm transition-colors"
+              >
+                CANCEL ORDER
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="font-heading text-xs tracking-widest text-red-400">CONFIRM CANCEL?</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={cancelOrder}
+                  disabled={cancelling}
+                  className="font-heading text-xs tracking-widest px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-sm transition-colors disabled:opacity-50"
+                >
+                  {cancelling ? 'CANCELLING…' : 'YES, CANCEL'}
+                </button>
+                <button
+                  onClick={() => setConfirmCancel(false)}
+                  className="font-heading text-xs tracking-widest px-4 py-2 border border-white/10 text-white hover:border-white/30 rounded-sm transition-colors"
+                >
+                  KEEP ORDER
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {status === 'cancelled' && (
+        <div className="mt-4 border border-red-500/20 bg-red-500/5 rounded-sm px-5 py-4 text-center">
+          <p className="font-heading text-xs tracking-widest text-red-400">THIS ORDER HAS BEEN CANCELLED</p>
+        </div>
+      )}
 
       <div className="mt-6">
         <button

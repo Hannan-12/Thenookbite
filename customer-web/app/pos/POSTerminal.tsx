@@ -36,6 +36,7 @@ interface SessionOrder {
   orderType: OrderType;
   payment: PaymentMethod;
   paymentStatus: 'paid' | 'pending';
+  cancelled?: boolean;
   items: CartLine[];
   notes: string;
   placedAt: Date;
@@ -90,6 +91,8 @@ export function POSTerminal({
   const [sessionTab, setSessionTab]       = useState<'all' | 'unpaid'>('all');
   const [settleId, setSettleId]           = useState<string | null>(null);
   const [settling, setSettling]           = useState(false);
+  const [cancelId, setCancelId]           = useState<string | null>(null);
+  const [cancelling, setCancelling]       = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
   const [paymentModal, setPaymentModal]   = useState(false);
   const [cashStep, setCashStep]           = useState(false);
@@ -284,6 +287,23 @@ export function POSTerminal({
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2000);
+  }
+
+  async function cancelOrderPos(orderId: string) {
+    setCancelling(true);
+    const res = await fetch(`/api/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled' }),
+    });
+    setCancelling(false);
+    setCancelId(null);
+    if (res.ok) {
+      setSessionOrders(prev => prev.map(o => o.id === orderId ? { ...o, cancelled: true, paymentStatus: 'paid' as const } : o));
+      showToast('Order cancelled');
+    } else {
+      showToast('Cancel failed');
+    }
   }
 
   function openCashDrawer() { fireDrawer(); }
@@ -1145,7 +1165,7 @@ export function POSTerminal({
                 return (
                   <div className="divide-y divide-white/5">
                     {visible.map((o, idx) => (
-                      <div key={o.id} className={`px-5 py-4 ${o.paymentStatus === 'pending' ? 'bg-orange-500/5' : ''}`}>
+                      <div key={o.id} className={`px-5 py-4 ${o.cancelled ? 'bg-red-500/5 opacity-60' : o.paymentStatus === 'pending' ? 'bg-orange-500/5' : ''}`}>
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div>
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -1153,7 +1173,9 @@ export function POSTerminal({
                               <span className="font-heading text-[10px] px-1.5 py-0.5 border border-white/10 text-white rounded-sm">
                                 {o.orderType === 'dine-in' ? (o.table ? `TABLE ${o.table}` : 'DINE-IN') : o.orderType === 'delivery' ? 'DELIVERY' : 'TAKEAWAY'}
                               </span>
-                              {o.paymentStatus === 'pending' ? (
+                              {o.cancelled ? (
+                                <span className="font-heading text-[9px] px-1.5 py-0.5 bg-red-500/20 border border-red-500/40 text-red-400 rounded-sm">CANCELLED</span>
+                              ) : o.paymentStatus === 'pending' ? (
                                 <span className="font-heading text-[9px] px-1.5 py-0.5 bg-orange-500/20 border border-orange-500/40 text-orange-400 rounded-sm">UNPAID</span>
                               ) : (
                                 idx === 0 && sessionTab === 'all' && (
@@ -1182,7 +1204,7 @@ export function POSTerminal({
                         </div>
                         {/* Actions */}
                         <div className="flex gap-2 flex-wrap">
-                          {o.paymentStatus === 'pending' && settleId !== o.id && (
+                          {!o.cancelled && o.paymentStatus === 'pending' && settleId !== o.id && (
                             <button
                               onClick={() => setSettleId(o.id)}
                               className="font-heading text-[10px] tracking-widest text-orange-400 border border-orange-500/40 hover:bg-orange-500/10 px-3 py-1.5 rounded-sm transition-colors"
@@ -1190,7 +1212,7 @@ export function POSTerminal({
                               💰 SETTLE PAYMENT
                             </button>
                           )}
-                          {settleId === o.id && (
+                          {!o.cancelled && settleId === o.id && (
                             <div className="flex gap-1.5 items-center flex-wrap">
                               <span className="font-heading text-[9px] text-white tracking-widest">PAID BY:</span>
                               <button
@@ -1221,6 +1243,31 @@ export function POSTerminal({
                           >
                             🖨 {o.paymentStatus === 'pending' ? 'PRINT SLIP' : 'REPRINT'}
                           </button>
+                          {!o.cancelled && cancelId !== o.id ? (
+                            <button
+                              onClick={() => { setCancelId(o.id); setSettleId(null); }}
+                              className="font-heading text-[10px] tracking-widest text-red-400/60 hover:text-red-400 border border-red-500/20 hover:border-red-500/40 px-3 py-1.5 rounded-sm transition-colors"
+                            >
+                              ✕ CANCEL
+                            </button>
+                          ) : (
+                            <div className="flex gap-1.5 items-center flex-wrap">
+                              <span className="font-heading text-[9px] text-red-400 tracking-widest">CANCEL ORDER?</span>
+                              <button
+                                onClick={() => cancelOrderPos(o.id)}
+                                disabled={cancelling}
+                                className="font-heading text-[10px] tracking-widest px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-sm disabled:opacity-50 transition-colors"
+                              >
+                                {cancelling ? '…' : 'YES'}
+                              </button>
+                              <button
+                                onClick={() => setCancelId(null)}
+                                className="font-heading text-[10px] text-white px-2 py-1.5 border border-white/10 rounded-sm"
+                              >
+                                NO
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

@@ -16,13 +16,14 @@ type Order = {
   special_notes: string | null; created_at: string; order_items: OrderItem[];
 };
 
-const STATUS_TABS = ['all', 'pending', 'preparing', 'ready', 'completed'];
+const STATUS_TABS = ['all', 'pending', 'preparing', 'ready', 'completed', 'cancelled'];
 
 const STATUS_STYLES: Record<string, string> = {
   pending:   'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
   preparing: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
   ready:     'border-green-500/30 bg-green-500/10 text-green-400',
   completed: 'border-white/10 bg-white/5 text-white',
+  cancelled: 'border-red-500/30 bg-red-500/10 text-red-400',
 };
 
 export function AdminOrdersClient({ initialOrders }: { initialOrders: Order[] }) {
