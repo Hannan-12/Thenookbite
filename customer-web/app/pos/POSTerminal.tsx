@@ -5,6 +5,7 @@ import { CATEGORIES, type Category, type MenuCard } from '@/lib/types';
 import { formatPKR, isValidPakistaniPhone, normalizePhone } from '@/lib/format';
 import { imageForItem } from '@/lib/itemImages';
 import { createClient } from '@/lib/supabase/client';
+import { useCashDrawer } from '@/lib/useCashDrawer';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CartLine {
@@ -91,7 +92,7 @@ export function POSTerminal({
   const [settling, setSettling]           = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
   const [paymentModal, setPaymentModal]   = useState(false);
-  const [drawerOpen, setDrawerOpen]       = useState(false);
+  const { openDrawer: fireDrawer, pairPrinter, paired: drawerPaired, status: drawerStatus } = useCashDrawer();
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -283,10 +284,7 @@ export function POSTerminal({
     setTimeout(() => setToast(null), 2000);
   }
 
-  function openCashDrawer() {
-    setDrawerOpen(true);
-    setTimeout(() => setDrawerOpen(false), 2500);
-  }
+  function openCashDrawer() { fireDrawer(); }
 
   async function settleOrder(orderId: string, method: 'cash' | 'card') {
     setSettling(true);
@@ -752,9 +750,14 @@ export function POSTerminal({
       )}
 
       {/* Cash drawer notification */}
-      {drawerOpen && (
+      {drawerStatus === 'opened' && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-700 text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none flex items-center gap-2">
           <span className="text-base">🗄️</span> CASH DRAWER OPENED
+        </div>
+      )}
+      {drawerStatus === 'error' && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-orange-600 text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none flex items-center gap-2">
+          <span className="text-base">⚠</span> DRAWER ERROR — CHECK PRINTER
         </div>
       )}
 
@@ -773,6 +776,15 @@ export function POSTerminal({
               <span className="font-heading text-[10px] tracking-widest text-white uppercase">{staffName}</span>
               <span className="font-heading text-[9px] px-1.5 py-0.5 border border-white/10 text-white rounded-sm uppercase hidden sm:inline">{staffRole}</span>
             </div>
+            {!drawerPaired && (
+              <button
+                onClick={pairPrinter}
+                className="font-heading text-[9px] tracking-widest text-white/30 hover:text-white/60 transition-colors border border-white/5 hover:border-white/15 px-2 py-1 rounded-sm hidden sm:inline-flex items-center gap-1"
+                title="Pair printer for cash drawer (one-time setup)"
+              >
+                🔗 PAIR PRINTER
+              </button>
+            )}
             <button
               onClick={openCashDrawer}
               className="font-heading text-[10px] tracking-widest text-white/60 hover:text-green-400 transition-colors border border-white/10 hover:border-green-500/40 px-2.5 py-1 rounded-sm hidden sm:inline-flex items-center gap-1"
