@@ -13,6 +13,7 @@ const NAV = [
   { href: '/admin/staff',         label: 'STAFF',       icon: '◎' },
   { href: '/admin/attendance',    label: 'ATTENDANCE',  icon: '◷' },
   { href: '/admin/inventory',     label: 'INVENTORY',   icon: '◫' },
+  { href: '/admin/cash',          label: 'CASH DRAWER', icon: '🗄' },
   { href: '/admin/ledger',        label: 'LEDGER',      icon: '₨' },
   { href: '/admin/reports',       label: 'REPORTS',     icon: '▲' },
   { href: '/admin/users',         label: 'CUSTOMERS',   icon: '◑' },

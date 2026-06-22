@@ -91,6 +91,7 @@ export function POSTerminal({
   const [settling, setSettling]           = useState(false);
   const [toast, setToast]           = useState<string | null>(null);
   const [paymentModal, setPaymentModal]   = useState(false);
+  const [drawerOpen, setDrawerOpen]       = useState(false);
   const searchRef                   = useRef<HTMLInputElement>(null);
   const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -282,6 +283,11 @@ export function POSTerminal({
     setTimeout(() => setToast(null), 2000);
   }
 
+  function openCashDrawer() {
+    setDrawerOpen(true);
+    setTimeout(() => setDrawerOpen(false), 2500);
+  }
+
   async function settleOrder(orderId: string, method: 'cash' | 'card') {
     setSettling(true);
     try {
@@ -295,6 +301,7 @@ export function POSTerminal({
         o.id === orderId ? { ...o, payment: method, paymentStatus: 'paid' } : o
       ));
       setSettleId(null);
+      if (method === 'cash') openCashDrawer();
       showToast('Payment settled ✓');
       // Print paid receipt for the settled order
       const settled = sessionOrders.find(o => o.id === orderId);
@@ -677,6 +684,7 @@ export function POSTerminal({
                   key={p.value}
                   disabled={placing}
                   onClick={async () => {
+                    if (p.value === 'cash') openCashDrawer();
                     await placeOrder(p.value);
                     setPaymentModal(false);
                     setCartOpen(false);
@@ -743,6 +751,13 @@ export function POSTerminal({
         </div>
       )}
 
+      {/* Cash drawer notification */}
+      {drawerOpen && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-700 text-white font-heading text-xs tracking-widest px-5 py-2.5 rounded-sm shadow-xl pointer-events-none flex items-center gap-2">
+          <span className="text-base">🗄️</span> CASH DRAWER OPENED
+        </div>
+      )}
+
       {/* ── LEFT: Menu panel ─────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 min-w-0 border-r border-white/5">
 
@@ -758,6 +773,13 @@ export function POSTerminal({
               <span className="font-heading text-[10px] tracking-widest text-white uppercase">{staffName}</span>
               <span className="font-heading text-[9px] px-1.5 py-0.5 border border-white/10 text-white rounded-sm uppercase hidden sm:inline">{staffRole}</span>
             </div>
+            <button
+              onClick={openCashDrawer}
+              className="font-heading text-[10px] tracking-widest text-white/60 hover:text-green-400 transition-colors border border-white/10 hover:border-green-500/40 px-2.5 py-1 rounded-sm hidden sm:inline-flex items-center gap-1"
+              title="Open cash drawer"
+            >
+              🗄️ DRAWER
+            </button>
             <button
               onClick={() => setSessionOpen(true)}
               className="relative font-heading text-[10px] tracking-widest text-white hover:text-white transition-colors border border-white/10 hover:border-white/30 px-2.5 py-1 rounded-sm"
@@ -926,6 +948,9 @@ export function POSTerminal({
             {/* Summary bar */}
             {sessionOrders.length > 0 && (() => {
               const unpaidOrders = sessionOrders.filter(o => o.paymentStatus === 'pending');
+              const cashTotal = sessionOrders
+                .filter(o => o.paymentStatus === 'paid' && o.payment === 'cash')
+                .reduce((s, o) => s + o.total, 0);
               return (
                 <div className="border-b border-white/5 flex-shrink-0">
                   <div className="px-5 py-3 flex items-center justify-between bg-white/[0.02]">
@@ -942,6 +967,22 @@ export function POSTerminal({
                         </p>
                       )}
                       <p className="font-heading text-[10px] tracking-widest text-white">{staffName}</p>
+                    </div>
+                  </div>
+                  {/* Cash in drawer */}
+                  <div className="px-5 py-2.5 flex items-center justify-between bg-green-500/5 border-t border-green-500/10">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🗄️</span>
+                      <p className="font-heading text-[10px] tracking-widest text-green-400">CASH IN DRAWER</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <p className="font-heading text-base text-green-400">{formatPKR(cashTotal)}</p>
+                      <button
+                        onClick={openCashDrawer}
+                        className="font-heading text-[9px] tracking-widest px-2 py-1 border border-green-500/30 text-green-400/70 hover:text-green-400 hover:border-green-500/60 rounded-sm transition-colors"
+                      >
+                        OPEN
+                      </button>
                     </div>
                   </div>
                   {/* Tabs */}
