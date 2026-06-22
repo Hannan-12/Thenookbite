@@ -6,50 +6,12 @@ import { formatPKR, isValidPakistaniPhone, normalizePhone } from '@/lib/format';
 import { imageForItem } from '@/lib/itemImages';
 import { createClient } from '@/lib/supabase/client';
 import { useCashDrawer } from '@/lib/useCashDrawer';
-
-const QUICK_CASH_NOTES = [500, 1000, 2000, 5000]; // PKR denominations in circulation
-const CARD_SURCHARGE_RATE = 0.015;                 // 1.5% per bank agreement
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface CartLine {
-  key: string;
-  name: string;
-  price: number;
-  quantity: number;
-  menu_item_id: string;
-}
-
-interface PastOrder {
-  id: string;
-  customer_name: string;
-  total: number;
-  status: string;
-  created_at: string;
-  order_items: { item_name: string; quantity: number; item_price: number }[];
-}
-
-interface SessionOrder {
-  id: string;
-  total: number;
-  customerName: string;
-  phone: string;
-  table: string;
-  address: string;
-  rider: string;
-  orderType: OrderType;
-  payment: PaymentMethod;
-  paymentStatus: 'paid' | 'pending';
-  cancelled?: boolean;
-  items: CartLine[];
-  notes: string;
-  placedAt: Date;
-  discountAmount?: number;
-  discountType?: 'pct' | 'flat';
-  discountValue?: number;
-}
-
-type OrderType = 'dine-in' | 'takeaway' | 'delivery';
-type PaymentMethod = 'cash' | 'card' | 'pay_later';
+import {
+  QUICK_CASH_NOTES, CARD_SURCHARGE_RATE,
+  type CartLine, type SessionOrder, type PastOrder, type OrderType, type PaymentMethod,
+} from './types';
+import { useOfflineQueue } from './hooks/useOfflineQueue';
+import { useSessionOrders } from './hooks/useSessionOrders';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function orderNum(id: string): string {
@@ -92,7 +54,6 @@ export function POSTerminal({
   const [cartOpen, setCartOpen]     = useState(false);
   const [placing, setPlacing]       = useState(false);
   const [lastOrder, setLastOrder]   = useState<SessionOrder | null>(null);
-  const [sessionOrders, setSessionOrders] = useState<SessionOrder[]>([]);
   const [sessionOpen, setSessionOpen]     = useState(false);
   const [sessionTab, setSessionTab]       = useState<'all' | 'unpaid'>('all');
   const [settleId, setSettleId]           = useState<string | null>(null);
@@ -106,128 +67,16 @@ export function POSTerminal({
   const [discountType, setDiscountType]   = useState<'pct' | 'flat'>('flat');
   const [discountValue, setDiscountValue] = useState('');
   const { openDrawer: fireDrawer, pairPrinter, paired: drawerPaired, status: drawerStatus } = useCashDrawer();
-  const [isOnline, setIsOnline]     = useState(true);
-  const searchRef                   = useRef<HTMLInputElement>(null);
-  const lookupTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const flushingRef                 = useRef(false);
+  const searchRef    = useRef<HTMLInputElement>(null);
+  const lookupTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showToastRef = useRef<(msg: string) => void>(() => {});
 
-  // ── Load today's orders for this staff member on mount ───────────────────────
-  useEffect(() => {
-    if (!staffId) return;
-    const params = new URLSearchParams({ staff_id: staffId });
-    if (sessionId) params.set('session_id', sessionId);
-    fetch(`/api/pos/staff-orders?${params}`)
-      .then(r => r.ok ? r.json() : [])
-      .then((orders: Array<{
-        id: string; total: number; customer_name: string; customer_phone: string;
-        table_number: string | null; delivery_address: string | null; rider_name: string | null;
-        order_type: string; payment_method: string; payment_status: string;
-        special_notes: string | null; created_at: string;
-        order_items: { item_name: string; item_price: number; quantity: number }[];
-      }>) => {
-        const loaded: SessionOrder[] = orders.map(o => ({
-          id: o.id,
-          total: o.total,
-          customerName: o.customer_name,
-          phone: o.customer_phone ?? '',
-          table: o.table_number ?? '',
-          address: o.delivery_address ?? '',
-          rider: o.rider_name ?? '',
-          orderType: (o.order_type as OrderType) ?? 'dine-in',
-          payment: (o.payment_method as PaymentMethod) ?? 'cash',
-          paymentStatus: (o.payment_status === 'paid' ? 'paid' : 'pending') as 'paid' | 'pending',
-          notes: o.special_notes ?? '',
-          placedAt: new Date(o.created_at),
-          items: o.order_items.map(i => ({
-            key: i.item_name,
-            name: i.item_name,
-            price: i.item_price,
-            quantity: i.quantity,
-            menu_item_id: '',
-          })),
-        }));
-        setSessionOrders(loaded);
-      })
-      .catch(() => {});
-  }, [staffId, sessionId]);
-
-  // ── Offline queue helpers ────────────────────────────────────────────────────
-  const QUEUE_KEY = `tnb_pos_queue_${sessionId}`;
-
-  function saveToOfflineQueue(payload: object) {
-    const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]');
-    queue.push({ payload, queuedAt: new Date().toISOString() });
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
-  }
-
-  async function flushOfflineQueue() {
-    if (flushingRef.current) return;
-    const raw = localStorage.getItem(QUEUE_KEY);
-    if (!raw) return;
-    let queue: Array<{ payload: object; queuedAt: string }>;
-    try { queue = JSON.parse(raw); } catch { return; }
-    if (!queue.length) return;
-    flushingRef.current = true;
-    showToast(`Syncing ${queue.length} offline order${queue.length > 1 ? 's' : ''}…`);
-    const remaining: typeof queue = [];
-    for (const entry of queue) {
-      try {
-        const res = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(entry.payload),
-        });
-        if (!res.ok) { remaining.push(entry); continue; }
-        const order = await res.json();
-        const p = entry.payload as Record<string, unknown>;
-        const flushedOrder: SessionOrder = {
-          id: order.id,
-          total: order.total,
-          customerName: String(p.customer_name ?? ''),
-          phone: String(p.customer_phone ?? ''),
-          table: String(p.table_number ?? ''),
-          address: String(p.delivery_address ?? ''),
-          rider: String(p.rider_name ?? ''),
-          orderType: (p.order_type as OrderType) ?? 'dine-in',
-          payment: (p.payment_method as PaymentMethod) ?? 'cash',
-          paymentStatus: p.payment_method === 'pay_later' ? 'pending' : 'paid',
-          items: (p.items as CartLine[]) ?? [],
-          notes: String(p.special_notes ?? ''),
-          placedAt: new Date(entry.queuedAt),
-        };
-        setSessionOrders(prev => [flushedOrder, ...prev]);
-      } catch {
-        remaining.push(entry);
-      }
-    }
-    if (remaining.length) {
-      localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
-      showToast(`${remaining.length} order${remaining.length > 1 ? 's' : ''} still pending — retry soon`);
-    } else {
-      localStorage.removeItem(QUEUE_KEY);
-      showToast('All offline orders synced ✓');
-    }
-    flushingRef.current = false;
-  }
-
-  // ── Online/offline listeners ──────────────────────────────────────────────────
-  useEffect(() => {
-    function handleOnline() {
-      setIsOnline(true);
-      flushOfflineQueue();
-    }
-    function handleOffline() { setIsOnline(false); }
-    setIsOnline(navigator.onLine);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    // Flush any leftover queue on mount in case last session closed while offline
-    if (navigator.onLine) flushOfflineQueue();
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { sessionOrders, setSessionOrders } = useSessionOrders(staffId, sessionId);
+  const { isOnline, saveToQueue: saveToOfflineQueue } = useOfflineQueue(
+    sessionId,
+    (flushed) => setSessionOrders(prev => [{ ...flushed, items: flushed.items as CartLine[] }, ...prev]),
+    useCallback((msg: string) => showToastRef.current(msg), []),
+  );
 
   // ── Phone lookup ─────────────────────────────────────────────────────────────
   const lookupPhone = useCallback(async (raw: string) => {
@@ -422,6 +271,7 @@ export function POSTerminal({
     setToast(msg);
     setTimeout(() => setToast(null), 2000);
   }
+  showToastRef.current = showToast;
 
   async function cancelOrderPos(orderId: string) {
     setCancelling(true);
