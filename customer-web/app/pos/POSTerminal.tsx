@@ -427,7 +427,7 @@ export function POSTerminal({
     setCancelling(false);
     setCancelId(null);
     if (res.ok) {
-      setSessionOrders(prev => prev.map(o => o.id === orderId ? { ...o, cancelled: true, paymentStatus: 'paid' as const } : o));
+      setSessionOrders(prev => prev.map(o => o.id === orderId ? { ...o, cancelled: true } : o));
       showToast('Order cancelled');
     } else {
       showToast('Cancel failed');
@@ -1302,17 +1302,17 @@ export function POSTerminal({
 
             {/* Summary bar */}
             {sessionOrders.length > 0 && (() => {
-              const unpaidOrders = sessionOrders.filter(o => o.paymentStatus === 'pending');
+              const unpaidOrders = sessionOrders.filter(o => !o.cancelled && o.paymentStatus === 'pending');
               const cashTotal = sessionOrders
-                .filter(o => o.paymentStatus === 'paid' && o.payment === 'cash')
+                .filter(o => !o.cancelled && o.paymentStatus === 'paid' && o.payment === 'cash')
                 .reduce((s, o) => s + o.total, 0);
               return (
                 <div className="border-b border-white/5 flex-shrink-0">
                   <div className="px-5 py-3 flex items-center justify-between bg-white/[0.02]">
                     <div>
-                      <p className="font-heading text-[10px] tracking-widest text-white">{sessionOrders.length} ORDER{sessionOrders.length !== 1 ? 'S' : ''} THIS SESSION</p>
+                      <p className="font-heading text-[10px] tracking-widest text-white">{sessionOrders.filter(o => !o.cancelled).length} ORDER{sessionOrders.filter(o => !o.cancelled).length !== 1 ? 'S' : ''} THIS SESSION</p>
                       <p className="font-heading text-xl text-white mt-0.5">
-                        {formatPKR(sessionOrders.reduce((s, o) => s + o.total, 0))}
+                        {formatPKR(sessionOrders.filter(o => !o.cancelled).reduce((s, o) => s + o.total, 0))}
                       </p>
                     </div>
                     <div className="text-right">
