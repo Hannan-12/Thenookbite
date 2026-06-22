@@ -12,18 +12,20 @@ export async function GET() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Today's orders with items and staff
+  // Today's orders with items and staff (exclude cancelled)
   const { data: orders } = await db
     .from('orders')
     .select('id, status, total, created_at, staff_id')
+    .neq('status', 'cancelled')
     .gte('created_at', today.toISOString())
     .order('created_at', { ascending: false });
 
-  // Items sold today
+  // Items sold today (exclude cancelled orders)
   const { data: items } = await db
     .from('order_items')
-    .select('quantity, orders!inner(created_at)')
-    .gte('orders.created_at', today.toISOString());
+    .select('quantity, orders!inner(created_at, status)')
+    .gte('orders.created_at', today.toISOString())
+    .neq('orders.status', 'cancelled');
 
   const itemsSold = (items ?? []).reduce((s: number, i: { quantity: number }) => s + i.quantity, 0);
 

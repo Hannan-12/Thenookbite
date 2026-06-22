@@ -16,7 +16,8 @@ export async function GET(req: Request) {
 
     const { data, error } = await db
       .from('orders')
-      .select('total, created_at, status')
+      .select('total, created_at')
+      .neq('status', 'cancelled')
       .gte('created_at', from.toISOString())
       .order('created_at', { ascending: true });
 
@@ -59,6 +60,7 @@ export async function GET(req: Request) {
     const { data, error } = await db
       .from('orders')
       .select('total, created_at')
+      .neq('status', 'cancelled')
       .gte('created_at', from.toISOString())
       .order('created_at', { ascending: true });
 

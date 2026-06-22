@@ -17,13 +17,11 @@ export async function GET() {
   const { data: cashOrders } = await db
     .from('orders')
     .select('total, payment_method, payment_status')
+    .neq('status', 'cancelled')
     .gte('created_at', today.toISOString())
     .in('payment_method', ['cash', 'pay_later'])
     .eq('payment_status', 'paid');
 
-  // Only count cash orders + pay_later orders settled as cash
-  // payment_status='paid' + payment_method='cash' covers both direct cash orders
-  // and pay_later orders that were settled (settle API sets payment_method to the settle method)
   const cashTotal = (cashOrders ?? [])
     .filter(o => o.payment_method === 'cash')
     .reduce((s, o) => s + (o.total ?? 0), 0);
@@ -42,6 +40,7 @@ export async function GET() {
         const { data } = await db
           .from('orders')
           .select('total, payment_method, payment_status')
+          .neq('status', 'cancelled')
           .gte('created_at', lastReset.reset_at)
           .in('payment_method', ['cash', 'pay_later'])
           .eq('payment_status', 'paid');
@@ -67,6 +66,7 @@ export async function POST() {
   const { data: cashOrders } = await db
     .from('orders')
     .select('total, payment_method, payment_status')
+    .neq('status', 'cancelled')
     .gte('created_at', today.toISOString())
     .in('payment_method', ['cash', 'pay_later'])
     .eq('payment_status', 'paid');

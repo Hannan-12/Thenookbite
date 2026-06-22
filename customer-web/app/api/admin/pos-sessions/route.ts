@@ -75,8 +75,9 @@ export async function GET(req: NextRequest) {
 
   // Build response: one entry per session
   const result = sessions.map(sess => {
-    const sessOrders = (orders ?? []).filter(o => o.session_id === sess.id);
-    const staff      = staffMap[sess.staff_id];
+    const sessOrders        = (orders ?? []).filter(o => o.session_id === sess.id);
+    const activeOrders      = sessOrders.filter(o => o.status !== 'cancelled');
+    const staff             = staffMap[sess.staff_id];
     return {
       session_id:    sess.id,
       staff_id:      sess.staff_id,
@@ -85,8 +86,8 @@ export async function GET(req: NextRequest) {
       started_at:    sess.started_at,
       ended_at:      sess.ended_at,
       orders:        sessOrders,
-      total_orders:  sessOrders.length,
-      total_revenue: sessOrders.reduce((s, o) => s + (o.total ?? 0), 0),
+      total_orders:  activeOrders.length,
+      total_revenue: activeOrders.reduce((s, o) => s + (o.total ?? 0), 0),
     };
   });
 
