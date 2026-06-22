@@ -40,6 +40,9 @@ interface SessionOrder {
   items: CartLine[];
   notes: string;
   placedAt: Date;
+  discountAmount?: number;
+  discountType?: 'pct' | 'flat';
+  discountValue?: number;
 }
 
 type OrderType = 'dine-in' | 'takeaway' | 'delivery';
@@ -97,6 +100,8 @@ export function POSTerminal({
   const [paymentModal, setPaymentModal]   = useState(false);
   const [cashStep, setCashStep]           = useState(false);
   const [cashGiven, setCashGiven]         = useState('');
+  const [discountType, setDiscountType]   = useState<'pct' | 'flat'>('flat');
+  const [discountValue, setDiscountValue] = useState('');
   const { openDrawer: fireDrawer, pairPrinter, paired: drawerPaired, status: drawerStatus } = useCashDrawer();
   const [isOnline, setIsOnline]     = useState(true);
   const searchRef                   = useRef<HTMLInputElement>(null);
@@ -289,11 +294,20 @@ export function POSTerminal({
     setNotes('');
     setOrderType('dine-in');
     setPayment('cash');
+    setDiscountValue('');
+    setDiscountType('flat');
   }
 
   const total = cart.reduce((s, l) => s + l.price * l.quantity, 0);
-  // 1.5% card surcharge, rounded up to nearest rupee
-  const cardTotal = Math.ceil(total * 1.015);
+  const discountAmount = (() => {
+    const v = parseFloat(discountValue) || 0;
+    if (v <= 0) return 0;
+    if (discountType === 'pct') return Math.min(Math.round(total * v / 100), total);
+    return Math.min(Math.round(v), total);
+  })();
+  const afterDiscount = total - discountAmount;
+  // 1.5% card surcharge on discounted price, rounded up to nearest rupee
+  const cardTotal = Math.ceil(afterDiscount * 1.015);
 
   // ── Place order ───────────────────────────────────────────────────────────────
   async function placeOrder(selectedPayment?: PaymentMethod, overrideTotal?: number) {
@@ -307,7 +321,7 @@ export function POSTerminal({
     const method = selectedPayment ?? payment;
     setPayment(method);
     setPlacing(true);
-    const chargedTotal = overrideTotal ?? total;
+    const chargedTotal = overrideTotal ?? afterDiscount;
     const nameDefault =
       orderType === 'dine-in'  ? `Table ${table || '?'}` :
       orderType === 'delivery' ? 'Delivery'               : 'Counter';
@@ -321,7 +335,7 @@ export function POSTerminal({
       order_type:       orderType,
       special_notes:    notes || null,
       payment_method:   method,
-      override_total:   method === 'card' ? chargedTotal : undefined,
+      override_total:   chargedTotal < total ? chargedTotal : method === 'card' ? chargedTotal : undefined,
       user_id:          null,
       staff_id:         staffId,
       session_id:       sessionId,
@@ -333,24 +347,28 @@ export function POSTerminal({
       })),
     };
 
+    const sessionOrderBase: Omit<SessionOrder, 'id'> = {
+      total: chargedTotal,
+      customerName: customer || nameDefault,
+      phone: normalizedPhone,
+      table,
+      address,
+      rider,
+      orderType,
+      payment: method,
+      paymentStatus: method === 'pay_later' ? 'pending' : 'paid',
+      items: [...cart],
+      notes,
+      placedAt: new Date(),
+      discountAmount,
+      discountType,
+      discountValue: parseFloat(discountValue) || 0,
+    };
+
     try {
       if (!navigator.onLine) {
         saveToOfflineQueue(orderPayload);
-        const offlineOrder: SessionOrder = {
-          id: `offline-${Date.now()}`,
-          total: chargedTotal,
-          customerName: customer || nameDefault,
-          phone: normalizedPhone,
-          table,
-          address,
-          rider,
-          orderType,
-          payment: method,
-          paymentStatus: method === 'pay_later' ? 'pending' : 'paid',
-          items: [...cart],
-          notes,
-          placedAt: new Date(),
-        };
+        const offlineOrder: SessionOrder = { id: `offline-${Date.now()}`, ...sessionOrderBase };
         setLastOrder(offlineOrder);
         setSessionOrders(prev => [offlineOrder, ...prev]);
         clearCart();
@@ -370,18 +388,8 @@ export function POSTerminal({
       const order = await res.json();
       const completedOrder: SessionOrder = {
         id: order.id,
+        ...sessionOrderBase,
         total: order.total,
-        customerName: customer || nameDefault,
-        phone: normalizedPhone,
-        table,
-        address,
-        rider,
-        orderType,
-        payment: method,
-        paymentStatus: method === 'pay_later' ? 'pending' : 'paid',
-        items: [...cart],
-        notes,
-        placedAt: new Date(),
       };
       setLastOrder(completedOrder);
       setSessionOrders(prev => [completedOrder, ...prev]);
@@ -391,21 +399,7 @@ export function POSTerminal({
       // Network failure — queue it
       if (!navigator.onLine || (e instanceof TypeError && e.message.includes('fetch'))) {
         saveToOfflineQueue(orderPayload);
-        const offlineOrder: SessionOrder = {
-          id: `offline-${Date.now()}`,
-          total: chargedTotal,
-          customerName: customer || nameDefault,
-          phone: normalizedPhone,
-          table,
-          address,
-          rider,
-          orderType,
-          payment: method,
-          paymentStatus: method === 'pay_later' ? 'pending' : 'paid',
-          items: [...cart],
-          notes,
-          placedAt: new Date(),
-        };
+        const offlineOrder: SessionOrder = { id: `offline-${Date.now()}`, ...sessionOrderBase };
         setLastOrder(offlineOrder);
         setSessionOrders(prev => [offlineOrder, ...prev]);
         clearCart();
@@ -470,7 +464,7 @@ export function POSTerminal({
   function printReceipt(order?: SessionOrder) {
     const target = order ?? lastOrder;
     if (!target) return;
-    const { id, total, customerName, phone, table, address, rider, orderType, payment, paymentStatus, items, notes, placedAt } = target;
+    const { id, total, customerName, phone, table, address, rider, orderType, payment, paymentStatus, items, notes, placedAt, discountAmount: da, discountType: dt, discountValue: dv } = target;
     const isPayLater = payment === 'pay_later' || paymentStatus === 'pending';
     const dateStr  = placedAt.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
     const timeStr  = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -576,10 +570,15 @@ export function POSTerminal({
       <td class="small">Subtotal (${itemCount} item${itemCount !== 1 ? 's' : ''})</td>
       <td class="small right">Rs.${subtotal.toLocaleString()}</td>
     </tr>
-    ${payment === 'card' && total > subtotal ? `
+    ${(da && da > 0) ? `
+    <tr>
+      <td class="small" style="color:#16a34a;">Discount (${dt === 'pct' ? `${dv}%` : `Rs.${dv}`})</td>
+      <td class="small right" style="color:#16a34a;">− Rs.${da.toLocaleString()}</td>
+    </tr>` : ''}
+    ${payment === 'card' && total > (subtotal - (da ?? 0)) ? `
     <tr>
       <td class="small" style="color:#555;">Card Service Charge (1.5%)</td>
-      <td class="small right" style="color:#555;">Rs.${(total - subtotal).toLocaleString()}</td>
+      <td class="small right" style="color:#555;">Rs.${(total - subtotal + (da ?? 0)).toLocaleString()}</td>
     </tr>` : `
     <tr>
       <td class="small" style="color:#555;">Tax / Service Charge</td>
@@ -794,11 +793,78 @@ export function POSTerminal({
         />
       </div>
 
+      {/* Discount */}
+      {cart.length > 0 && (
+        <div className="px-4 pb-3 border-t border-white/5 pt-3 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            {/* Type toggle */}
+            <div className="flex rounded-sm overflow-hidden border border-white/10 flex-shrink-0">
+              <button
+                onClick={() => { setDiscountType('flat'); setDiscountValue(''); }}
+                className={`font-heading text-[10px] tracking-widest px-2.5 py-1.5 transition-colors ${
+                  discountType === 'flat' ? 'bg-[#E4002B] text-white' : 'text-white/40 hover:text-white'
+                }`}
+              >Rs</button>
+              <button
+                onClick={() => { setDiscountType('pct'); setDiscountValue(''); }}
+                className={`font-heading text-[10px] tracking-widest px-2.5 py-1.5 transition-colors ${
+                  discountType === 'pct' ? 'bg-[#E4002B] text-white' : 'text-white/40 hover:text-white'
+                }`}
+              >%</button>
+            </div>
+            {/* Input */}
+            <input
+              type="number"
+              min={0}
+              max={discountType === 'pct' ? 100 : total}
+              value={discountValue}
+              onChange={e => setDiscountValue(e.target.value)}
+              placeholder={discountType === 'pct' ? '% off' : 'Amount off'}
+              className="flex-1 min-w-0 bg-[#1a1a1a] border border-white/10 focus:border-[#E4002B]/40 px-3 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none rounded-sm font-heading tabular-nums"
+            />
+            {/* Quick flat amounts */}
+            {discountType === 'flat' && (
+              <div className="flex gap-1 flex-shrink-0">
+                {[100, 200, 300].map(v => (
+                  <button
+                    key={v}
+                    onClick={() => setDiscountValue(String(v))}
+                    className={`font-heading text-[10px] tracking-widest px-2 py-1.5 rounded-sm border transition-colors ${
+                      discountValue === String(v)
+                        ? 'bg-white/10 border-white/30 text-white'
+                        : 'border-white/10 text-white/40 hover:text-white hover:border-white/20'
+                    }`}
+                  >{v}</button>
+                ))}
+              </div>
+            )}
+            {/* Clear discount */}
+            {discountValue && (
+              <button
+                onClick={() => setDiscountValue('')}
+                className="font-heading text-[10px] text-white/30 hover:text-white/60 flex-shrink-0 transition-colors"
+              >✕</button>
+            )}
+          </div>
+          {discountAmount > 0 && (
+            <div className="flex items-center justify-between mt-1.5">
+              <span className="font-heading text-[10px] tracking-widest text-green-400/70">DISCOUNT</span>
+              <span className="font-heading text-[10px] text-green-400">− {formatPKR(discountAmount)}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Total + place order */}
       <div className="px-4 pb-4 space-y-2 border-t border-white/5 pt-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <span className="font-heading text-xs tracking-widest text-white">TOTAL</span>
-          <span className="font-heading text-2xl text-white">{formatPKR(total)}</span>
+          <div className="text-right">
+            {discountAmount > 0 && (
+              <p className="font-heading text-xs text-white/30 line-through">{formatPKR(total)}</p>
+            )}
+            <span className="font-heading text-2xl text-white">{formatPKR(afterDiscount)}</span>
+          </div>
         </div>
         <div className="flex gap-2">
           {cart.length > 0 && (
@@ -822,12 +888,12 @@ export function POSTerminal({
       {/* Payment method popup */}
       {paymentModal && (() => {
         const given  = parseInt(cashGiven) || 0;
-        const change = given - total;
+        const change = given - afterDiscount;
         // Quick-amount buttons: round up to common PKR notes
-        const notes  = [500, 1000, 2000, 5000].filter(n => n >= total);
-        // Also add exact and the next note above total
+        const notes  = [500, 1000, 2000, 5000].filter(n => n >= afterDiscount);
+        // Also add exact and the next note above afterDiscount
         const quickAmounts = Array.from(new Set([
-          total,
+          afterDiscount,
           ...notes,
         ])).sort((a, b) => a - b).slice(0, 4);
 
@@ -845,13 +911,13 @@ export function POSTerminal({
                 <>
                   <p className="font-heading text-xs tracking-[0.3em] text-[#E4002B] mb-1">SELECT</p>
                   <h2 className="font-heading text-2xl text-white mb-1">PAYMENT METHOD</h2>
-                  <p className="font-heading text-2xl text-white mb-5">{formatPKR(total)}</p>
+                  <p className="font-heading text-2xl text-white mb-5">{formatPKR(afterDiscount)}</p>
 
                   <div className="flex flex-col gap-2">
                     {([
-                      { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table',           chargedTotal: total    },
-                      { value: 'card',      label: '💳 CARD',      sub: `+1.5% service charge → ${formatPKR(cardTotal)}`, chargedTotal: cardTotal },
-                      { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later',             chargedTotal: total    },
+                      { value: 'cash',      label: '💵 CASH',      sub: 'Paid at counter / table',                                  chargedTotal: afterDiscount },
+                      { value: 'card',      label: '💳 CARD',      sub: `+1.5% service charge → ${formatPKR(cardTotal)}`,            chargedTotal: cardTotal     },
+                      { value: 'pay_later', label: '🕐 PAY LATER', sub: 'Collect payment later',                                     chargedTotal: afterDiscount },
                     ] as const).map(p => (
                       <button
                         key={p.value}
@@ -904,7 +970,7 @@ export function POSTerminal({
                   <p className="font-heading text-xs tracking-[0.3em] text-[#E4002B] mb-1">💵 CASH</p>
                   <div className="flex items-baseline justify-between mb-4">
                     <span className="font-heading text-xs tracking-widest text-white/50">TOTAL DUE</span>
-                    <span className="font-heading text-3xl text-white">{formatPKR(total)}</span>
+                    <span className="font-heading text-3xl text-white">{formatPKR(afterDiscount)}</span>
                   </div>
 
                   {/* Quick amounts */}
@@ -919,7 +985,7 @@ export function POSTerminal({
                             : 'border-white/10 text-white/50 hover:text-white hover:border-white/20'
                         }`}
                       >
-                        {amt === total ? 'EXACT' : `${(amt/1000).toFixed(amt % 1000 === 0 ? 0 : 1)}K`}
+                        {amt === afterDiscount ? 'EXACT' : `${(amt/1000).toFixed(amt % 1000 === 0 ? 0 : 1)}K`}
                       </button>
                     ))}
                   </div>
@@ -928,15 +994,15 @@ export function POSTerminal({
                   <input
                     autoFocus
                     type="number"
-                    min={total}
+                    min={afterDiscount}
                     value={cashGiven}
                     onChange={e => setCashGiven(e.target.value)}
-                    placeholder={`Enter amount (min ${total})`}
+                    placeholder={`Enter amount (min ${afterDiscount})`}
                     className="w-full bg-black/40 border border-white/20 focus:border-white/50 px-4 py-3 text-xl text-white font-heading placeholder:text-white/20 focus:outline-none rounded-sm mb-4 tabular-nums"
                     onKeyDown={async e => {
-                      if (e.key === 'Enter' && given >= total) {
+                      if (e.key === 'Enter' && given >= afterDiscount) {
                         openCashDrawer();
-                        await placeOrder('cash');
+                        await placeOrder('cash', afterDiscount);
                         setCashStep(false); setCashGiven('');
                         setPaymentModal(false); setCartOpen(false);
                       }
@@ -947,16 +1013,16 @@ export function POSTerminal({
                   <div className={`rounded-sm px-4 py-4 mb-4 border transition-colors ${
                     given === 0
                       ? 'border-white/5 bg-white/3'
-                      : given >= total
+                      : given >= afterDiscount
                         ? 'border-green-500/30 bg-green-500/8'
                         : 'border-red-500/30 bg-red-500/5'
                   }`}>
                     {given === 0 ? (
                       <p className="font-heading text-xs tracking-widest text-white/30 text-center">ENTER CASH AMOUNT</p>
-                    ) : given < total ? (
+                    ) : given < afterDiscount ? (
                       <>
                         <p className="font-heading text-[10px] tracking-widest text-red-400 mb-0.5">SHORT BY</p>
-                        <p className="font-heading text-3xl text-red-400">{formatPKR(total - given)}</p>
+                        <p className="font-heading text-3xl text-red-400">{formatPKR(afterDiscount - given)}</p>
                       </>
                     ) : (
                       <>
@@ -967,16 +1033,16 @@ export function POSTerminal({
                   </div>
 
                   <button
-                    disabled={given < total || placing}
+                    disabled={given < afterDiscount || placing}
                     onClick={async () => {
                       openCashDrawer();
-                      await placeOrder('cash');
+                      await placeOrder('cash', afterDiscount);
                       setCashStep(false); setCashGiven('');
                       setPaymentModal(false); setCartOpen(false);
                     }}
                     className="w-full font-heading text-sm tracking-widest py-4 bg-[#E4002B] text-white hover:bg-red-700 disabled:opacity-30 disabled:cursor-not-allowed rounded-sm transition-colors"
                   >
-                    {placing ? 'PLACING…' : given >= total ? `CONFIRM — CHANGE ${formatPKR(change)}` : 'ENTER AMOUNT'}
+                    {placing ? 'PLACING…' : given >= afterDiscount ? `CONFIRM — CHANGE ${formatPKR(change)}` : 'ENTER AMOUNT'}
                   </button>
                 </>
               )}
