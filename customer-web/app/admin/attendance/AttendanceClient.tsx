@@ -10,6 +10,7 @@ interface AttendanceRecord {
   check_in: string | null;
   check_out: string | null;
   note: string | null;
+  checkin_photo: string | null;
   staff: { full_name: string; role: string; staff_type: string };
 }
 
@@ -41,6 +42,7 @@ export function AttendanceClient() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
+  const [photoView, setPhotoView] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -90,6 +92,26 @@ export function AttendanceClient() {
 
   return (
     <div className="px-4 sm:px-8 py-8">
+
+      {/* Photo lightbox */}
+      {photoView && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setPhotoView(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoView}
+            alt="Check-in photo"
+            className="max-w-sm w-full rounded-sm border border-white/10 shadow-2xl"
+            style={{ transform: 'scaleX(-1)' }}
+          />
+          <button
+            className="absolute top-4 right-4 font-heading text-white/60 hover:text-white text-xl transition-colors"
+            onClick={() => setPhotoView(null)}
+          >✕</button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
@@ -175,6 +197,26 @@ export function AttendanceClient() {
             ) : records.map((r, i) => (
               <div key={r.staff_id + i} className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-3">
                 <div className="flex items-center gap-3">
+                  {/* Check-in photo thumbnail */}
+                  {r.checkin_photo ? (
+                    <button
+                      onClick={() => setPhotoView(r.checkin_photo!)}
+                      className="flex-shrink-0 w-10 h-10 rounded-sm overflow-hidden border border-white/10 hover:border-white/30 transition-colors"
+                      title="View check-in photo"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={r.checkin_photo}
+                        alt="Check-in"
+                        className="w-full h-full object-cover"
+                        style={{ transform: 'scaleX(-1)' }}
+                      />
+                    </button>
+                  ) : (
+                    <div className="flex-shrink-0 w-10 h-10 rounded-sm border border-white/5 bg-white/3 flex items-center justify-center">
+                      <span className="text-white/20 text-sm">👤</span>
+                    </div>
+                  )}
                   <span className={`font-heading text-[10px] tracking-widest px-2 py-1 rounded-sm border flex-shrink-0 ${STATUS_STYLES[r.status]}`}>
                     {r.status.toUpperCase()}
                   </span>

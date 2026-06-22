@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 
 export async function POST(req: NextRequest) {
-  const { pin } = await req.json();
+  const { pin, photo_url } = await req.json();
 
   if (!pin || pin.length !== 4) {
     return NextResponse.json({ detail: 'Enter a 4-digit PIN' }, { status: 400 });
@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
     date:      today,
     check_in:  now,
     status,
+    checkin_photo: photo_url ?? null,
   }, { onConflict: 'staff_id,date' });
 
   return NextResponse.json({
