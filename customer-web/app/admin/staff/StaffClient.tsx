@@ -22,14 +22,64 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [success, setSuccess]   = useState<string | null>(null);
+  const [editId, setEditId]     = useState<string | null>(null);
+  const [saving, setSaving]     = useState(false);
 
-  const [name, setName]             = useState('');
-  const [email, setEmail]           = useState('');
-  const [password, setPassword]     = useState('');
-  const [role, setRole]             = useState<'cashier' | 'manager'>('cashier');
-  const [staffType, setStaffType]   = useState<'pos' | 'non-pos'>('pos');
-  const [pin, setPin]               = useState('');
-  const [showPass, setShowPass]     = useState(false);
+  // Create form state
+  const [name, setName]           = useState('');
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [role, setRole]           = useState<'cashier' | 'manager'>('cashier');
+  const [staffType, setStaffType] = useState<'pos' | 'non-pos'>('pos');
+  const [pin, setPin]             = useState('');
+  const [showPass, setShowPass]   = useState(false);
+
+  // Edit form state
+  const [editName, setEditName]           = useState('');
+  const [editRole, setEditRole]           = useState<'cashier' | 'manager'>('cashier');
+  const [editStaffType, setEditStaffType] = useState<'pos' | 'non-pos'>('pos');
+  const [editPin, setEditPin]             = useState('');
+
+  const inputClass = 'w-full bg-[#1a1a1a] border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#E4002B]/60 transition-colors rounded-sm';
+
+  function openEdit(s: StaffMember) {
+    setEditId(s.id);
+    setEditName(s.full_name);
+    setEditRole(s.role as 'cashier' | 'manager');
+    setEditStaffType(s.staff_type as 'pos' | 'non-pos');
+    setEditPin(s.pin ?? '');
+  }
+
+  function closeEdit() {
+    setEditId(null);
+    setError(null);
+  }
+
+  async function saveEdit(id: string) {
+    if (editPin && (editPin.length !== 4 || !/^\d{4}$/.test(editPin))) {
+      setError('PIN must be exactly 4 digits');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/admin/staff/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: editName,
+        role: editRole,
+        staff_type: editStaffType,
+        pin: editPin || null,
+      }),
+    });
+    const data = await res.json();
+    setSaving(false);
+    if (!res.ok) { setError(data.detail ?? 'Failed to save'); return; }
+    setStaff(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+    setEditId(null);
+    setSuccess(`${editName} updated successfully.`);
+    setTimeout(() => setSuccess(null), 4000);
+  }
 
   async function createStaff(e: React.FormEvent) {
     e.preventDefault();
@@ -45,10 +95,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
     const data = await res.json();
     setLoading(false);
 
-    if (!res.ok) {
-      setError(data.detail ?? 'Failed to create staff');
-      return;
-    }
+    if (!res.ok) { setError(data.detail ?? 'Failed to create staff'); return; }
 
     setStaff(prev => [data, ...prev]);
     setSuccess(`Account created for ${name}. Welcome email sent to ${email}.`);
@@ -68,8 +115,6 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
       router.refresh();
     }
   }
-
-  const inputClass = 'w-full bg-[#1a1a1a] border border-white/10 px-4 py-2.5 text-sm text-white placeholder:text-white focus:outline-none focus:border-[#E4002B]/60 transition-colors rounded-sm';
 
   return (
     <div className="px-4 sm:px-8 py-8">
@@ -120,30 +165,28 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                   className={inputClass}
                 />
                 <button type="button" onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 font-heading text-[10px] tracking-wider text-white hover:text-white transition-colors">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 font-heading text-[10px] tracking-wider text-white/50 hover:text-white transition-colors">
                   {showPass ? 'HIDE' : 'SHOW'}
                 </button>
               </div>
             </div>
             <div>
               <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">ROLE</label>
-              <select value={role} onChange={e => setRole(e.target.value as 'cashier' | 'manager')}
-                className={inputClass + ' cursor-pointer'}>
+              <select value={role} onChange={e => setRole(e.target.value as 'cashier' | 'manager')} className={inputClass + ' cursor-pointer'}>
                 <option value="cashier">Cashier</option>
                 <option value="manager">Manager</option>
               </select>
             </div>
             <div>
               <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">STAFF TYPE</label>
-              <select value={staffType} onChange={e => setStaffType(e.target.value as 'pos' | 'non-pos')}
-                className={inputClass + ' cursor-pointer'}>
+              <select value={staffType} onChange={e => setStaffType(e.target.value as 'pos' | 'non-pos')} className={inputClass + ' cursor-pointer'}>
                 <option value="pos">POS (Cashier / Manager)</option>
                 <option value="non-pos">Non-POS (Chef / Cleaner / etc.)</option>
               </select>
             </div>
             <div>
               <label className="font-heading text-[10px] tracking-widest text-white block mb-1.5">
-                CHECK-IN PIN <span className="text-white">(4 digits — for tablet check-in)</span>
+                CHECK-IN PIN <span className="text-white/40 normal-case">(4 digits)</span>
               </label>
               <input
                 value={pin}
@@ -167,7 +210,7 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
                 {loading ? 'CREATING…' : 'CREATE & SEND EMAIL'}
               </button>
               <button type="button" onClick={() => setShowForm(false)}
-                className="font-heading text-xs tracking-widest px-6 py-2.5 border border-white/10 text-white hover:text-white hover:border-white/30 transition-colors rounded-sm">
+                className="font-heading text-xs tracking-widest px-6 py-2.5 border border-white/10 text-white hover:border-white/30 transition-colors rounded-sm">
                 CANCEL
               </button>
             </div>
@@ -190,45 +233,115 @@ export function StaffClient({ initialStaff }: { initialStaff: StaffMember[] }) {
         ) : (
           <div className="divide-y divide-white/5">
             {staff.map(s => (
-              <div key={s.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-3">
-                <div className="flex items-start gap-4">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${s.is_active ? 'bg-green-500' : 'bg-white/10'}`} />
-                  <div className="min-w-0">
-                    <p className="font-heading text-sm text-white">{s.full_name}</p>
-                    <p className="font-heading text-xs text-white mt-0.5 break-all">{s.email}</p>
-                    <p className="font-heading text-[10px] text-white mt-0.5 uppercase group/pin flex items-center gap-1">
-                      {s.staff_type} · PIN:&nbsp;
-                      <span className="relative">
-                        <span className="group-hover/pin:hidden">••••</span>
-                        <span className="hidden group-hover/pin:inline tracking-widest text-white">{s.pin ?? '—'}</span>
-                      </span>
-                    </p>
-                    {s.last_seen && (
-                      <p className="font-heading text-[10px] text-white mt-0.5">
-                        LAST SEEN {new Date(s.last_seen).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · {new Date(s.last_seen).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+              <div key={s.id}>
+                {/* Row */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-3">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${s.is_active ? 'bg-green-500' : 'bg-white/10'}`} />
+                    <div className="min-w-0">
+                      <p className="font-heading text-sm text-white">{s.full_name}</p>
+                      <p className="font-heading text-xs text-white/50 mt-0.5 break-all">{s.email}</p>
+                      <p className="font-heading text-[10px] text-white/30 mt-0.5 uppercase group/pin flex items-center gap-1">
+                        {s.staff_type} · PIN:&nbsp;
+                        <span className="relative">
+                          <span className="group-hover/pin:hidden">••••</span>
+                          <span className="hidden group-hover/pin:inline tracking-widest text-white/60">{s.pin ?? '—'}</span>
+                        </span>
                       </p>
-                    )}
+                      {s.last_seen && (
+                        <p className="font-heading text-[10px] text-white/20 mt-0.5">
+                          LAST SEEN {new Date(s.last_seen).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · {new Date(s.last_seen).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pl-6 sm:pl-0 flex-shrink-0 flex-wrap">
+                    <span className={`font-heading text-[10px] tracking-widest px-2 py-1 rounded-sm border ${
+                      s.role === 'manager'
+                        ? 'border-[#E4002B]/30 text-[#E4002B]/70'
+                        : 'border-white/10 text-white/50'
+                    }`}>
+                      {s.role.toUpperCase()}
+                    </span>
+                    <button
+                      onClick={() => editId === s.id ? closeEdit() : openEdit(s)}
+                      className={`font-heading text-[10px] tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
+                        editId === s.id
+                          ? 'border-white/30 text-white bg-white/5'
+                          : 'border-white/10 text-white/60 hover:border-white/30 hover:text-white'
+                      }`}
+                    >
+                      {editId === s.id ? 'CANCEL' : 'EDIT'}
+                    </button>
+                    <button
+                      onClick={() => toggleActive(s.id, s.is_active)}
+                      className={`font-heading text-[10px] tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
+                        s.is_active
+                          ? 'border-white/10 text-white/60 hover:border-red-500/40 hover:text-red-400'
+                          : 'border-green-500/30 text-green-400/60 hover:text-green-400'
+                      }`}
+                    >
+                      {s.is_active ? 'DEACTIVATE' : 'ACTIVATE'}
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 pl-6 sm:pl-0 flex-shrink-0">
-                  <span className={`font-heading text-[10px] tracking-widest px-2 py-1 rounded-sm border ${
-                    s.role === 'manager'
-                      ? 'border-[#E4002B]/30 text-[#E4002B]/70'
-                      : 'border-white/10 text-white'
-                  }`}>
-                    {s.role.toUpperCase()}
-                  </span>
-                  <button
-                    onClick={() => toggleActive(s.id, s.is_active)}
-                    className={`font-heading text-[10px] tracking-widest px-3 py-1.5 rounded-sm border transition-colors ${
-                      s.is_active
-                        ? 'border-white/10 text-white hover:border-red-500/40 hover:text-red-400'
-                        : 'border-green-500/30 text-green-400/60 hover:text-green-400'
-                    }`}
-                  >
-                    {s.is_active ? 'DEACTIVATE' : 'ACTIVATE'}
-                  </button>
-                </div>
+
+                {/* Inline edit panel */}
+                {editId === s.id && (
+                  <div className="mx-5 mb-4 border border-white/10 bg-[#0d0d0d] rounded-sm p-5">
+                    <p className="font-heading text-[10px] tracking-[0.3em] text-[#E4002B] mb-4">EDIT STAFF</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="font-heading text-[10px] tracking-widest text-white/50 block mb-1.5">FULL NAME</label>
+                        <input value={editName} onChange={e => setEditName(e.target.value)} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className="font-heading text-[10px] tracking-widest text-white/50 block mb-1.5">ROLE</label>
+                        <select value={editRole} onChange={e => setEditRole(e.target.value as 'cashier' | 'manager')} className={inputClass + ' cursor-pointer'}>
+                          <option value="cashier">Cashier</option>
+                          <option value="manager">Manager</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-heading text-[10px] tracking-widest text-white/50 block mb-1.5">STAFF TYPE</label>
+                        <select value={editStaffType} onChange={e => setEditStaffType(e.target.value as 'pos' | 'non-pos')} className={inputClass + ' cursor-pointer'}>
+                          <option value="pos">POS (Cashier / Manager)</option>
+                          <option value="non-pos">Non-POS (Chef / Cleaner / etc.)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="font-heading text-[10px] tracking-widest text-white/50 block mb-1.5">CHECK-IN PIN <span className="text-white/20 normal-case">(4 digits)</span></label>
+                        <input
+                          value={editPin}
+                          onChange={e => setEditPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          placeholder="e.g. 1234"
+                          maxLength={4}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+
+                    {error && editId === s.id && (
+                      <p className="mt-3 text-[#E4002B] text-xs font-body flex items-center gap-2"><span>⚠</span> {error}</p>
+                    )}
+
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={() => saveEdit(s.id)}
+                        disabled={saving}
+                        className="font-heading text-xs tracking-widest px-6 py-2.5 bg-[#E4002B] text-white hover:bg-red-700 disabled:opacity-50 transition-colors rounded-sm"
+                      >
+                        {saving ? 'SAVING…' : 'SAVE CHANGES'}
+                      </button>
+                      <button
+                        onClick={closeEdit}
+                        className="font-heading text-xs tracking-widest px-6 py-2.5 border border-white/10 text-white/60 hover:text-white hover:border-white/30 transition-colors rounded-sm"
+                      >
+                        CANCEL
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
