@@ -26,8 +26,10 @@ export default function AdminLoginPage() {
       return;
     }
 
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    if (adminEmail && data.user.email !== adminEmail) {
+    // Verify admin status server-side (ADMIN_EMAIL is never exposed to the client)
+    const verify = await fetch('/api/admin/verify');
+    const { isAdmin } = await verify.json();
+    if (!isAdmin) {
       await supabase.auth.signOut();
       setError('You are not authorised to access the admin panel.');
       setLoading(false);
