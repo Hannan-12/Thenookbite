@@ -10,9 +10,6 @@ export function middleware(request: NextRequest) {
   if (host.startsWith('admin.') && !path.startsWith('/admin')) {
     return NextResponse.rewrite(new URL(`/admin${path === '/' ? '' : path}`, request.url));
   }
-  if (host.startsWith('checkin.') && !path.startsWith('/checkin')) {
-    return NextResponse.rewrite(new URL('/checkin', request.url));
-  }
 
   return NextResponse.next();
 }
