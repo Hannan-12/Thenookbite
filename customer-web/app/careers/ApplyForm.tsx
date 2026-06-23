@@ -1,23 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const POSITIONS = [
   'Cashier',
   'Chef',
   'Kitchen Helper',
+  'Food Packer',
   'Delivery Rider',
   'Manager',
   'Cleaner',
 ];
 
-export function ApplyForm({ defaultPosition }: { defaultPosition?: string }) {
+export function ApplyForm({
+  selectedPosition,
+  onPositionChange,
+}: {
+  selectedPosition?: string;
+  onPositionChange?: (p: string) => void;
+}) {
   const [form, setForm] = useState({
     name: '',
     phone: '',
-    position: defaultPosition ?? '',
+    position: selectedPosition ?? '',
     message: '',
   });
+
+  useEffect(() => {
+    if (selectedPosition) setForm(f => ({ ...f, position: selectedPosition }));
+  }, [selectedPosition]);
   const [phoneError, setPhoneError] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -118,7 +129,10 @@ export function ApplyForm({ defaultPosition }: { defaultPosition?: string }) {
         <select
           required
           value={form.position}
-          onChange={e => setForm(f => ({ ...f, position: e.target.value }))}
+          onChange={e => {
+            setForm(f => ({ ...f, position: e.target.value }));
+            onPositionChange?.(e.target.value);
+          }}
           className="w-full bg-[#1a1a1a] border border-white/10 rounded-sm px-4 py-3 text-white font-body text-sm focus:outline-none focus:border-[#E4002B]/60 transition-colors appearance-none"
         >
           <option value="" disabled>Select a position</option>

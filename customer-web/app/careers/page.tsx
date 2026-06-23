@@ -1,10 +1,7 @@
-import type { Metadata } from 'next';
-import { ApplyForm } from './ApplyForm';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Careers — The Nook Bite',
-  description: 'Join the TNB team. We\'re hiring cashiers, chefs, kitchen helpers, and delivery riders in Mandi Bahauddin.',
-};
+import { useState } from 'react';
+import { ApplyForm } from './ApplyForm';
 
 const POSITIONS = [
   {
@@ -24,6 +21,12 @@ const POSITIONS = [
     type: 'Full-time / Part-time',
     desc: 'Support the kitchen team with prep, cleaning, and keeping the kitchen stocked and organised.',
     icon: '◫',
+  },
+  {
+    title: 'Food Packer',
+    type: 'Full-time / Part-time',
+    desc: 'Pack takeaway and delivery orders accurately and quickly, ensuring every order leaves in perfect condition.',
+    icon: '◻',
   },
   {
     title: 'Delivery Rider',
@@ -53,6 +56,13 @@ const PERKS = [
 ];
 
 export default function CareersPage() {
+  const [selectedPosition, setSelectedPosition] = useState('');
+
+  function selectAndScroll(title: string) {
+    setSelectedPosition(title);
+    document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' });
+  }
+
   return (
     <div className="bg-[#0a0a0a] min-h-screen">
 
@@ -113,12 +123,12 @@ export default function CareersPage() {
                   {pos.title.toUpperCase()}
                 </h3>
                 <p className="font-body text-sm text-white/40 leading-relaxed flex-1">{pos.desc}</p>
-                <a
-                  href="#apply"
-                  className="mt-5 block text-center font-heading text-xs tracking-widest text-[#E4002B] border border-[#E4002B]/30 py-2.5 rounded-sm hover:bg-[#E4002B] hover:text-white transition-colors"
+                <button
+                  onClick={() => selectAndScroll(pos.title)}
+                  className="mt-5 block w-full text-center font-heading text-xs tracking-widest text-[#E4002B] border border-[#E4002B]/30 py-2.5 rounded-sm hover:bg-[#E4002B] hover:text-white transition-colors"
                 >
                   APPLY →
-                </a>
+                </button>
               </div>
             ))}
           </div>
@@ -165,7 +175,7 @@ export default function CareersPage() {
 
             {/* Right — form */}
             <div className="border border-white/5 bg-[#111] rounded-sm p-6 sm:p-8">
-              <ApplyForm />
+              <ApplyForm selectedPosition={selectedPosition} onPositionChange={setSelectedPosition} />
             </div>
           </div>
         </div>
