@@ -87,6 +87,7 @@ export function Navbar() {
           <nav className="hidden md:flex items-center gap-1">
             {[
               { href: '/menu',           label: 'MENU' },
+              { href: '/careers',        label: 'CAREERS' },
               { href: '/cart',           label: 'CART', ref: cartRef },
               { href: profileLink.href,  label: profileLink.label },
               ...(showProfile ? [{ href: '/profile', label: 'PROFILE' }] : []),
@@ -165,6 +166,7 @@ export function Navbar() {
           >
             {[
               { href: '/menu',          label: 'MENU' },
+              { href: '/careers',       label: 'CAREERS' },
               { href: '/cart',          label: mounted && totalItems > 0 ? `CART (${totalItems})` : 'CART' },
               { href: profileLink.href, label: profileLink.label },
               ...(showProfile ? [{ href: '/profile', label: 'PROFILE' }] : []),
