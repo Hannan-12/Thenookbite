@@ -6,12 +6,15 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const db = createServiceClient();
 
-  // Today's date in PKT (UTC+5): midnight PKT = 19:00 UTC previous day
+  // Today's midnight in PKT (UTC+5) expressed as UTC ISO string
+  // e.g. PKT 2026-06-27 00:00 = UTC 2026-06-26T19:00:00Z
   const nowUtc = new Date();
-  const pktOffset = 5 * 60 * 60 * 1000;
-  const todayPkt = new Date(nowUtc.getTime() + pktOffset);
-  todayPkt.setUTCHours(0, 0, 0, 0);
-  const todayStartUtc = new Date(todayPkt.getTime() - pktOffset).toISOString();
+  const PKT_OFFSET_MS = 5 * 60 * 60 * 1000;
+  const nowPktMs = nowUtc.getTime() + PKT_OFFSET_MS;
+  const pktDate = new Date(nowPktMs);
+  // Build midnight PKT as a UTC timestamp by zeroing PKT h/m/s/ms
+  const midnightPktMs = nowPktMs - (pktDate.getUTCHours() * 3600000 + pktDate.getUTCMinutes() * 60000 + pktDate.getUTCSeconds() * 1000 + pktDate.getUTCMilliseconds());
+  const todayStartUtc = new Date(midnightPktMs - PKT_OFFSET_MS).toISOString();
 
   // Only show today's verified orders — POS orders are auto-verified on creation,
   // online orders must be approved on the verify screen first
