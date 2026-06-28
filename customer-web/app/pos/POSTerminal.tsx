@@ -326,8 +326,6 @@ export function POSTerminal({
     const timeStr  = placedAt.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const subtotal = items.reduce((s, l) => s + l.price * l.quantity, 0);
     const itemCount = items.reduce((s, l) => s + l.quantity, 0);
-    const logoUrl  = `${window.location.origin}/logo-dark.png`;
-
     const rows = items.map(l => `
       <tr>
         <td style="padding:4px 0 2px;font-size:12px;vertical-align:top;">${l.name}</td>
@@ -361,7 +359,7 @@ export function POSTerminal({
 
   <!-- LOGO BLOCK -->
   <div class="center" style="margin-bottom:6px;">
-    <img src="${logoUrl}" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
+    <div style="font-size:22px;font-weight:bold;letter-spacing:4px;margin-bottom:2px;">TNB</div>
     <div style="font-size:13px;font-weight:bold;letter-spacing:3px;margin-bottom:1px;">THE NOOK BITE</div>
     <div class="small" style="color:#333;">Mandi Bahauddin, Punjab, Pakistan</div>
     <div class="small" style="color:#333;">12 PM – 12 AM Daily</div>
