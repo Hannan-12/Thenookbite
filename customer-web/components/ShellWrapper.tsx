@@ -58,8 +58,8 @@ export function ShellWrapper({ children }: { children: React.ReactNode }) {
               <p className="font-heading text-[10px] tracking-[0.3em] text-white/20 mb-4">FIND US</p>
               <div className="space-y-3 text-sm font-body text-white/30 leading-relaxed">
                 <p>Mandi Bahauddin, Punjab, Pakistan</p>
-                <a href="tel:+923001234567" className="block hover:text-white transition-colors duration-200">
-                  0300 1234567
+                <a href="tel:+923279627442" className="block hover:text-white transition-colors duration-200">
+                  0327 9627442
                 </a>
                 <div className="flex items-center gap-3 pt-1">
                   <span className="text-white/20 text-xs font-heading tracking-widest">HOURS</span>
