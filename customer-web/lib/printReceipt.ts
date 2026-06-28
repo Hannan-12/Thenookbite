@@ -48,7 +48,7 @@ export function printOrderReceipt(order: ReceiptOrder) {
 </style>
 </head><body>
   <div class="center" style="margin-bottom:6px;">
-    <img src="${logoUrl}" alt="TNB" style="width:64px;height:auto;display:block;margin:0 auto 4px;" />
+    <p class="bold" style="font-size:22px;letter-spacing:4px;">TNB</p>
     <p class="bold" style="font-size:13px;letter-spacing:2px;">THE NOOK BITE</p>
     <p class="small" style="color:#555;">ORDER RECEIPT</p>
   </div>
